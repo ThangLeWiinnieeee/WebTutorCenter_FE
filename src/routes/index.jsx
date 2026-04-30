@@ -6,6 +6,8 @@ import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
 import HomePage from "@/pages/HomePage";
 import { ProfilePage, CompleteProfilePage } from "@/features/profile";
+import { RegisterTutorPage } from "@/features/tutors";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage } from "@/admin";
 
 import {
   LoginPage,
@@ -54,8 +56,18 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <HomePage /> },
           { path: "/profile", element: <ProfilePage /> },
+          { path: "/register-tutor", element: <RegisterTutorPage /> },
         ],
       },
+    ],
+  },
+
+  // Admin routes (bảo vệ trong AdminLayout)
+  {
+    element: <AdminLayout />,
+    children: [
+      { path: "/admin", element: <AdminDashboardPage /> },
+      { path: "/admin/tutors", element: <TutorApprovalPage /> },
     ],
   },
 ]);

@@ -1,5 +1,5 @@
 export const ROLE_CONFIG = {
-  user: { label: "Học sinh", className: "bg-blue-50 text-blue-700 border border-blue-200" },
+  user: { label: "Học viên", className: "bg-blue-50 text-blue-700 border border-blue-200" },
   tutor: { label: "Gia sư", className: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
   admin: { label: "Quản trị viên", className: "bg-rose-50 text-rose-700 border border-rose-200" },
 };

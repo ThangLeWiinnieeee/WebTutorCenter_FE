@@ -6,6 +6,7 @@ import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
+import NotificationBell from "@/features/notifications/components/NotificationBell";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -32,9 +33,21 @@ const Header = () => {
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
             <>
+              {/* Tutor registration link (only for regular users) */}
+              {user.role === "user" && (
+                <Link
+                  to="/register-tutor"
+                  className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
+                >
+                  Trở thành gia sư
+                </Link>
+              )}
+
+              {/* Notification bell */}
+              <NotificationBell />
+
               {/* User info */}
               <Link to="/profile" className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100">
-                {/* Avatar hoặc chữ cái đầu */}
                 {user.avatar ? (
                   <img
                     src={user.avatar}
