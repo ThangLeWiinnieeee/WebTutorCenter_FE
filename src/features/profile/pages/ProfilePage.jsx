@@ -1,23 +1,34 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { updateProfileThunk, uploadAvatarThunk } from "@/features/auth/store/authThunks";
+import { getTutorProfileThunk } from "@/features/tutors/store/tutorThunks";
 import { profileSchema } from "@/features/profile/schemas/profileSchema";
 import { toInputDate } from "@/features/profile/constants";
 import ProfileSidebar from "@/features/profile/components/ProfileSidebar";
 import ProfilePersonalCard from "@/features/profile/components/ProfilePersonalCard";
 import ProfileViewDetails from "@/features/profile/components/ProfileViewDetails";
 import ProfileEditForm from "@/features/profile/components/ProfileEditForm";
+import TutorInfoCard from "@/features/profile/components/TutorInfoCard";
 
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const dispatch = useDispatch();
+  const { profile: tutorProfile, loading: tutorLoading } = useSelector((state) => state.tutors);
   const [isEditing, setIsEditing] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef(null);
+
+  const isTutor = user?.role === "tutor";
+
+  useEffect(() => {
+    if (isTutor && !tutorProfile) {
+      dispatch(getTutorProfileThunk());
+    }
+  }, [isTutor, tutorProfile, dispatch]);
 
   const form = useForm({
     resolver: zodResolver(profileSchema),
@@ -79,7 +90,7 @@ const ProfilePage = () => {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+      <div className={`grid gap-6 ${isTutor ? "lg:grid-cols-[300px_1fr]" : "lg:grid-cols-[300px_1fr]"}`}>
         <ProfileSidebar
           user={user}
           displayAvatar={displayAvatar}
@@ -89,19 +100,25 @@ const ProfilePage = () => {
           onPickAvatar={() => fileInputRef.current?.click()}
         />
 
-        <ProfilePersonalCard isEditing={isEditing} onEdit={handleEdit}>
-          {isEditing ? (
-            <ProfileEditForm
-              form={form}
-              user={user}
-              loading={loading}
-              onSubmit={onSubmit}
-              onCancel={handleCancel}
-            />
-          ) : (
-            <ProfileViewDetails user={user} />
+        <div className="space-y-6">
+          <ProfilePersonalCard isEditing={isEditing} onEdit={handleEdit}>
+            {isEditing ? (
+              <ProfileEditForm
+                form={form}
+                user={user}
+                loading={loading}
+                onSubmit={onSubmit}
+                onCancel={handleCancel}
+              />
+            ) : (
+              <ProfileViewDetails user={user} />
+            )}
+          </ProfilePersonalCard>
+
+          {isTutor && (
+            <TutorInfoCard tutorProfile={tutorProfile} loading={tutorLoading} />
           )}
-        </ProfilePersonalCard>
+        </div>
       </div>
     </div>
   );

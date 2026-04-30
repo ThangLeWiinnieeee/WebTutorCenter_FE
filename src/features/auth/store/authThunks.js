@@ -84,7 +84,11 @@ export const getUserInfoThunk = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await authService.getUserInfo();
-      return res.data.data.user;
+      const user = res.data?.data?.user;
+      if (!user) {
+        return rejectWithValue("Không lấy được thông tin (phản hồi rỗng từ server)");
+      }
+      return user;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không lấy được thông tin");
     }

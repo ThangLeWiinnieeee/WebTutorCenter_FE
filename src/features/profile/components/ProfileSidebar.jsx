@@ -22,6 +22,7 @@ const ProfileSidebar = ({
               <img
                 src={displayAvatar}
                 alt={user.fullName}
+                referrerPolicy="no-referrer"
                 className="h-28 w-28 rounded-full object-cover ring-4 ring-slate-100"
               />
             ) : (

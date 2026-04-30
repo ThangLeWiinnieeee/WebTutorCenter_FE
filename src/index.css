@@ -77,4 +77,26 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [role="combobox"]:focus,
+  [role="combobox"]:focus-visible,
+  button[data-state]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-offset-shadow: none !important;
+    --tw-ring-shadow: none !important;
+  }
+
+  select,
+  [role="combobox"],
+  [data-radix-collection-item] {
+    cursor: pointer !important;
+  }
 }
