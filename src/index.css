@@ -99,4 +99,11 @@
   [data-radix-collection-item] {
     cursor: pointer !important;
   }
+
+  button,
+  [role="button"],
+  a[href],
+  summary {
+    cursor: pointer;
+  }
 }

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import MultiCheckbox from "./MultiCheckbox";
 import AvailabilityPicker from "./AvailabilityPicker";
 import AreaPicker from "./AreaPicker";
+import SchoolPicker from "./SchoolPicker";
 
 const SectionTitle = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
@@ -148,11 +149,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
                   <FormItem className="sm:col-span-2">
                     <FormLabel>Trường đã / đang học <span className="text-rose-500">*</span></FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="VD: Đại học Bách Khoa Hà Nội"
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-slate-400"
-                        {...field}
-                      />
+                      <SchoolPicker value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
