@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  getDashboardStatsThunk,
   getPendingTutorsThunk,
   approveTutorThunk,
   rejectTutorThunk,
@@ -8,6 +9,12 @@ import {
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
+    dashboardStats: {
+      pendingCount: 0,
+      approvedCount: 0,
+      rejectedCount: 0,
+    },
+    statsLoading: false,
     pendingTutors: [],
     loading: false,
     actionLoading: null,
@@ -15,6 +22,18 @@ const adminSlice = createSlice({
   },
   reducers: {},
   extraReducers: (builder) => {
+    builder
+      .addCase(getDashboardStatsThunk.pending, (state) => {
+        state.statsLoading = true;
+      })
+      .addCase(getDashboardStatsThunk.fulfilled, (state, action) => {
+        state.statsLoading = false;
+        state.dashboardStats = action.payload;
+      })
+      .addCase(getDashboardStatsThunk.rejected, (state) => {
+        state.statsLoading = false;
+      });
+
     builder
       .addCase(getPendingTutorsThunk.pending, (state) => {
         state.loading = true;

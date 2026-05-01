@@ -1,6 +1,18 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import adminService from "@/admin/services/adminService";
 
+export const getDashboardStatsThunk = createAsyncThunk(
+  "admin/getDashboardStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getDashboardStats();
+      return res.data.data.stats;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được thống kê");
+    }
+  }
+);
+
 export const getPendingTutorsThunk = createAsyncThunk(
   "admin/getPendingTutors",
   async (_, { rejectWithValue }) => {

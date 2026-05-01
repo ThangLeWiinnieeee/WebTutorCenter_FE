@@ -5,6 +5,8 @@ const locationService = {
   getProvinces: () => axiosInstance.get(API_ENDPOINTS.LOCATIONS.PROVINCES),
   getDistricts: (provinceCode) =>
     axiosInstance.get(API_ENDPOINTS.LOCATIONS.DISTRICTS(provinceCode)),
+  searchSchools: (query) =>
+    axiosInstance.get(API_ENDPOINTS.LOCATIONS.SCHOOLS, { params: { q: query } }),
 };
 
 export default locationService;

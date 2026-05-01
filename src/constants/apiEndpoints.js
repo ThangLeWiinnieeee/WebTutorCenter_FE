@@ -19,6 +19,7 @@ const API_ENDPOINTS = {
     GET_PROFILE: "/tutors/profile",
   },
   ADMIN: {
+    DASHBOARD_STATS: "/tutors/admin/stats",
     TUTORS_PENDING: "/tutors/admin/pending",
     TUTOR_APPROVE: (id) => `/tutors/admin/${id}/approve`,
     TUTOR_REJECT: (id) => `/tutors/admin/${id}/reject`,
@@ -26,6 +27,7 @@ const API_ENDPOINTS = {
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
     DISTRICTS: (provinceCode) => `/locations/provinces/${provinceCode}/districts`,
+    SCHOOLS: "/locations/schools",
   },
   NOTIFICATIONS: {
     LIST: "/notifications",
