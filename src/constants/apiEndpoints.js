@@ -34,6 +34,14 @@ const API_ENDPOINTS = {
     MARK_READ: (id) => `/notifications/${id}/read`,
     MARK_ALL_READ: "/notifications/read-all",
   },
+  CLASSES: {
+    QUOTE: "/classes/quote",
+    CREATE: "/classes",
+    LIST: "/classes",
+    SUBJECTS: "/classes/subjects",
+    DETAIL: (id) => `/classes/${id}`,
+    MINE: "/classes/mine",
+  },
 };
 
 export default API_ENDPOINTS;

@@ -1,7 +1,18 @@
-import { Camera, Loader2 } from "lucide-react";
-import { getInitials } from "@/features/profile/utils/profileUtils";
-import { formatDate, ROLE_CONFIG } from "@/features/profile/constants";
-import { ProfileBadge, StatusBadge } from "./ProfileBadges";
+import {
+  Camera,
+  Loader2,
+} from 'lucide-react';
+
+import {
+  formatDate,
+  ROLE_CONFIG,
+} from '@/features/profile/constants';
+import { getInitials } from '@/features/profile/utils/profileUtils';
+
+import {
+  ProfileBadge,
+  StatusBadge,
+} from './ProfileBadges';
 
 const ProfileSidebar = ({
   user,
@@ -79,7 +90,7 @@ const ProfileSidebar = ({
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">Loại tài khoản</span>
             <ProfileBadge className="bg-violet-50 text-violet-700 border border-violet-200">
-              {user.type === "google" ? "Google" : "Email"}
+              {user.type === "google" ? "Google" : "Thư điện tử"}
             </ProfileBadge>
           </div>
         </div>

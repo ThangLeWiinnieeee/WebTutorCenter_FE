@@ -1,8 +1,27 @@
-import { Loader2, Lock, X, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Loader2,
+  Lock,
+  Save,
+  X,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
   <Form {...form}>
@@ -80,7 +99,7 @@ const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
 
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-slate-700">Email</span>
+          <span className="text-sm font-medium text-slate-700">Thư điện tử</span>
           <Lock className="h-3.5 w-3.5 text-slate-400" />
         </div>
         <Input

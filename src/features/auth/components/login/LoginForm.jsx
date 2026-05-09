@@ -1,14 +1,20 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { GoogleLogin } from "@react-oauth/google";
-import { Eye, EyeOff, Loader2, GraduationCap } from "lucide-react";
+import { useState } from 'react';
 
-import { loginSchema } from "@/features/auth/schemas/authSchema";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Loader2,
+} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { loginSchema } from '@/features/auth/schemas/authSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginForm = ({ onSubmit, onGoogleSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -40,15 +46,15 @@ const LoginForm = ({ onSubmit, onGoogleSuccess }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-          {/* Email */}
+          {/* Thư điện tử */}
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-slate-700 font-medium text-sm">
-              Email
+              Thư điện tử
             </Label>
             <Input
               id="email"
               type="email"
-              placeholder="example@email.com"
+              placeholder="nhap-email@vi-du.com"
               autoComplete="email"
               className={`h-11 bg-white border-slate-200 focus-visible:ring-blue-500 text-slate-800 placeholder:text-slate-400 ${
                 errors.email ? "border-red-400 focus-visible:ring-red-400" : ""
@@ -127,6 +133,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess }) => {
             onError={() => {}}
             width="368"
             text="signin_with"
+            locale="vi"
             shape="rectangular"
             logo_alignment="left"
           />

@@ -1,6 +1,11 @@
-import { ROLE_CONFIG, GENDER_LABEL, formatDate } from "@/features/profile/constants";
-import { ProfileBadge } from "./ProfileBadges";
-import ProfileInfoRow from "./ProfileInfoRow";
+import {
+  formatDate,
+  GENDER_LABEL,
+  ROLE_CONFIG,
+} from '@/features/profile/constants';
+
+import { ProfileBadge } from './ProfileBadges';
+import ProfileInfoRow from './ProfileInfoRow';
 
 const ProfileViewDetails = ({ user }) => {
   const roleConfig = ROLE_CONFIG[user.role] ?? { label: user.role, className: "bg-slate-100 text-slate-600" };
@@ -9,7 +14,7 @@ const ProfileViewDetails = ({ user }) => {
     <div className="space-y-4 divide-y divide-slate-100">
       <ProfileInfoRow label="Họ và tên" value={user.fullName} />
       <div className="pt-4">
-        <ProfileInfoRow label="Email" value={user.email} />
+        <ProfileInfoRow label="Thư điện tử" value={user.email} />
       </div>
       <div className="pt-4">
         <ProfileInfoRow label="Số điện thoại" value={user.phone} />
@@ -30,7 +35,7 @@ const ProfileViewDetails = ({ user }) => {
         <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
           <span className="w-40 shrink-0 text-sm text-slate-500">Loại tài khoản</span>
           <ProfileBadge className="bg-violet-50 text-violet-700 border border-violet-200">
-            {user.type === "google" ? "Google" : "Email / Mật khẩu"}
+            {user.type === "google" ? "Google" : "Thư điện tử / Mật khẩu"}
           </ProfileBadge>
         </div>
       </div>

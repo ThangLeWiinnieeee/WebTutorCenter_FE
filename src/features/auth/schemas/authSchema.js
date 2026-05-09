@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
 
@@ -11,8 +11,8 @@ export const registerSchema = z
       .max(100, "Họ tên không được vượt quá 100 ký tự"),
     email: z
       .string()
-      .min(1, "Email không được để trống")
-      .email("Email không hợp lệ"),
+      .min(1, "Thư điện tử không được để trống")
+      .email("Thư điện tử không hợp lệ"),
     phone: z
       .string()
       .min(1, "Số điện thoại không được để trống")
@@ -39,8 +39,8 @@ export const registerSchema = z
 export const loginSchema = z.object({
   email: z
     .string()
-    .min(1, "Email không được để trống")
-    .email("Email không hợp lệ"),
+    .min(1, "Thư điện tử không được để trống")
+    .email("Thư điện tử không hợp lệ"),
   password: z.string().min(1, "Mật khẩu không được để trống"),
 });
 
@@ -55,8 +55,8 @@ export const verifyOtpSchema = z.object({
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, "Email không được để trống")
-    .email("Email không hợp lệ"),
+    .min(1, "Thư điện tử không được để trống")
+    .email("Thư điện tử không hợp lệ"),
 });
 
 export const verifyForgotPasswordOtpSchema = z.object({
