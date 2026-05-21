@@ -14,6 +14,9 @@ const tutorService = {
   getTopTutors: (limit = 10) =>
     axiosInstance.get(API_ENDPOINTS.TUTORS.GET_TOP, { params: { limit } }),
   
+  getTopTutorsThisMonth: (limit = 10) =>
+    axiosInstance.get(API_ENDPOINTS.TUTORS.GET_TOP_THIS_MONTH, { params: { limit } }),
+  
   getNewTutors: (days = 30, limit = 10) =>
     axiosInstance.get(API_ENDPOINTS.TUTORS.GET_NEW, {
       params: { days, limit },

@@ -9,6 +9,7 @@ export default function TutorFilters({ filters, onFilterChange }) {
     subject: true,
     status: false,
     gender: false,
+    yearOfBirth: false,
     location: false,
   });
 
@@ -97,6 +98,10 @@ export default function TutorFilters({ filters, onFilterChange }) {
 
   const handleDistrictChange = (district) => {
     updateFilter("district", district === localFilters.district ? undefined : district);
+  };
+
+  const handleYearOfBirthChange = (year) => {
+    updateFilter("yearOfBirth", year || undefined);
   };
 
   const updateFilter = (key, value) => {
@@ -212,6 +217,30 @@ export default function TutorFilters({ filters, onFilterChange }) {
                   <span className="text-sm text-gray-700">{gender.label}</span>
                 </label>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Year of Birth Filter */}
+        <div className="border-b border-gray-200 pb-4">
+          <button
+            onClick={() => toggleSection("yearOfBirth")}
+            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
+          >
+            Năm Sinh
+            <span className="text-gray-400">{expandedSections.yearOfBirth ? "−" : "+"}</span>
+          </button>
+          {expandedSections.yearOfBirth && (
+            <div className="mt-3">
+              <input
+                type="number"
+                min={1960}
+                max={new Date().getFullYear()}
+                placeholder="Nhập năm sinh (VD: 1990)"
+                value={localFilters.yearOfBirth || ""}
+                onChange={(e) => handleYearOfBirthChange(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
             </div>
           )}
         </div>

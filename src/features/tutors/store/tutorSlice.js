@@ -3,6 +3,7 @@ import {
   registerTutorThunk,
   getTutorProfileThunk,
   getTopTutorsThunk,
+  getTopTutorsThisMonthThunk,
   getNewTutorsThunk,
   searchTutorsThunk,
 } from "./tutorThunks";
@@ -13,6 +14,7 @@ const initialState = {
   
   // Danh sách
   topTutors: [],
+  topTutorsThisMonth: [],
   newTutors: [],
   searchResults: [],
   totalResults: 0,
@@ -87,6 +89,21 @@ const tutorSlice = createSlice({
         state.topTutors = action.payload;
       })
       .addCase(getTopTutorsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Get Top Tutors This Month
+    builder
+      .addCase(getTopTutorsThisMonthThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTopTutorsThisMonthThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.topTutorsThisMonth = action.payload;
+      })
+      .addCase(getTopTutorsThisMonthThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

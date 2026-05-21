@@ -3,15 +3,16 @@ import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams, Link } from "react-router-dom";
 import TutorFilters from "@/features/tutors/components/TutorFilters";
 import TutorCard from "@/features/tutors/components/TutorCard";
+import TopTutorCard from "@/features/tutors/components/TopTutorCard";
 import TutorPagination from "@/features/tutors/components/TutorPagination";
-import { searchTutorsThunk } from "@/features/tutors/store/tutorThunks";
+import { searchTutorsThunk, getTopTutorsThisMonthThunk } from "@/features/tutors/store/tutorThunks";
 
 const LIMIT = 10;
 
 export default function TutorListingPage() {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  const { searchResults, totalResults, currentPage, filters, loading } = useSelector(
+  const { searchResults, topTutorsThisMonth, totalResults, currentPage, filters, loading } = useSelector(
     (state) => state.tutors
   );
 
@@ -22,6 +23,11 @@ export default function TutorListingPage() {
     return subject ? { ...fromRedux, subject } : fromRedux;
   });
   const [page, setPage] = useState(1);
+
+  // Fetch top tutors this month on mount
+  useEffect(() => {
+    dispatch(getTopTutorsThisMonthThunk(10));
+  }, [dispatch]);
 
   // Fetch results when filters or page changes
   useEffect(() => {
@@ -58,6 +64,21 @@ export default function TutorListingPage() {
 
         {/* Main Content */}
         <div className="md:col-span-3">
+          {/* Top Tutors This Month Section */}
+          {topTutorsThisMonth && topTutorsThisMonth.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Gia Sư Hàng Đầu Tháng Này</h2>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {topTutorsThisMonth.map((tutor) => (
+                  <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                    <TopTutorCard tutor={tutor} />
+                  </Link>
+                ))}
+              </div>
+              <hr className="my-8" />
+            </div>
+          )}
+
           {/* Results Info */}
           <div className="mb-6 flex items-center justify-between">
             <p className="text-gray-600">
