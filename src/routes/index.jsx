@@ -6,8 +6,12 @@ import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
 import HomePage from "@/pages/HomePage";
 import { ProfilePage, CompleteProfilePage } from "@/features/profile";
-import { RegisterTutorPage } from "@/features/tutors";
-import { FindTutorRequestPage, NewClassesPage, NewClassDetailPage } from "@/features/classes";
+import { RegisterTutorPage, TutorListingPage, TutorDetailPage } from "@/features/tutors";
+import {
+  FindTutorRequestPage,
+  NewClassesPage,
+  NewClassDetailPage,
+} from "@/features/classes";
 import { AdminLayout, TutorApprovalPage, AdminDashboardPage } from "@/admin";
 
 import {
@@ -58,7 +62,9 @@ const router = createBrowserRouter([
           { path: "/", element: <HomePage /> },
           { path: "/profile", element: <ProfilePage /> },
           { path: "/register-tutor", element: <RegisterTutorPage /> },
+          { path: "/tutors", element: <TutorListingPage /> },
           { path: "/tim-gia-su", element: <FindTutorRequestPage /> },
+          { path: "/tim-gia-su/:id", element: <TutorDetailPage /> },
           { path: "/lop-moi", element: <NewClassesPage /> },
           { path: "/lop-moi/:id", element: <NewClassDetailPage /> },
         ],

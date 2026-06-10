@@ -1,20 +1,81 @@
-import useAuth from "@/features/auth/hooks/useAuth";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+import HeroSearchBar from "@/features/tutors/components/HeroSearchBar";
+import TopTutorCard from "@/features/tutors/components/TopTutorCard";
+import TopThisMonthTutors from "@/features/tutors/components/TopThisMonthTutors";
+import IntroSections from "@/components/home/IntroSections";
+import FloatingContactBar from "@/components/shared/FloatingContactBar";
+import { getTopTutorsThunk, getNewTutorsThunk } from "@/features/tutors/store/tutorThunks";
 
-const HomePage = () => {
-  const { user } = useAuth();
+export default function HomePage() {
+  const dispatch = useDispatch();
+  const { topTutors, newTutors, loading } = useSelector((state) => state.tutors);
+
+  useEffect(() => {
+    // Fetch top 10 tutors by totalClassesAccepted
+    dispatch(getTopTutorsThunk(10));
+    // Fetch newest tutors (past 30 days)
+    dispatch(getNewTutorsThunk({ days: 30, limit: 10 }));
+  }, [dispatch]);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-800">
-          Chào mừng, {user?.fullName} 👋
-        </h1>
-        <p className="mt-2 text-slate-500">
-          Đây là trang chủ của WebTutorCenter. Nội dung sẽ được cập nhật thêm.
-        </p>
-      </div>
+    <div className="min-h-screen bg-white">
+      {/* Section 1: Hero Search */}
+      <section className="bg-gradient-to-br from-green-50 to-blue-50 py-12 md:py-16">
+        <HeroSearchBar />
+      </section>
+
+      {/* Section 2 & 3: Top Tutors + Sidebar (2 columns on desktop, stacked on mobile) */}
+      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Top Tutors - Left side (2 columns) */}
+          <div className="md:col-span-2">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Top Gia Sư</h2>
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Đang tải...</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {topTutors.slice(0, 6).map((tutor) => (
+                    <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                      <TopTutorCard tutor={tutor} />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Gia Sư Mới</h2>
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Đang tải...</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {newTutors.slice(0, 6).map((tutor) => (
+                    <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                      <TopTutorCard tutor={tutor} />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar - Right side */}
+          <div className="md:col-span-1">
+            <TopThisMonthTutors tutors={topTutors.slice(0, 10)} />
+          </div>
+        </div>
+      </section>
+
+      {/* Sections 4-7: Intro Content */}
+      <section className="bg-gray-50 py-12 md:py-16">
+        <IntroSections />
+      </section>
+
+      {/* Floating Contact Bar */}
+      <FloatingContactBar />
     </div>
   );
-};
-
-export default HomePage;
+}

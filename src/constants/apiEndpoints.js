@@ -17,6 +17,11 @@ const API_ENDPOINTS = {
   TUTORS: {
     REGISTER: "/tutors/register",
     GET_PROFILE: "/tutors/profile",
+    GET_ACTIVE: "/tutors/active",
+    GET_TOP: "/tutors/top",
+    GET_TOP_THIS_MONTH: "/tutors/top/month/current",
+    GET_NEW: "/tutors/new",
+    SEARCH: "/tutors/search",
   },
   ADMIN: {
     DASHBOARD_STATS: "/tutors/admin/stats",
@@ -33,6 +38,11 @@ const API_ENDPOINTS = {
     LIST: "/notifications",
     MARK_READ: (id) => `/notifications/${id}/read`,
     MARK_ALL_READ: "/notifications/read-all",
+  },
+  LOOKUPS: {
+    ALL: "/lookups/all",
+    BY_TYPE: (type) => `/lookups/type/${type}`,
+    DISTRICTS_BY_PROVINCE: (province) => `/lookups/districts/${province}`,
   },
   CLASSES: {
     QUOTE: "/classes/quote",

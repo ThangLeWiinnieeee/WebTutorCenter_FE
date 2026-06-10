@@ -47,15 +47,20 @@ const Header = () => {
                 Tìm gia sư
               </Link>
 
-              {/* Tutor registration link (only for regular users) */}
-              {user.role === "user" && (
-                <Link
-                  to="/register-tutor"
-                  className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
-                >
-                  Trở thành gia sư
-                </Link>
-              )}
+              <Link
+                to="/tutors"
+                className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
+              >
+                Danh sách gia sư
+              </Link>
+
+              {/* Become tutor link */}
+              <Link
+                to="/register-tutor"
+                className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
+              >
+                Trở thành gia sư
+              </Link>
 
               {/* Notification bell */}
               <NotificationBell />
