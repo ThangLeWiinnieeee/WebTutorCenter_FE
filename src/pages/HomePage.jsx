@@ -38,7 +38,7 @@ export default function HomePage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {topTutors.slice(0, 6).map((tutor) => (
-                    <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                    <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
                       <TopTutorCard tutor={tutor} />
                     </Link>
                   ))}
@@ -53,7 +53,7 @@ export default function HomePage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {newTutors.slice(0, 6).map((tutor) => (
-                    <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                    <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
                       <TopTutorCard tutor={tutor} />
                     </Link>
                   ))}

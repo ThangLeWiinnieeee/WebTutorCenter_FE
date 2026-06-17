@@ -26,6 +26,8 @@ const tutorService = {
     axiosInstance.get(API_ENDPOINTS.TUTORS.SEARCH, {
       params: { ...filters, page, limit },
     }),
+
+  getTutorById: (id) => axiosInstance.get(API_ENDPOINTS.TUTORS.GET_BY_ID(id)),
 };
 
 export default tutorService;

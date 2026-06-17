@@ -73,11 +73,8 @@ export default function TutorFilters({ filters, onFilterChange }) {
   };
 
   const handleSubjectToggle = (subject) => {
-    const current = localFilters.subjects || [];
-    const updated = current.includes(subject)
-      ? current.filter((s) => s !== subject)
-      : [...current, subject];
-    updateFilter("subjects", updated.length > 0 ? updated : undefined);
+    // BE chỉ lọc theo 1 môn (req.query.subject), nên dùng single-select
+    updateFilter("subject", subject === localFilters.subject ? undefined : subject);
   };
 
   const handleOccupationChange = (status) => {
@@ -158,7 +155,7 @@ export default function TutorFilters({ filters, onFilterChange }) {
                 <label key={subject.value} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={(localFilters.subjects || []).includes(subject.value)}
+                    checked={localFilters.subject === subject.value}
                     onChange={() => handleSubjectToggle(subject.value)}
                     className="rounded"
                   />

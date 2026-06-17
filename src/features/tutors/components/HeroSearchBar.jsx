@@ -9,8 +9,9 @@ export default function HeroSearchBar() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (subject.trim()) {
-      navigate(`/tim-gia-su?subject=${encodeURIComponent(subject)}`);
+    const value = subject.trim();
+    if (value) {
+      navigate(`/tutors?subject=${encodeURIComponent(value)}`);
     }
   };
 

@@ -10,8 +10,8 @@ import NotificationBell from "@/features/notifications/components/NotificationBe
 
 const NAV_LINKS = [
   { label: "Trang chủ", to: "/", paths: ["/"] },
-  { label: "Lớp cần gia sư", to: "/lop-moi", paths: ["/lop-moi"] },
-  { label: "Tìm gia sư", to: "/tim-gia-su", paths: ["/tim-gia-su"] },
+  { label: "Lớp cần gia sư", to: "/classes", paths: ["/classes"] },
+  { label: "Tìm gia sư", to: "/find-tutor", paths: ["/find-tutor"] },
   { label: "Danh sách gia sư", to: "/tutors", paths: ["/tutors"] },
   { label: "Trở thành gia sư", to: "/register-tutor", paths: ["/register-tutor"] },
 ];

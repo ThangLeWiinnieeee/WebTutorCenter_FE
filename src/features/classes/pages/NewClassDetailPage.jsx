@@ -290,7 +290,7 @@ const NewClassDetailPage = () => {
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Các lớp tương tự</h3>
-                <Link to="/lop-moi" className="text-xs font-medium text-slate-500 hover:text-slate-700">
+                <Link to="/classes" className="text-xs font-medium text-slate-500 hover:text-slate-700">
                   Xem tất cả
                 </Link>
               </div>
@@ -300,7 +300,7 @@ const NewClassDetailPage = () => {
                 )}
                 {!loadingSuggestions && relatedClasses.map((item) => (
                   <li key={item.id}>
-                    <Link to={`/lop-moi/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
+                    <Link to={`/classes/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
                       {item.title}
                     </Link>
                   </li>
@@ -314,7 +314,7 @@ const NewClassDetailPage = () => {
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Lớp cần gia sư</h3>
-                <Link to="/lop-moi" className="text-xs font-medium text-slate-500 hover:text-slate-700">
+                <Link to="/classes" className="text-xs font-medium text-slate-500 hover:text-slate-700">
                   Xem các lớp khác
                 </Link>
               </div>
@@ -324,7 +324,7 @@ const NewClassDetailPage = () => {
                 )}
                 {!loadingSuggestions && latestClasses.map((item) => (
                   <li key={item.id}>
-                    <Link to={`/lop-moi/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
+                    <Link to={`/classes/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
                       {item.title}
                     </Link>
                   </li>
@@ -364,7 +364,7 @@ const NewClassDetailPage = () => {
               )}
               {!loadingSuggestions && sidebarSuggestedClasses.map((item) => (
                 <li key={item.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
-                  <Link to={`/lop-moi/${item.id}`} className="line-clamp-2 text-sm font-medium text-slate-800 hover:text-emerald-700 hover:underline">
+                  <Link to={`/classes/${item.id}`} className="line-clamp-2 text-sm font-medium text-slate-800 hover:text-emerald-700 hover:underline">
                     {item.title}
                   </Link>
                 </li>

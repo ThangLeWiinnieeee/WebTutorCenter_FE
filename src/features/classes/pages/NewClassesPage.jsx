@@ -456,7 +456,7 @@ const NewClassesPage = () => {
                 </div>
                 <div className="flex items-start gap-2">
                   <FileText className="mt-0.5 h-4 w-4 text-slate-400" />
-                  <Link to={`/lop-moi/${item._id}`} className="font-medium text-sky-700 transition hover:text-sky-800 hover:underline">
+                  <Link to={`/classes/${item._id}`} className="font-medium text-sky-700 transition hover:text-sky-800 hover:underline">
                     Xem chi tiết lớp và điều kiện nhận lớp
                   </Link>
                 </div>

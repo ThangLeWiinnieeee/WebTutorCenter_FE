@@ -22,6 +22,7 @@ const API_ENDPOINTS = {
     GET_TOP_THIS_MONTH: "/tutors/top/month/current",
     GET_NEW: "/tutors/new",
     SEARCH: "/tutors/search",
+    GET_BY_ID: (id) => `/tutors/${id}`,
   },
   ADMIN: {
     DASHBOARD_STATS: "/admin/tutors/stats",

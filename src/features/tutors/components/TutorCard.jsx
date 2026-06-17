@@ -1,4 +1,5 @@
-import { MapPin, Users, BookOpen, GraduationCap } from "lucide-react";
+import { MapPin, GraduationCap, BookOpen } from "lucide-react";
+import { OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
 
 export default function TutorCard({ tutor }) {
   const getInitials = (name) => {
@@ -10,12 +11,20 @@ export default function TutorCard({ tutor }) {
       .slice(0, 2);
   };
 
+  const occupationLabel =
+    OCCUPATION_STATUS_LABEL[tutor.occupationStatus] || tutor.occupationStatus;
+
+  const locationParts = [
+    tutor.currentArea?.districtName,
+    tutor.currentArea?.provinceName,
+  ].filter(Boolean);
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all">
-      <div className="flex gap-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-green-300 transition-all">
+      <div className="flex gap-5 items-start">
         {/* Avatar */}
-        <div className="flex-shrink-0">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+        <div className="shrink-0">
+          <div className="w-20 h-20 rounded-full bg-linear-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl overflow-hidden">
             {tutor.avatar ? (
               <img
                 src={tutor.avatar}
@@ -28,64 +37,53 @@ export default function TutorCard({ tutor }) {
           </div>
         </div>
 
-        {/* Main Info */}
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">{tutor.fullName}</h3>
-              <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                <MapPin className="w-4 h-4" />
-                <span>
-                  {tutor.currentArea?.district}, {tutor.currentArea?.province}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Họ tên */}
+          <h3 className="text-lg font-bold text-gray-900 leading-tight">
+            {tutor.fullName}
+          </h3>
 
-          {/* Bio/Description */}
-          {tutor.bio && (
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{tutor.bio}</p>
+          {/* Tình trạng nghề nghiệp */}
+          {occupationLabel && (
+            <div className="flex items-center gap-1.5 mt-1 mb-2">
+              <GraduationCap className="w-4 h-4 text-blue-500 shrink-0" />
+              <span className="text-sm font-medium text-blue-700">
+                {occupationLabel}
+              </span>
+            </div>
           )}
 
-          {/* Stats Row */}
-          <div className="flex flex-wrap gap-4 mb-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="w-4 h-4 text-green-600" />
-              <span className="text-gray-700">{tutor.totalClassesAccepted || 0} lớp</span>
+          {/* Khu vực */}
+          {locationParts.length > 0 && (
+            <div className="flex items-center gap-1 text-sm text-gray-500 mb-3">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span>{locationParts.join(", ")}</span>
             </div>
+          )}
 
-            {tutor.occupationStatus && (
-              <div className="flex items-center gap-2 text-sm">
-                <GraduationCap className="w-4 h-4 text-blue-600" />
-                <span className="text-gray-700">{tutor.occupationStatus}</span>
+          {/* Môn dạy */}
+          {tutor.subjects && tutor.subjects.length > 0 && (
+            <div>
+              <div className="flex items-center gap-1 text-xs text-gray-400 mb-1.5">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Môn dạy</span>
               </div>
-            )}
-
-            {tutor.classesAcceptedThisMonth !== undefined && (
-              <div className="flex items-center gap-2 text-sm bg-yellow-50 px-2 py-1 rounded">
-                <span className="font-semibold text-yellow-700">
-                  {tutor.classesAcceptedThisMonth} lớp tháng này
-                </span>
+              <div className="flex flex-wrap gap-1.5">
+                {tutor.subjects.slice(0, 6).map((subject) => (
+                  <span
+                    key={subject}
+                    className="text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full"
+                  >
+                    {subject}
+                  </span>
+                ))}
+                {tutor.subjects.length > 6 && (
+                  <span className="text-xs text-gray-400 px-1 py-0.5">
+                    +{tutor.subjects.length - 6} môn khác
+                  </span>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Teaching Subjects */}
-          {tutor.teachingSubjects && tutor.teachingSubjects.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tutor.teachingSubjects.slice(0, 5).map((subject) => (
-                <span
-                  key={subject}
-                  className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full"
-                >
-                  {subject}
-                </span>
-              ))}
-              {tutor.teachingSubjects.length > 5 && (
-                <span className="text-xs text-gray-500 px-3 py-1">
-                  +{tutor.teachingSubjects.length - 5}
-                </span>
-              )}
             </div>
           )}
         </div>

@@ -47,6 +47,9 @@ export default function TutorListingPage() {
 
   const totalPages = Math.ceil(totalResults / LIMIT);
 
+  // Đang lọc/tìm kiếm thì ẩn danh sách gợi ý "Gia Sư Hàng Đầu Tháng Này"
+  const hasActiveFilters = Object.keys(localFilters).some((k) => localFilters[k]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="mb-8">
@@ -64,13 +67,13 @@ export default function TutorListingPage() {
 
         {/* Main Content */}
         <div className="md:col-span-3">
-          {/* Top Tutors This Month Section */}
-          {topTutorsThisMonth && topTutorsThisMonth.length > 0 && (
+          {/* Top Tutors This Month Section — ẩn khi đang lọc/tìm kiếm */}
+          {!hasActiveFilters && topTutorsThisMonth && topTutorsThisMonth.length > 0 && (
             <div className="mb-12">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Gia Sư Hàng Đầu Tháng Này</h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {topTutorsThisMonth.map((tutor) => (
-                  <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                  <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
                     <TopTutorCard tutor={tutor} />
                   </Link>
                 ))}
@@ -101,7 +104,7 @@ export default function TutorListingPage() {
             <div>
               <div className="grid grid-cols-1 gap-4 mb-8">
                 {searchResults.map((tutor) => (
-                  <Link key={tutor._id} to={`/tim-gia-su/${tutor._id}`}>
+                  <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
                     <TutorCard tutor={tutor} />
                   </Link>
                 ))}
