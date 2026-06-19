@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { CheckCircle2, GraduationCap, LogIn, Clock, Loader2 } from "lucide-react";
 
@@ -76,23 +76,6 @@ const LoginPrompt = () => (
   </div>
 );
 
-const AlreadyTutorBanner = () => (
-  <div className="mx-auto max-w-md text-center py-16 px-4">
-    <div className="flex justify-center mb-6">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-        <GraduationCap className="h-10 w-10 text-emerald-600" />
-      </div>
-    </div>
-    <h2 className="text-xl font-bold text-slate-800 mb-3">Bạn đã là gia sư</h2>
-    <p className="text-slate-500 text-sm mb-8">
-      Tài khoản của bạn đã có vai trò gia sư. Hãy vào trang hồ sơ để xem thông tin.
-    </p>
-    <Button asChild className="bg-[#1e3a5f] hover:bg-[#2d5a9e]">
-      <Link to="/profile">Xem hồ sơ</Link>
-    </Button>
-  </div>
-);
-
 const RegisterTutorPage = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useAuth();
@@ -114,11 +97,7 @@ const RegisterTutorPage = () => {
   }
 
   if (user?.role === "tutor") {
-    return (
-      <div className="min-h-[calc(100vh-64px)]">
-        <AlreadyTutorBanner />
-      </div>
-    );
+    return <Navigate to="/profile" replace />;
   }
 
   if (loading) {

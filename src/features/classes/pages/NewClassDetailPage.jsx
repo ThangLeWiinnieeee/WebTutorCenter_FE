@@ -29,7 +29,7 @@ import {
 import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import classService from '@/features/classes/services/classService';
-import { fetchClassDetailThunk } from '@/features/classes/store/classThunks';
+import { applyForClassThunk, fetchClassDetailThunk } from '@/features/classes/store/classThunks';
 import {
   formatAvailabilitySlotsDetailed,
   formatClassTutorPrefsSummary,
@@ -39,13 +39,14 @@ import {
   formatStudentGender,
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
+import { toast } from 'sonner';
 
 const NewClassDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useAuth();
-  const { detail, loadingDetail } = useSelector((state) => state.classes);
+  const { detail, loadingDetail, applying } = useSelector((state) => state.classes);
   const [relatedClasses, setRelatedClasses] = useState([]);
   const [latestClasses, setLatestClasses] = useState([]);
   const [sidebarSuggestedClasses, setSidebarSuggestedClasses] = useState([]);
@@ -157,7 +158,17 @@ const NewClassDetailPage = () => {
       return;
     }
 
-    setReceiveDialog({ open: true, type: "ready", classItem: detail });
+    setReceiveDialog({ open: true, type: "confirm", classItem: detail });
+  };
+
+  const handleConfirmApply = async () => {
+    const result = await dispatch(applyForClassThunk(detail.id || detail._id));
+    if (applyForClassThunk.fulfilled.match(result)) {
+      setReceiveDialog((prev) => ({ ...prev, type: "submitted" }));
+    } else {
+      setReceiveDialog((prev) => ({ ...prev, open: false }));
+      toast.error(result.payload || "Không thể gửi yêu cầu nhận lớp");
+    }
   };
 
   return (
@@ -414,6 +425,8 @@ const NewClassDetailPage = () => {
         classItem={receiveDialog.classItem}
         returnTo={returnTo}
         onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
+        onConfirm={handleConfirmApply}
+        applying={applying}
       />
     </div>
   );

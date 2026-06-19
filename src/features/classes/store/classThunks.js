@@ -51,3 +51,15 @@ export const fetchClassDetailThunk = createAsyncThunk(
     }
   }
 );
+
+export const applyForClassThunk = createAsyncThunk(
+  "classes/apply",
+  async (classId, { rejectWithValue }) => {
+    try {
+      const res = await classService.apply(classId);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không thể gửi yêu cầu nhận lớp");
+    }
+  }
+);

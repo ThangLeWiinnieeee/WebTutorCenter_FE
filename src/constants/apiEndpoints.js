@@ -33,6 +33,10 @@ const API_ENDPOINTS = {
     USER_UPDATE: (id) => `/admin/users/${id}`,
     USER_STATUS: (id) => `/admin/users/${id}/status`,
     USER_DELETE: (id) => `/admin/users/${id}`,
+    CLASS_APPLICATIONS: "/admin/class-applications",
+    CLASS_APPLICATIONS_STATS: "/admin/class-applications/stats",
+    CLASS_APPLICATION_APPROVE: (id) => `/admin/class-applications/${id}/approve`,
+    CLASS_APPLICATION_REJECT: (id) => `/admin/class-applications/${id}/reject`,
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
@@ -57,6 +61,7 @@ const API_ENDPOINTS = {
     PRICING_CONFIG: "/classes/pricing-config",
     DETAIL: (id) => `/classes/${id}`,
     MINE: "/classes/mine",
+    APPLY: (id) => `/classes/${id}/apply`,
   },
 };
 

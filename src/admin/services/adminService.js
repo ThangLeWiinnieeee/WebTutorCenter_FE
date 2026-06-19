@@ -12,6 +12,11 @@ const adminService = {
   updateUserStatus: (id, isActive) =>
     axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_STATUS(id), { isActive }),
   deleteUser: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.USER_DELETE(id)),
+  getClassApplications: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_APPLICATIONS, { params }),
+  getClassApplicationStats: () => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_APPLICATIONS_STATS),
+  approveClassApplication: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_APPROVE(id)),
+  rejectClassApplication: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_REJECT(id), { rejectionReason }),
 };
 
 export default adminService;

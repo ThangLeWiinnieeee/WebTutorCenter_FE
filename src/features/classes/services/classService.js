@@ -8,6 +8,7 @@ const classService = {
   subjects: () => axiosInstance.get(API_ENDPOINTS.CLASSES.SUBJECTS),
   pricingConfig: () => axiosInstance.get(API_ENDPOINTS.CLASSES.PRICING_CONFIG),
   detail: (id) => axiosInstance.get(API_ENDPOINTS.CLASSES.DETAIL(id)),
+  apply: (id) => axiosInstance.post(API_ENDPOINTS.CLASSES.APPLY(id)),
 };
 
 export default classService;

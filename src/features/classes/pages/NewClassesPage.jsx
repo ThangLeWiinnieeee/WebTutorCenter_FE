@@ -28,12 +28,13 @@ import {
   useSelector,
 } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import classService from '@/features/classes/services/classService';
-import { fetchClassesThunk } from '@/features/classes/store/classThunks';
+import { fetchClassesThunk, applyForClassThunk } from '@/features/classes/store/classThunks';
 import {
   formatAvailabilitySlotsOneLine,
   formatClassTutorPrefsSummary,
@@ -46,7 +47,7 @@ const NewClassesPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
-  const { list, pagination, loadingList } = useSelector((state) => state.classes);
+  const { list, pagination, loadingList, applying } = useSelector((state) => state.classes);
   const [filters, setFilters] = useState({ subject: "", provinceCode: "", districtCode: "" });
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -151,7 +152,18 @@ const NewClassesPage = () => {
       return;
     }
 
-    setReceiveDialog({ open: true, type: "ready", classItem });
+    setReceiveDialog({ open: true, type: "confirm", classItem });
+  };
+
+  const handleConfirmApply = async () => {
+    const classItem = receiveDialog.classItem;
+    const result = await dispatch(applyForClassThunk(classItem?.id || classItem?._id));
+    if (applyForClassThunk.fulfilled.match(result)) {
+      setReceiveDialog((prev) => ({ ...prev, type: "submitted" }));
+    } else {
+      setReceiveDialog((prev) => ({ ...prev, open: false }));
+      toast.error(result.payload || "Không thể gửi yêu cầu nhận lớp");
+    }
   };
 
   useEffect(() => {
@@ -586,6 +598,8 @@ const NewClassesPage = () => {
         classItem={receiveDialog.classItem}
         returnTo={returnTo}
         onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
+        onConfirm={handleConfirmApply}
+        applying={applying}
       />
     </div>
   );

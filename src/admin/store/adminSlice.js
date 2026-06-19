@@ -8,6 +8,10 @@ import {
   updateAdminUserThunk,
   updateAdminUserStatusThunk,
   softDeleteAdminUserThunk,
+  getClassApplicationsThunk,
+  getClassApplicationStatsThunk,
+  approveClassApplicationThunk,
+  rejectClassApplicationThunk,
 } from "./adminThunks";
 
 const adminSlice = createSlice({
@@ -33,6 +37,12 @@ const adminSlice = createSlice({
     usersLoading: false,
     usersError: null,
     userActionLoading: null,
+    classApplications: [],
+    classApplicationsLoading: false,
+    classApplicationsError: null,
+    classApplicationActionLoading: null,
+    classApplicationStats: { pending: 0, approved: 0, rejected: 0 },
+    classApplicationStatsLoading: false,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -146,6 +156,64 @@ const adminSlice = createSlice({
       })
       .addCase(softDeleteAdminUserThunk.rejected, (state) => {
         state.userActionLoading = null;
+      });
+
+    builder
+      .addCase(getClassApplicationsThunk.pending, (state) => {
+        state.classApplicationsLoading = true;
+        state.classApplicationsError = null;
+      })
+      .addCase(getClassApplicationsThunk.fulfilled, (state, action) => {
+        state.classApplicationsLoading = false;
+        state.classApplications = action.payload || [];
+      })
+      .addCase(getClassApplicationsThunk.rejected, (state, action) => {
+        state.classApplicationsLoading = false;
+        state.classApplicationsError = action.payload;
+      });
+
+    builder
+      .addCase(getClassApplicationStatsThunk.pending, (state) => {
+        state.classApplicationStatsLoading = true;
+      })
+      .addCase(getClassApplicationStatsThunk.fulfilled, (state, action) => {
+        state.classApplicationStatsLoading = false;
+        state.classApplicationStats = action.payload;
+      })
+      .addCase(getClassApplicationStatsThunk.rejected, (state) => {
+        state.classApplicationStatsLoading = false;
+      });
+
+    builder
+      .addCase(approveClassApplicationThunk.pending, (state, action) => {
+        state.classApplicationActionLoading = action.meta.arg;
+      })
+      .addCase(approveClassApplicationThunk.fulfilled, (state, action) => {
+        state.classApplicationActionLoading = null;
+        state.classApplications = state.classApplications.filter(
+          (a) => a.id !== action.payload.id
+        );
+        if (state.classApplicationStats.pending > 0) state.classApplicationStats.pending--;
+        state.classApplicationStats.approved++;
+      })
+      .addCase(approveClassApplicationThunk.rejected, (state) => {
+        state.classApplicationActionLoading = null;
+      });
+
+    builder
+      .addCase(rejectClassApplicationThunk.pending, (state, action) => {
+        state.classApplicationActionLoading = action.meta.arg.id;
+      })
+      .addCase(rejectClassApplicationThunk.fulfilled, (state, action) => {
+        state.classApplicationActionLoading = null;
+        state.classApplications = state.classApplications.filter(
+          (a) => a.id !== action.payload.id
+        );
+        if (state.classApplicationStats.pending > 0) state.classApplicationStats.pending--;
+        state.classApplicationStats.rejected++;
+      })
+      .addCase(rejectClassApplicationThunk.rejected, (state) => {
+        state.classApplicationActionLoading = null;
       });
   },
 });

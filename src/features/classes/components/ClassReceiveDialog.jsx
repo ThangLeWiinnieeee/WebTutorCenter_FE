@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, LogIn, UserPlus, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, LogIn, Send, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -20,25 +20,29 @@ const DIALOG_CONFIG = {
     primaryLabel: "Đăng ký làm gia sư",
     primaryTo: "/register-tutor",
   },
-  ready: {
+  confirm: {
+    icon: Send,
+    iconClassName: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    title: "Xác nhận gửi yêu cầu nhận lớp",
+    description: "Admin sẽ xem xét và duyệt yêu cầu của bạn. Bạn sẽ nhận được thông báo khi có kết quả.",
+  },
+  submitted: {
     icon: CheckCircle2,
     iconClassName: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    title: "Bạn đủ điều kiện nhận lớp",
-    description: "Tài khoản của bạn đã là gia sư. Vui lòng liên hệ trung tâm để xác nhận thông tin lớp và hoàn tất quy trình nhận lớp.",
-    primaryLabel: "Gọi tư vấn viên",
+    title: "Đã gửi yêu cầu thành công",
+    description: "Yêu cầu nhận lớp của bạn đã được gửi. Vui lòng chờ admin xét duyệt — bạn sẽ nhận thông báo khi có kết quả.",
   },
 };
 
-const ClassReceiveDialog = ({ open, type, classItem, returnTo, onClose }) => {
+const ClassReceiveDialog = ({ open, type, classItem, returnTo, onClose, onConfirm, applying }) => {
   if (!open) return null;
 
   const config = DIALOG_CONFIG[type] || DIALOG_CONFIG.login;
   const Icon = config.icon;
-  const contactPhone = classItem?.contactPhone || "0931439203";
   const primaryState = type === "login" ? { from: returnTo } : undefined;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
@@ -71,28 +75,57 @@ const ClassReceiveDialog = ({ open, type, classItem, returnTo, onClose }) => {
             <p className="font-semibold text-slate-800">
               {classItem.summary || `Lớp ${classItem.classCode || ""}`}
             </p>
-            {classItem.locationLabel && <p className="mt-1">Khu vực: {classItem.locationLabel}</p>}
+            {classItem.subject && (
+              <p className="mt-1">
+                Môn: <span className="font-medium text-slate-800">{classItem.subject}</span>
+              </p>
+            )}
+            {classItem.locationLabel && <p className="mt-0.5">Khu vực: {classItem.locationLabel}</p>}
           </div>
         )}
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="h-10 rounded-lg border-slate-300 text-slate-700"
-          >
-            Để sau
-          </Button>
-
-          {type === "ready" ? (
+          {type !== "submitted" && (
             <Button
-              asChild
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={applying}
+              className="h-10 rounded-lg border-slate-300 text-slate-700"
+            >
+              Để sau
+            </Button>
+          )}
+
+          {type === "confirm" && (
+            <Button
+              type="button"
+              disabled={applying}
+              onClick={onConfirm}
               className="h-10 rounded-lg bg-emerald-600 px-5 font-semibold text-white hover:bg-emerald-700"
             >
-              <a href={`tel:${contactPhone}`}>{config.primaryLabel}</a>
+              {applying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang gửi...
+                </>
+              ) : (
+                "Gửi yêu cầu nhận lớp"
+              )}
             </Button>
-          ) : (
+          )}
+
+          {type === "submitted" && (
+            <Button
+              type="button"
+              onClick={onClose}
+              className="h-10 rounded-lg bg-emerald-600 px-5 font-semibold text-white hover:bg-emerald-700"
+            >
+              Đóng
+            </Button>
+          )}
+
+          {(type === "login" || type === "tutorRequired") && (
             <Button
               asChild
               className="h-10 rounded-lg bg-[#1e3a5f] px-5 font-semibold text-white hover:bg-[#16304f]"

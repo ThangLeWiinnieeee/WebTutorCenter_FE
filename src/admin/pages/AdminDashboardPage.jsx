@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowRight,
   BarChart3,
+  BookOpen,
   CheckCircle2,
   ClipboardCheck,
   Clock,
@@ -175,6 +176,7 @@ const AdminDashboardPage = () => {
   const pendingCount = stats.pendingCount || 0;
   const approvedCount = stats.approvedCount || 0;
   const rejectedCount = stats.rejectedCount || 0;
+  const pendingClassApplicationsCount = stats.pendingClassApplicationsCount || 0;
   const totalProfiles = pendingCount + approvedCount + rejectedCount;
   const latestPendingTutors = useMemo(
     () => pendingTutors.slice(0, 5),
@@ -219,7 +221,7 @@ const AdminDashboardPage = () => {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
           icon={<BarChart3 className="h-6 w-6 text-[#1e3a5f]" />}
           iconBg="bg-blue-50"
@@ -251,6 +253,15 @@ const AdminDashboardPage = () => {
           value={rejectedCount}
           label="Đã từ chối"
           description="Hồ sơ không đạt yêu cầu hoặc cần bổ sung."
+          loading={statsLoading}
+        />
+        <StatCard
+          to="/admin/class-applications"
+          icon={<BookOpen className="h-6 w-6 text-violet-700" />}
+          iconBg="bg-violet-100"
+          value={pendingClassApplicationsCount}
+          label="Đơn nhận lớp chờ duyệt"
+          description="Gia sư đã gửi yêu cầu nhận lớp, cần xét duyệt."
           loading={statsLoading}
         />
       </section>
@@ -364,6 +375,12 @@ const AdminDashboardPage = () => {
             icon={<Users className="h-5 w-5" />}
             title="Xem danh sách gia sư"
             description="Kiểm tra danh sách gia sư đang hiển thị phía người dùng."
+          />
+          <QuickAction
+            to="/admin/class-applications"
+            icon={<BookOpen className="h-5 w-5" />}
+            title="Duyệt nhận lớp"
+            description="Xem xét và phê duyệt yêu cầu nhận lớp từ gia sư."
           />
           <QuickAction
             to="/"

@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { label: "Lớp cần gia sư", to: "/classes", paths: ["/classes"] },
   { label: "Tìm gia sư", to: "/find-tutor", paths: ["/find-tutor"] },
   { label: "Danh sách gia sư", to: "/tutors", paths: ["/tutors"] },
-  { label: "Trở thành gia sư", to: "/register-tutor", paths: ["/register-tutor"] },
+  { label: "Trở thành gia sư", to: "/register-tutor", paths: ["/register-tutor"], hideForTutor: true },
 ];
 
 const Header = () => {
@@ -21,6 +21,8 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
+
+  const navLinks = NAV_LINKS.filter((item) => !(item.hideForTutor && user?.role === "tutor"));
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -41,7 +43,7 @@ const Header = () => {
         </Link>
 
         <nav className="hidden items-center justify-center gap-9 lg:flex">
-          {NAV_LINKS.map((item) => {
+          {navLinks.map((item) => {
             const isActive = item.hash
               ? location.hash === item.hash
               : item.paths?.some((path) =>

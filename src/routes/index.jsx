@@ -12,7 +12,7 @@ import {
   NewClassesPage,
   NewClassDetailPage,
 } from "@/features/classes";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage } from "@/admin";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage } from "@/admin";
 
 import {
   LoginPage,
@@ -86,6 +86,7 @@ const router = createBrowserRouter([
       { path: "/admin", element: <AdminDashboardPage /> },
       { path: "/admin/users", element: <AdminUsersPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
+      { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
     ],
   },
 ]);

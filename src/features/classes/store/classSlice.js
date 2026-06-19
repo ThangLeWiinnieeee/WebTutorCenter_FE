@@ -4,6 +4,7 @@ import {
   createClassThunk,
   fetchClassesThunk,
   fetchClassDetailThunk,
+  applyForClassThunk,
 } from "./classThunks";
 
 const initialState = {
@@ -23,6 +24,8 @@ const initialState = {
   creating: false,
   loadingList: false,
   loadingDetail: false,
+  applying: false,
+  applyError: null,
   error: null,
 };
 
@@ -97,6 +100,17 @@ const classSlice = createSlice({
       .addCase(fetchClassDetailThunk.rejected, (state, action) => {
         state.loadingDetail = false;
         state.error = action.payload;
+      })
+      .addCase(applyForClassThunk.pending, (state) => {
+        state.applying = true;
+        state.applyError = null;
+      })
+      .addCase(applyForClassThunk.fulfilled, (state) => {
+        state.applying = false;
+      })
+      .addCase(applyForClassThunk.rejected, (state, action) => {
+        state.applying = false;
+        state.applyError = action.payload;
       });
   },
 });

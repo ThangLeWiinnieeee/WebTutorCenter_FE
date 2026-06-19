@@ -96,3 +96,51 @@ export const softDeleteAdminUserThunk = createAsyncThunk(
     }
   }
 );
+
+export const getClassApplicationsThunk = createAsyncThunk(
+  "admin/getClassApplications",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getClassApplications(params);
+      return res.data.data.applications;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đơn đăng ký");
+    }
+  }
+);
+
+export const getClassApplicationStatsThunk = createAsyncThunk(
+  "admin/getClassApplicationStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getClassApplicationStats();
+      return res.data.data.stats;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được thống kê đơn đăng ký");
+    }
+  }
+);
+
+export const approveClassApplicationThunk = createAsyncThunk(
+  "admin/approveClassApplication",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.approveClassApplication(id);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Duyệt đơn thất bại");
+    }
+  }
+);
+
+export const rejectClassApplicationThunk = createAsyncThunk(
+  "admin/rejectClassApplication",
+  async ({ id, rejectionReason }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.rejectClassApplication(id, rejectionReason);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Từ chối đơn thất bại");
+    }
+  }
+);
