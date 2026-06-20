@@ -20,6 +20,7 @@ import { approveTutorThunk, rejectTutorThunk } from "@/admin/store/adminThunks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DAYS_OF_WEEK_OPTIONS, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
+import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
 
 const InfoItem = ({ icon, label, value }) => (
   <div className="flex items-start gap-2.5">
@@ -146,14 +147,16 @@ const TutorDetailModal = ({ tutor, onClose }) => (
               <p className="mb-2 text-xs font-medium text-slate-500">Lịch giảng dạy</p>
               {tutor.availability?.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
-                  {tutor.availability.map((slot, index) => (
-                    <span
-                      key={`${slot.day}-${slot.startTime}-${index}`}
-                      className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
-                    >
-                      {dayLabel(slot.day)}: {slot.startTime}–{slot.endTime}
-                    </span>
-                  ))}
+                  {formatAvailabilitySlotsDetailed(tutor.availability)
+                    .split("\n")
+                    .map((line, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                      >
+                        {line}
+                      </span>
+                    ))}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">—</p>

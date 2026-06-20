@@ -182,7 +182,7 @@ export default function MyClassesPanel() {
                       )}
                     </div>
                     <h4 className="mt-2 line-clamp-1 text-lg font-semibold text-slate-900">
-                      {classItem.summary || `Cần Gia Sư Môn ${classItem.subject} - ${classItem.locationLabel}`}
+                      {classItem.subject} - {classItem.summary || `Cần Gia Sư tại ${classItem.districtName || ''}, ${classItem.provinceName || ''}`}
                     </h4>
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
                       <Clock3 className="h-3.5 w-3.5" />
@@ -219,7 +219,7 @@ export default function MyClassesPanel() {
                 <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <MapPin className="h-4 w-4 text-slate-400" />
-                    <span className="line-clamp-1">{classItem.locationLabel || "-"}</span>
+                    <span className="line-clamp-1">{classItem.provinceName && classItem.districtName ? `${classItem.provinceName}, ${classItem.districtName}` : (classItem.locationLabel || "-")}</span>
                   </div>
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700 transition group-hover:gap-2">
                     Xem chi tiết

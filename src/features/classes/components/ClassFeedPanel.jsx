@@ -4,6 +4,7 @@ import {
   BookOpenText,
   CalendarClock,
   Clock3,
+  Eye,
   Inbox,
   MapPin,
   Sparkles,
@@ -201,9 +202,6 @@ export default function ClassFeedPanel() {
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                    {item.subject}
-                  </span>
                   {isNewPost(item.createdAt) && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white">
                       <Sparkles className="h-3 w-3" />
@@ -215,9 +213,9 @@ export default function ClassFeedPanel() {
                   </span>
                 </div>
                 <h3 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight text-slate-900">
-                  {item.summary || `Cần Gia Sư Môn ${item.subject} - ${item.locationLabel}`}
+                  {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
                 </h3>
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <Clock3 className="h-3.5 w-3.5" />
                   <span>Đăng lúc {formatDateTime(item.createdAt)}</span>
                 </div>
@@ -266,7 +264,7 @@ export default function ClassFeedPanel() {
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm">
               <div className="flex items-center gap-2 text-slate-500">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="line-clamp-1">{item.locationLabel}</span>
+                <span className="line-clamp-1">{item.provinceName && item.districtName ? `${item.provinceName}, ${item.districtName}` : item.locationLabel}</span>
                 <span className="hidden text-slate-300 sm:inline">·</span>
                 <span className="hidden line-clamp-1 sm:inline" title={formatAvailabilitySlotsOneLine(item.availabilitySlots)}>
                   {formatAvailabilitySlotsOneLine(item.availabilitySlots)}

@@ -10,6 +10,7 @@ import {
   Search,
   ShieldCheck,
   XCircle,
+  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,10 @@ import {
   getClassApplicationsThunk,
   rejectClassApplicationThunk,
 } from "@/admin/store/adminThunks";
+import {
+  formatAvailabilitySlotsDetailed,
+  formatClassTutorPrefsSummary,
+} from "@/features/classes/utils/classFormatters";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -190,91 +195,174 @@ const ApplicationCard = ({ application, activeTab, actionLoading, onApprove, onR
   const isLoading = actionLoading === application.id;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-      <div className="grid gap-5 lg:grid-cols-[1fr_1px_1fr]">
-        {/* Class info */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                #{classItem?.classCode || "—"}
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-[box-shadow,border-color] duration-200 hover:border-slate-300 hover:shadow-md animate-in fade-in-40 duration-200">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="rounded-lg bg-[#1e3a5f] text-white px-2.5 py-1 text-xs font-bold shadow-sm">
+            Mã lớp: #{classItem?.classCode || "—"}
+          </span>
+          {activeTab === "all" && <StatusBadge status={status} />}
+        </div>
+        <span className="text-xs font-medium text-slate-400">Ứng tuyển lúc: {formatDate(application.createdAt)}</span>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Class Details Column */}
+        <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+          <h3 className="text-sm font-bold text-[#1e3a5f] uppercase tracking-wider border-b border-slate-200/60 pb-1.5 flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4 text-emerald-600 animate-pulse" />
+            Chi tiết lớp học
+          </h3>
+
+          <div className="space-y-2.5 text-xs text-slate-600">
+            <p className="text-sm font-semibold text-slate-800">
+              Môn học: <span className="text-emerald-700 font-bold">{classItem?.subject || "—"}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Địa chỉ chi tiết:</span>{" "}
+              <span className="font-semibold text-slate-850 bg-slate-100 px-1 rounded">{classItem?.locationLabel || "—"}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">SĐT phụ huynh:</span>{" "}
+              <span className="font-bold text-slate-800 bg-emerald-50 text-emerald-750 px-1 rounded border border-emerald-100">{classItem?.contactPhone || "—"}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Thời lượng:</span>{" "}
+              <span className="font-semibold text-slate-850">
+                {classItem?.sessionsPerWeek} buổi/tuần · {classItem?.minutesPerSession} phút/buổi
               </span>
-              {activeTab === "all" && <StatusBadge status={status} />}
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Học phí:</span>{" "}
+              <span className="font-bold text-emerald-600 text-sm">
+                {formatPrice(classItem?.feePerSession)}/buổi ({formatPrice(classItem?.feePerMonth)}/tháng)
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Yêu cầu gia sư:</span>{" "}
+              <span className="font-semibold text-slate-850">{formatClassTutorPrefsSummary(classItem)}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Học viên:</span>{" "}
+              <span className="font-semibold text-slate-850">
+                {classItem?.studentCount} học viên ({classItem?.studentGender === "male" ? "Nam" : classItem?.studentGender === "female" ? "Nữ" : "Khác"})
+              </span>
+            </p>
+            <div>
+              <span className="font-semibold text-slate-400 block mb-1">Lịch học yêu cầu:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {classItem?.availabilitySlots && classItem.availabilitySlots.length > 0 ? (
+                  formatAvailabilitySlotsDetailed(classItem.availabilitySlots)
+                    .split("\n")
+                    .map((line, idx) => (
+                      <span key={idx} className="bg-white text-slate-700 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-200">
+                        {line}
+                      </span>
+                    ))
+                ) : (
+                  <span className="text-slate-500">—</span>
+                )}
+              </div>
             </div>
-            <span className="shrink-0 text-xs text-slate-400">{formatDate(application.createdAt)}</span>
+            {classItem?.description && (
+              <div className="border-t border-slate-200/50 pt-2 mt-2">
+                <span className="font-semibold text-slate-400 block mb-1">Mô tả chi tiết lớp:</span>
+                <p className="italic text-slate-600 whitespace-pre-wrap text-[11px] leading-relaxed bg-white border border-slate-100 p-2.5 rounded-lg max-h-24 overflow-y-auto">
+                  {classItem.description}
+                </p>
+              </div>
+            )}
           </div>
-
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span className="font-semibold text-slate-800">Môn: {classItem?.subject || "—"}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-            <span className="line-clamp-1">{classItem?.locationLabel || "—"}</span>
-          </div>
-
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="rounded-md bg-slate-50 px-2 py-1 text-slate-600">
-              {classItem?.sessionsPerWeek} buổi/tuần · {classItem?.minutesPerSession} phút
-            </span>
-            <span className="rounded-md bg-emerald-50 px-2 py-1 font-medium text-emerald-700">
-              {formatPrice(classItem?.feePerMonth)}/tháng
-            </span>
-          </div>
-
-          {status === "rejected" && rejectionReason && (
-            <div className="rounded-lg border border-rose-100 bg-rose-50 px-3 py-2">
-              <p className="text-xs font-medium text-rose-700">Lý do từ chối:</p>
-              <p className="mt-0.5 text-xs text-rose-600">{rejectionReason}</p>
-            </div>
-          )}
         </div>
 
-        {/* Divider */}
-        <div className="hidden bg-slate-100 lg:block" />
+        {/* Tutor Details Column */}
+        <div className="space-y-4 rounded-xl border border-slate-100 bg-[#f8fafc] p-4">
+          <h3 className="text-sm font-bold text-[#1e3a5f] uppercase tracking-wider border-b border-slate-200/60 pb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-blue-600" />
+              Gia sư ứng tuyển
+            </span>
+            <SubjectMatchBadge tutorSubjects={tutor?.subjects} classSubject={classItem?.subject} />
+          </h3>
 
-        {/* Tutor info */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-150 shadow-2xs">
             {tutor?.avatar ? (
               <img
                 src={tutor.avatar}
                 alt={tutor.fullName}
                 referrerPolicy="no-referrer"
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100"
+                className="h-11 w-11 rounded-full object-cover ring-2 ring-slate-100"
               />
             ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white shadow-inner">
                 {(tutor?.fullName ?? "?")[0]}
               </div>
             )}
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-slate-800">{tutor?.fullName || "—"}</p>
-              <p className="truncate text-xs text-slate-500">{tutor?.email || "—"}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-slate-800 truncate text-sm">{tutor?.fullName || "—"}</p>
+              <p className="text-xs text-slate-500 truncate">{tutor?.email || "—"}</p>
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs text-slate-600">
+          <div className="space-y-2.5 text-xs text-slate-600">
             <p>
-              Môn đăng ký dạy:{" "}
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-400">Số điện thoại gia sư:</span>{" "}
+              <span className="font-bold text-slate-800 text-sm bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">{tutor?.phone || "—"}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Giới tính / Trình độ:</span>{" "}
+              <span className="font-semibold text-slate-850">
+                {tutor?.gender === "male" ? "Nam" : tutor?.gender === "female" ? "Nữ" : "Khác"} · {tutor?.occupationStatus === "student" ? "Sinh viên" : tutor?.occupationStatus === "teacher" ? "Giáo viên" : "Đã tốt nghiệp"}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Học vị / Trường:</span>{" "}
+              <span className="font-semibold text-slate-850">
+                {tutor?.schoolName || "—"} {tutor?.graduationYear ? `(Tốt nghiệp ${tutor.graduationYear})` : ""}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold text-slate-400">Môn đăng ký dạy:</span>{" "}
+              <span className="font-semibold text-slate-800 bg-white px-1.5 py-0.5 rounded border border-slate-150">
                 {tutor?.subjects?.join(", ") || "—"}
               </span>
             </p>
-            {tutor?.occupationStatus && (
-              <p>
-                Nghề nghiệp:{" "}
-                <span className="font-medium text-slate-800">{tutor.occupationStatus}</span>
-              </p>
+            <div>
+              <span className="font-semibold text-slate-400 block mb-1">Lịch dạy gia sư:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {tutor?.availability && tutor.availability.length > 0 ? (
+                  formatAvailabilitySlotsDetailed(tutor.availability)
+                    .split("\n")
+                    .map((line, idx) => (
+                      <span key={idx} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-medium border border-blue-100">
+                        {line}
+                      </span>
+                    ))
+                ) : (
+                  <span className="text-slate-500">—</span>
+                )}
+              </div>
+            </div>
+            {tutor?.bio && (
+              <div className="border-t border-slate-200/50 pt-2 mt-2">
+                <span className="font-semibold text-slate-400 block mb-1">Giới thiệu bản thân:</span>
+                <p className="text-slate-600 whitespace-pre-wrap text-[11px] leading-relaxed bg-white border border-slate-100 p-2.5 rounded-lg max-h-24 overflow-y-auto">
+                  {tutor.bio}
+                </p>
+              </div>
             )}
           </div>
-
-          <SubjectMatchBadge tutorSubjects={tutor?.subjects} classSubject={classItem?.subject} />
         </div>
       </div>
 
-      {/* Actions — chỉ hiển thị khi đang ở tab pending */}
+      {status === "rejected" && rejectionReason && (
+        <div className="mt-4 rounded-xl border border-rose-100 bg-rose-50 px-4 py-2.5">
+          <p className="text-xs font-bold text-rose-700 uppercase tracking-wide">Lý do từ chối:</p>
+          <p className="mt-1 text-xs text-rose-600 leading-relaxed">{rejectionReason}</p>
+        </div>
+      )}
+
+      {/* Actions */}
       {activeTab === "pending" && (
         <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
           <Button
@@ -282,14 +370,14 @@ const ApplicationCard = ({ application, activeTab, actionLoading, onApprove, onR
             variant="outline"
             disabled={isLoading}
             onClick={() => onReject(application.id)}
-            className="h-9 rounded-lg border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50"
+            className="h-10 rounded-lg border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50 cursor-pointer"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
                 <XCircle className="mr-1.5 h-4 w-4" />
-                Từ chối
+                Từ chối nhận lớp
               </>
             )}
           </Button>
@@ -297,7 +385,7 @@ const ApplicationCard = ({ application, activeTab, actionLoading, onApprove, onR
             type="button"
             disabled={isLoading}
             onClick={() => onApprove(application.id)}
-            className="h-9 rounded-lg bg-emerald-600 px-4 font-semibold text-white hover:bg-emerald-700"
+            className="h-10 rounded-lg bg-emerald-600 px-5 font-semibold text-white hover:bg-emerald-700 shadow-sm cursor-pointer"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -311,11 +399,10 @@ const ApplicationCard = ({ application, activeTab, actionLoading, onApprove, onR
         </div>
       )}
 
-      {/* Status footer — khi không ở tab pending */}
       {activeTab !== "pending" && (
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
           <StatusBadge status={status} />
-          <span className="text-xs text-slate-400">Xử lý lúc {formatDate(application.updatedAt)}</span>
+          <span className="text-xs text-slate-400 font-medium">Xử lý lúc {formatDate(application.updatedAt)}</span>
         </div>
       )}
     </div>

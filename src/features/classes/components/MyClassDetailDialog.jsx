@@ -56,7 +56,7 @@ const MyClassDetailDialog = ({ open, application, onClose }) => {
               </span>
             </div>
             <h2 id="my-class-detail-title" className="mt-2 text-xl font-bold leading-tight text-slate-900">
-              {classItem.summary || `Cần Gia Sư Môn ${classItem.subject} - ${classItem.locationLabel}`}
+              {classItem.subject} - {classItem.summary || `Cần Gia Sư tại ${classItem.districtName || ''}, ${classItem.provinceName || ''}`}
             </h2>
             <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
               <Clock3 className="h-3.5 w-3.5" />
