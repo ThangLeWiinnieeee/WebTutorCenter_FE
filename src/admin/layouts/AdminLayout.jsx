@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck } from "lucide-react";
+import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -91,6 +91,12 @@ const AdminLayout = () => {
             icon={ClipboardCheck}
             label="Duyệt nhận lớp"
             active={location.pathname === "/admin/class-applications"}
+          />
+          <NavItem
+            to="/admin/settings"
+            icon={Settings}
+            label="Cấu hình chân trang"
+            active={location.pathname === "/admin/settings"}
           />
         </nav>
 

@@ -12,6 +12,7 @@ import {
   CalendarDays,
   CircleHelp,
   Clock3,
+  Eye,
   FileText,
   Filter,
   MapPin,
@@ -42,6 +43,7 @@ import {
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
 import locationService from '@/features/tutors/services/locationService';
+import tutorService from '@/features/tutors/services/tutorService';
 
 const NewClassesPage = () => {
   const dispatch = useDispatch();
@@ -110,6 +112,16 @@ const NewClassesPage = () => {
     startTransition(() => setCurrentPage(1));
   }, [filters]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const subjectParam = params.get("subject");
+    if (subjectParam) {
+      startTransition(() => {
+        setFilters((prev) => ({ ...prev, subject: subjectParam }));
+      });
+    }
+  }, [location.search]);
+
   const formatPrice = (value) => `${(value || 0).toLocaleString("vi-VN")}`;
   const formatDateTime = (value) => {
     if (!value) return "-";
@@ -141,7 +153,7 @@ const NewClassesPage = () => {
   const totalItems = pagination?.totalItems || 0;
   const returnTo = `${location.pathname}${location.search}`;
 
-  const handleReceiveClass = (classItem) => {
+  const handleReceiveClass = async (classItem) => {
     if (!isAuthenticated) {
       setReceiveDialog({ open: true, type: "login", classItem });
       return;
@@ -152,7 +164,46 @@ const NewClassesPage = () => {
       return;
     }
 
-    setReceiveDialog({ open: true, type: "confirm", classItem });
+    try {
+      const response = await tutorService.getProfile();
+      const tutorProfile = response.data?.data?.tutor;
+      const registeredSubjects = tutorProfile?.subjects || [];
+      const mismatchReasons = [];
+
+      if (!registeredSubjects.includes(classItem.subject)) {
+        mismatchReasons.push(`Môn học: Lớp yêu cầu môn "${classItem.subject}" nhưng bạn chưa đăng ký dạy môn này.`);
+      }
+
+      if (classItem.tutorGenderPref && classItem.tutorGenderPref !== 'any' && user?.gender !== classItem.tutorGenderPref) {
+        const requiredGender = classItem.tutorGenderPref === 'male' ? 'Nam' : 'Nữ';
+        const currentGender = user?.gender === 'male' ? 'Nam' : user?.gender === 'female' ? 'Nữ' : 'Chưa cập nhật';
+        mismatchReasons.push(`Giới tính: Lớp yêu cầu gia sư giới tính "${requiredGender}" nhưng giới tính tài khoản của bạn là "${currentGender}".`);
+      }
+
+      if (classItem.tutorLevelPref && classItem.tutorLevelPref !== 'any') {
+        const requiredLevel = classItem.tutorLevelPref === 'student' ? 'Sinh viên' : 'Giáo viên';
+        const currentOccupation = tutorProfile?.occupationStatus;
+        const currentLevel = currentOccupation === 'student' ? 'Sinh viên' : currentOccupation === 'teacher' ? 'Giáo viên' : 'Khác';
+        if (classItem.tutorLevelPref !== currentOccupation) {
+          mismatchReasons.push(`Trình độ: Lớp yêu cầu gia sư là "${requiredLevel}" nhưng trình độ của bạn là "${currentLevel}".`);
+        }
+      }
+
+      if (mismatchReasons.length > 0) {
+        setReceiveDialog({
+          open: true,
+          type: "mismatch",
+          classItem,
+          tutorSubjects: registeredSubjects,
+          mismatchReasons,
+        });
+        return;
+      }
+      setReceiveDialog({ open: true, type: "confirm", classItem, tutorSubjects: registeredSubjects });
+    } catch (err) {
+      console.error("Failed to check tutor profile conditions", err);
+      setReceiveDialog({ open: true, type: "confirm", classItem });
+    }
   };
 
   const handleConfirmApply = async () => {
@@ -216,18 +267,16 @@ const NewClassesPage = () => {
           <div className="relative min-w-[280px] flex-1">
             <MapPinned className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <SearchableSelect
-              value={filters.provinceCode || ALL_PROVINCES_VALUE}
+              value={filters.provinceCode || ""}
               onValueChange={(value) => {
                 setDistricts([]);
                 setFilters((prev) => ({
                   ...prev,
-                  provinceCode: value === ALL_PROVINCES_VALUE ? "" : value,
+                  provinceCode: value,
                   districtCode: "",
                 }));
               }}
-              placeholder="Tất cả khu vực"
-              allValue={ALL_PROVINCES_VALUE}
-              allLabel="Tất cả khu vực"
+              placeholder="Chọn tỉnh/thành phố"
               options={provinces.map((item) => ({ value: String(item.code), label: item.name }))}
               searchPlaceholder="Tìm tỉnh/thành..."
               emptyText="Không tìm thấy khu vực phù hợp"
@@ -280,16 +329,14 @@ const NewClassesPage = () => {
                 Quận/huyện
               </label>
               <SearchableSelect
-                value={filters.districtCode || ALL_DISTRICTS_VALUE}
+                value={filters.districtCode || ""}
                 onValueChange={(value) =>
                   setFilters((prev) => ({
                     ...prev,
-                    districtCode: value === ALL_DISTRICTS_VALUE ? "" : value,
+                    districtCode: value,
                   }))
                 }
-                placeholder="Tất cả quận/huyện"
-                allValue={ALL_DISTRICTS_VALUE}
-                allLabel="Tất cả quận/huyện"
+                placeholder="Chọn quận/huyện"
                 options={districts.map((item) => ({ value: String(item.code), label: item.name }))}
                 searchPlaceholder="Tìm quận/huyện..."
                 emptyText="Không tìm thấy quận/huyện phù hợp"
@@ -379,15 +426,25 @@ const NewClassesPage = () => {
               <div className="flex items-start justify-between gap-6">
                 <div className="min-w-0">
                   <h2 className="line-clamp-2 text-[22px] font-semibold leading-tight text-slate-900">
-                    {item.summary || `Cần Gia Sư Môn ${item.subject} - ${item.locationLabel}`}
+                    {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
                   </h2>
-                  <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                      Mã lớp {item.classCode}
-                    </span>
-                    <span>•</span>
-                    <Clock3 className="h-4 w-4" />
-                    <span>{formatDateTime(item.createdAt)}</span>
+                  <div className="mt-2.5 flex flex-col gap-1 text-slate-500">
+                    <div className="flex items-center gap-2.5">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                        Mã lớp {item.classCode}
+                      </span>
+                      <Link
+                        to={`/classes/${item._id || item.id}`}
+                        className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-1"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Xem thêm
+                      </Link>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      <span>Đăng ngày: {formatDateTime(item.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -449,34 +506,27 @@ const NewClassesPage = () => {
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-600">
-                <div className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
-                  <p>
-                    Địa điểm: {item.locationLabel}{" "}
-                    <span className="cursor-pointer text-xs font-medium text-rose-500 hover:underline">
-                      (Xem bản đồ)
+              <div className="mt-4 space-y-2.5 border-t border-slate-100 pt-3.5 text-sm text-slate-600">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+                    <span>
+                      <strong className="font-semibold text-slate-700">Địa điểm:</strong> {item.provinceName && item.districtName ? `${item.provinceName}, ${item.districtName}` : item.locationLabel}
                     </span>
-                  </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UserRound className="h-4 w-4 shrink-0 text-slate-400" />
+                    <span>
+                      <strong className="font-semibold text-slate-700">Yêu cầu gia sư:</strong> {formatClassTutorPrefsSummary(item)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 border-t border-slate-50 pt-2.5">
                   <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                  <p className="line-clamp-2 text-sm" title={formatAvailabilitySlotsOneLine(item.availabilitySlots)}>
-                    Thời gian có thể học:{' '}
+                  <p className="text-sm leading-relaxed" title={formatAvailabilitySlotsOneLine(item.availabilitySlots)}>
+                    <strong className="font-semibold text-slate-700">Thời gian có thể học:</strong>{' '}
                     {formatAvailabilitySlotsOneLine(item.availabilitySlots)}
                   </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                  <p className="line-clamp-2 text-sm">
-                    Yêu cầu gia sư: {formatClassTutorPrefsSummary(item)}
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <FileText className="mt-0.5 h-4 w-4 text-slate-400" />
-                  <Link to={`/classes/${item._id}`} className="font-medium text-sky-700 transition hover:text-sky-800 hover:underline">
-                    Xem chi tiết lớp và điều kiện nhận lớp
-                  </Link>
                 </div>
               </div>
             </article>
@@ -606,6 +656,8 @@ const NewClassesPage = () => {
         onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
         onConfirm={handleConfirmApply}
         applying={applying}
+        tutorSubjects={receiveDialog.tutorSubjects}
+        mismatchReasons={receiveDialog.mismatchReasons}
       />
     </div>
   );

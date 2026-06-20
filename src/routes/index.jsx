@@ -15,7 +15,7 @@ import {
   MyPostsPage,
 } from "@/features/classes";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage } from "@/admin";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminSettingsPage } from "@/admin";
 
 import {
   LoginPage,
@@ -105,6 +105,7 @@ const router = createBrowserRouter([
       { path: "/admin/users", element: <AdminUsersPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
       { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
+      { path: "/admin/settings", element: <AdminSettingsPage /> },
     ],
   },
 ]);

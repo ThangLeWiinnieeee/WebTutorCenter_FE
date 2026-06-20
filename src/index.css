@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/dist/style.css";
 
 /* Map shadcn CSS variables → Tailwind v4 color utilities (tránh bg-popover không có màu / trong suốt) */
 @theme inline {
@@ -106,4 +107,22 @@
   summary {
     cursor: pointer;
   }
+}
+/* react-day-picker v9: chỉ ghi đè CSS variables, không can thiệp layout/events */
+.rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--accent));
+  --rdp-today-color: hsl(var(--primary));
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  --rdp-day_button-height: 32px;
+  --rdp-day_button-width: 32px;
+  --rdp-day_button-border-radius: 8px;
+}
+
+/* Fix chevron icons: Lucide dùng stroke không dùng fill */
+.rdp-chevron {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2px;
 }

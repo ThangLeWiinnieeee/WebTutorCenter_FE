@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom';
 import {
   ChevronDown,
   Search,
+  X,
 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
@@ -95,7 +96,7 @@ function SearchableSelect({
   }, [open]);
 
   const displayLabel = useMemo(() => {
-    if (String(value) === String(allValue)) return allLabel;
+    if (allLabel && String(value) === String(allValue)) return allLabel;
     const found = options.find((o) => String(o.value) === String(value));
     return found?.label ?? placeholder ?? '';
   }, [value, allValue, allLabel, options, placeholder]);
@@ -138,6 +139,17 @@ function SearchableSelect({
     [onValueChange],
   );
 
+  const handleClear = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onValueChange('');
+    setSearchKeyword('');
+  }, [onValueChange]);
+
+  const hasValue = useMemo(() => {
+    return value !== undefined && value !== null && value !== '' && (!allLabel || String(value) !== String(allValue));
+  }, [value, allValue, allLabel]);
+
   const dropdown =
     open && typeof document !== 'undefined'
       ? createPortal(
@@ -168,21 +180,23 @@ function SearchableSelect({
               </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
-              <button
-                type="button"
-                role="option"
-                aria-selected={String(value) === String(allValue)}
-                className={cn(
-                  'flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition',
-                  String(value) === String(allValue)
-                    ? 'bg-emerald-50 font-medium text-emerald-900'
-                    : 'text-slate-900 hover:bg-slate-100',
-                )}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pick(String(allValue))}
-              >
-                {allLabel}
-              </button>
+              {allLabel && (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={String(value) === String(allValue)}
+                  className={cn(
+                    'flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition',
+                    String(value) === String(allValue)
+                      ? 'bg-emerald-50 font-medium text-emerald-900'
+                      : 'text-slate-900 hover:bg-slate-100',
+                  )}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pick(String(allValue))}
+                >
+                  {allLabel}
+                </button>
+              )}
               {rowItems.map((item) => {
                 const selected = String(value) === String(item.value);
                 return (
@@ -237,7 +251,18 @@ function SearchableSelect({
         <span className={cn('text-left', !displayLabel && 'text-slate-500')}>
           {displayLabel || placeholder}
         </span>
-        <ChevronDown className={cn('h-4 w-4 shrink-0 opacity-50 transition-transform', open && 'rotate-180')} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          {hasValue && !disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="rounded-full p-0.5 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <ChevronDown className={cn('h-4 w-4 opacity-50 transition-transform', open && 'rotate-180')} />
+        </div>
       </button>
       {dropdown}
     </div>

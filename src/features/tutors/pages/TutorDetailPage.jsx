@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import tutorService from "@/features/tutors/services/tutorService";
 import { OCCUPATION_STATUS_LABEL, DAYS_OF_WEEK_OPTIONS } from "@/features/tutors/constants";
+import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
 import {
   MapPin,
   BookOpen,
@@ -235,18 +236,23 @@ export default function TutorDetailPage() {
                 <Clock className="w-4 h-4 text-green-600" />
                 Lịch giảng dạy
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {tutor.availability.map((slot, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center"
-                  >
-                    <p className="font-semibold text-gray-900 text-sm">{getDayLabel(slot.day)}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {slot.startTime} – {slot.endTime}
-                    </p>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {formatAvailabilitySlotsDetailed(tutor.availability)
+                  .split("\n")
+                  .map((line, index) => {
+                    const parts = line.split(":");
+                    const day = parts[0];
+                    const hours = parts[1] || "";
+                    return (
+                      <div
+                        key={index}
+                        className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex justify-between items-center"
+                      >
+                        <p className="font-semibold text-gray-900 text-sm">{day}</p>
+                        <p className="text-sm text-gray-600 font-medium">{hours.trim()}</p>
+                      </div>
+                    );
+                  })}
               </div>
             </section>
           )}

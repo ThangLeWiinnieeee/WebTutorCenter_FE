@@ -40,12 +40,15 @@ import {
   useDispatch,
   useSelector,
 } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
+import WeeklyHourGrid from '@/features/classes/components/WeeklyHourGrid';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   buildClassRequestSchema,
   getDefaultClassRequestValues,
@@ -70,372 +73,7 @@ import locationService from '@/features/tutors/services/locationService';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-const SCHEDULE_DAYS = [
-  { value: 'Mon', label: 'Thứ 2' },
-  { value: 'Tue', label: 'Thứ 3' },
-  { value: 'Wed', label: 'Thứ 4' },
-  { value: 'Thu', label: 'Thứ 5' },
-  { value: 'Fri', label: 'Thứ 6' },
-  { value: 'Sat', label: 'Thứ 7' },
-  { value: 'Sun', label: 'Chủ nhật' },
-];
 
-const HOURS_24 = Array.from({ length: 24 }, (_, index) => index);
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-const WEEKEND = ['Sat', 'Sun'];
-
-const slotKey = (day, hour) => `${day}-${hour}`;
-
-const hoursForDay = (slots, day) =>
-  [...new Set(slots.filter((slot) => slot.day === day).map((slot) => Number(slot.hour)))].sort((a, b) => a - b);
-
-const clearDaySlots = (slots, day) => slots.filter((slot) => slot.day !== day);
-
-const addSlots = (slots, toAdd) => {
-  const set = new Set(slots.map((slot) => slotKey(slot.day, slot.hour)));
-  const next = [...slots];
-  toAdd.forEach(({ day, hour }) => {
-    const k = slotKey(day, hour);
-    if (!set.has(k)) {
-      set.add(k);
-      next.push({ day, hour });
-    }
-  });
-  return next;
-};
-
-const presetRanges = {
-  morning: [6, 7, 8, 9, 10, 11],
-  afternoon: [12, 13, 14, 15, 16, 17],
-  evening: [18, 19, 20, 21, 22],
-};
-
-const ScheduleTimeMatrix = memo(function ScheduleTimeMatrix({ value = [], onChange }) {
-  const slotSet = useMemo(
-    () => new Set(value.map((slot) => slotKey(slot.day, slot.hour))),
-    [value],
-  );
-  const slotActive = (day, hour) => slotSet.has(slotKey(day, hour));
-
-  const [copySource, setCopySource] = useState('Mon');
-  const [copyTargets, setCopyTargets] = useState(() => new Set(['Tue']));
-
-  const toggleHour = (day, hour) => {
-    if (slotActive(day, hour)) {
-      onChange(value.filter((slot) => !(slot.day === day && Number(slot.hour) === hour)));
-    } else {
-      onChange([...value, { day, hour }]);
-    }
-  };
-
-  const clearDay = (day) => onChange(clearDaySlots(value, day));
-
-  const applyPreset = (preset) => {
-    const hours = presetRanges[preset];
-    const targets = WEEKDAYS;
-    let next = [...value];
-    targets.forEach((day) => {
-      hours.forEach((hour) => {
-        next = addSlots(next, [{ day, hour }]);
-      });
-    });
-    onChange(next);
-  };
-
-  const applyWeekendPreset = () => {
-    const hours = Array.from({ length: 13 }, (_, index) => 8 + index);
-    let next = [...value];
-    WEEKEND.forEach((day) => {
-      hours.forEach((hour) => {
-        next = addSlots(next, [{ day, hour }]);
-      });
-    });
-    onChange(next);
-  };
-
-  const mergePresetEveningWeekdays = () => {
-    let next = [...value];
-    presetRanges.evening.forEach((hour) => {
-      WEEKDAYS.forEach((day) => {
-        next = addSlots(next, [{ day, hour }]);
-      });
-    });
-    onChange(next);
-  };
-
-  const toggleCopyTarget = (day) => {
-    if (day === copySource) return;
-    const nextSet = new Set(copyTargets);
-    if (nextSet.has(day)) nextSet.delete(day);
-    else nextSet.add(day);
-    setCopyTargets(nextSet);
-  };
-
-  const applyCopySchedule = () => {
-    const sourceHours = hoursForDay(value, copySource);
-    if (sourceHours.length === 0) {
-      toast.error('Ngày nguồn chưa có khung giờ để sao chép');
-      return;
-    }
-    const targets = [...copyTargets].filter((day) => day !== copySource);
-    if (targets.length === 0) {
-      toast.error('Chọn ít nhất một ngày đích');
-      return;
-    }
-    let next = value.filter((slot) => !targets.includes(slot.day));
-    targets.forEach((day) => {
-      sourceHours.forEach((hour) => {
-        next = addSlots(next, [{ day, hour }]);
-      });
-    });
-    onChange(next);
-    toast.success('Đã sao chép lịch');
-  };
-
-  const clearAll = () => onChange([]);
-
-  return (
-    <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
-      <div className="min-w-0 flex-1 space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-xs font-medium text-slate-500">Gợi ý nhanh:</span>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-          onClick={() => applyPreset('morning')}
-        >
-          <SunMedium className="h-3.5 w-3.5 text-amber-500" />
-          Buổi sáng
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-          onClick={() => applyPreset('afternoon')}
-        >
-          <SunMedium className="h-3.5 w-3.5 text-orange-400" />
-          Buổi chiều
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-          onClick={mergePresetEveningWeekdays}
-        >
-          <Sunset className="h-3.5 w-3.5 text-indigo-500" />
-          Buổi tối
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-          onClick={applyWeekendPreset}
-        >
-          Cuối tuần
-        </button>
-        <button
-          id="schedule-matrix-anchor"
-          type="button"
-          className="inline-flex items-center gap-1 rounded-full border border-dashed border-emerald-300 bg-emerald-50/50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-50"
-          onClick={() => document.getElementById('schedule-matrix-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Thêm khung giờ
-        </button>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <div className="inline-block min-w-full align-middle xl:min-w-[720px]">
-            <div className="mb-3 flex min-w-[640px] items-end gap-x-2 text-[10px] font-medium text-slate-400">
-              <div className="sticky left-0 isolate z-[40] flex min-h-[2.125rem] shrink-0 items-end gap-x-2 self-stretch rounded-r-lg bg-white pl-2 pr-4 shadow-[6px_0_12px_-4px_rgba(15,23,42,0.12)]">
-                <span className="inline-block size-5 shrink-0" aria-hidden />
-                <span className="inline-flex min-w-[4.5rem] font-semibold uppercase tracking-wide text-slate-400">Ngày</span>
-              </div>
-              <div className="flex min-w-0 flex-1 justify-between px-0.5">
-                <span>00:00</span>
-                <span>06:00</span>
-                <span>12:00</span>
-                <span>18:00</span>
-                <span>24:00</span>
-              </div>
-              <span className="inline-flex size-8 shrink-0 items-center justify-center text-center">&nbsp;</span>
-            </div>
-
-            {SCHEDULE_DAYS.map((day) => {
-              const activeCount = hoursForDay(value, day.value).length;
-              return (
-                <div
-                  key={day.value}
-                  className="mb-2 flex min-w-[640px] items-center gap-x-2 last:mb-0"
-                >
-                  <div className="sticky left-0 isolate z-[35] flex min-h-[2.5rem] shrink-0 items-center gap-x-2 self-stretch rounded-r-lg bg-white px-2 pr-4 py-1 shadow-[6px_0_14px_-4px_rgba(15,23,42,0.1)]">
-                    <button
-                      type="button"
-                      aria-label={`Xóa lịch ${day.label}`}
-                      title="Bỏ chọn cả ngày (xóa hết khung giờ)"
-                      onClick={() => {
-                        if (activeCount > 0) clearDay(day.value);
-                      }}
-                      className={cn(
-                        'flex size-5 shrink-0 items-center justify-center rounded border transition',
-                        activeCount > 0
-                          ? 'border-emerald-500 bg-emerald-600 shadow-sm shadow-emerald-200/60'
-                          : 'border-slate-200 bg-white hover:border-emerald-200',
-                      )}
-                    >
-                      {activeCount > 0 && <Check className="h-3 w-3 text-white" />}
-                    </button>
-                    <span className="min-w-[4.5rem] truncate text-xs font-semibold text-slate-700">{day.label}</span>
-                  </div>
-
-                  <div
-                    className="relative z-0 grid h-10 min-w-[520px] flex-1 gap-px rounded-lg border border-slate-300/90 bg-slate-300 p-px shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] [grid-template-columns:repeat(24,minmax(0,1fr))]"
-                    role="group"
-                    aria-label={`Khung giờ ${day.label}`}
-                  >
-                    {HOURS_24.map((hour) => {
-                      const active = slotActive(day.value, hour);
-                      const prevOn = hour > 0 && slotActive(day.value, hour - 1);
-                      const nextOn = hour < 23 && slotActive(day.value, hour + 1);
-                      const isQuarter = hour % 6 === 0;
-                      return (
-                        <button
-                          key={slotKey(day.value, hour)}
-                          type="button"
-                          title={`${day.label}: ${String(hour).padStart(2, '0')}:00–${String(hour + 1).padStart(2, '0')}:00`}
-                          onClick={() => toggleHour(day.value, hour)}
-                          className={cn(
-                            'relative flex min-h-[32px] min-w-[22px] w-full items-center justify-center text-[9px] font-semibold tabular-nums transition-all duration-150',
-                            active
-                              ? cn(
-                                  'z-[1] bg-emerald-600 text-white shadow-sm hover:bg-emerald-700',
-                                  !prevOn && 'rounded-l-[5px]',
-                                  !nextOn && 'rounded-r-[5px]',
-                                )
-                              : cn(
-                                  'bg-slate-50 text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 hover:ring-1 hover:ring-inset hover:ring-emerald-300/60',
-                                  isQuarter && 'bg-slate-100 text-slate-600',
-                                ),
-                          )}
-                        >
-                          <span className="pointer-events-none select-none opacity-90">{hour}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                    aria-label={`Xóa ${day.label}`}
-                    title="Xóa ngày này"
-                    onClick={() => clearDay(day.value)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <p className="mt-3 text-[11px] text-slate-500">
-          Mỗi ô là một giờ; số trong ô chưa chọn giúp đọc timeline. Các vạch xám giữa ô là rõ hơn khi chưa chọn. Vuốt ngang nếu màn hẹp; ô liền nhau được tô xanh liền mạch.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-        <div>
-          <p className="mb-1.5 text-xs font-medium text-slate-600">Sao chép lịch từ</p>
-          <div className="flex flex-wrap gap-1.5">
-            {SCHEDULE_DAYS.map((day) => (
-              <button
-                key={`src-${day.value}`}
-                type="button"
-                onClick={() => setCopySource(day.value)}
-                className={cn(
-                  'rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition',
-                  copySource === day.value
-                    ? 'border-emerald-600 bg-emerald-600 text-white'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200',
-                )}
-              >
-                {day.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="min-w-[12rem] flex-1">
-          <p className="mb-1.5 text-xs font-medium text-slate-600">Sang</p>
-          <div className="flex flex-wrap gap-1.5">
-            {SCHEDULE_DAYS.map((day) => (
-              <button
-                key={`dst-${day.value}`}
-                type="button"
-                disabled={day.value === copySource}
-                onClick={() => toggleCopyTarget(day.value)}
-                className={cn(
-                  'rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition disabled:opacity-40',
-                  copyTargets.has(day.value)
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-200',
-                )}
-              >
-                {day.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <Button
-          type="button"
-          className="h-10 shrink-0 rounded-xl bg-emerald-600 px-5 text-sm font-semibold hover:bg-emerald-700"
-          onClick={applyCopySchedule}
-        >
-          Áp dụng
-        </Button>
-      </div>
-      </div>
-
-      <aside className="w-full shrink-0 space-y-4 xl:w-72 xl:border-l xl:border-slate-100 xl:pl-6">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-4 shadow-sm">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-amber-900">
-            <Lightbulb className="h-4 w-4 shrink-0" />
-            Hướng dẫn
-          </div>
-          <ul className="list-inside list-disc space-y-1.5 text-xs leading-relaxed text-amber-950/85">
-            <li>Bấm từng ô trên timeline để bật hoặc tắt khung giờ (mỗi ô = một giờ).</li>
-            <li>O liền nhau sẽ gộp thành một dải như trên các ứng dụng đặt lịch.</li>
-            <li>Dùng gợi ý nhanh hoặc sao chép lịch giữa các ngày để nhập liệu nhanh hơn.</li>
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-sky-200 bg-sky-50/90 p-4 shadow-sm">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-sky-900">
-            <Zap className="h-4 w-4 shrink-0" />
-            Mẹo nhanh
-          </div>
-          <p className="text-xs leading-relaxed text-sky-950/85">
-            Nếu nhiều ngày trùng lịch, chọn một ngày nguồn, tick các ngày đích rồi bấm <strong>Áp dụng</strong>.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-3 h-9 w-full rounded-xl border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-            onClick={applyCopySchedule}
-          >
-            <Copy className="mr-2 h-3.5 w-3.5" />
-            Sao chép lịch
-          </Button>
-        </div>
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-          onClick={clearAll}
-        >
-          <Trash2 className="h-4 w-4" />
-          Xóa tất cả thời gian
-        </button>
-      </aside>
-    </div>
-  );
-});
 
 const BOOKING_PROGRESS_FIELD_NAMES = [
   'contactPhone',
@@ -448,7 +86,10 @@ const BOOKING_PROGRESS_FIELD_NAMES = [
   'startDate',
   'minutesPerSession',
   'sessionsPerWeek',
+  'studentGender',
   'availabilitySlots',
+  'tutorGenderPref',
+  'tutorLevelPref',
   'description',
 ];
 
@@ -465,24 +106,65 @@ const BookingProgressHeader = ({ control }) => {
     startDate,
     minutesPerSession,
     sessionsPerWeek,
+    studentGender,
     availabilitySlots,
+    tutorGenderPref,
+    tutorLevelPref,
     description,
   ] = watched;
-  const filledCount = [
-    contactPhone,
-    subject,
-    summary,
-    provinceCode,
-    districtCode,
-    locationLabel,
-    studentCount,
-    startDate,
-    minutesPerSession,
-    sessionsPerWeek,
-    availabilitySlots?.length,
-    description,
-  ].filter(Boolean).length;
-  const progress = Math.min(100, Math.round((filledCount / 12) * 100));
+
+  // Section 1: Thông tin lớp học (6 fields)
+  const s1Fields = [
+    !!contactPhone && /^(84|0)(3|5|7|8|9)[0-9]{8}$/.test(contactPhone),
+    !!subject,
+    !!summary && summary.trim().length >= 10,
+    !!provinceCode && Number(provinceCode) > 0,
+    !!districtCode && Number(districtCode) > 0,
+    !!locationLabel && locationLabel.trim().length >= 3,
+  ];
+  const s1Filled = s1Fields.filter(Boolean).length;
+  const s1Progress = Math.round((s1Filled / 6) * 100);
+
+  // Section 2: Lịch học (6 fields)
+  const s2Fields = [
+    !!studentCount && Number(studentCount) >= 1,
+    !!startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate),
+    !!minutesPerSession && Number(minutesPerSession) > 0,
+    !!sessionsPerWeek && Number(sessionsPerWeek) >= 1,
+    ['male', 'female', 'other'].includes(studentGender),
+    Array.isArray(availabilitySlots) && availabilitySlots.length >= 1,
+  ];
+  const s2Filled = s2Fields.filter(Boolean).length;
+  const s2Progress = Math.round((s2Filled / 6) * 100);
+
+  // Section 3: Yêu cầu gia sư (2 fields)
+  const s3Fields = [
+    ['male', 'female', 'other', 'any'].includes(tutorGenderPref),
+    ['student', 'teacher', 'any'].includes(tutorLevelPref),
+  ];
+  const s3Filled = s3Fields.filter(Boolean).length;
+  const s3Progress = Math.round((s3Filled / 2) * 100);
+
+  // Section 5: Mô tả chi tiết (1 field)
+  const s5Fields = [
+    !!description && description.trim().length >= 20,
+  ];
+  const s5Filled = s5Fields.filter(Boolean).length;
+  const s5Progress = Math.round((s5Filled / 1) * 100);
+
+  // Total Progress
+  const totalFilled = s1Filled + s2Filled + s3Filled + s5Filled;
+  const totalFields = 15;
+  const progress = Math.round((totalFilled / totalFields) * 100);
+
+  const sectionsInfo = [
+    { label: '1. Thông tin lớp', progress: s1Progress },
+    { label: '2. Lịch học', progress: s2Progress },
+    { label: '3. Yêu cầu gia sư', progress: s3Progress },
+    { label: '4. Học phí', progress: 100 },
+    { label: '5. Mô tả chi tiết', progress: s5Progress },
+    { label: '6. Xác nhận', progress: progress === 100 ? 100 : 0 },
+  ];
 
   return (
     <section className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8">
@@ -490,7 +172,7 @@ const BookingProgressHeader = ({ control }) => {
         <div>
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
             <Sparkles className="h-3.5 w-3.5" />
-            Booking trải nghiệm hiện đại
+            Đăng ký tìm gia sư trực tuyến
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-4xl">
             Tìm gia sư phù hợp cho con bạn
@@ -499,27 +181,40 @@ const BookingProgressHeader = ({ control }) => {
             Cung cấp càng rõ thông tin lớp học, hệ thống càng ghép gia sư nhanh và chính xác.
           </p>
         </div>
-        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
-          <p className="font-medium">Tiến độ hoàn thành</p>
-          <p className="text-2xl font-bold text-slate-900">{progress}%</p>
+        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 min-w-[150px] text-center md:text-left">
+          <p className="font-semibold text-xs uppercase tracking-wider text-slate-500">Tiến độ tổng thể</p>
+          <p className="text-3xl font-extrabold text-emerald-700 mt-1">{progress}%</p>
         </div>
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-500 md:grid-cols-6">
-        {[
-          '1. Thông tin lớp học',
-          '2. Lịch học',
-          '3. Yêu cầu gia sư',
-          '4. Học phí & bắt đầu',
-          '5. Mô tả chi tiết',
-          '6. Xác nhận yêu cầu',
-        ].map((item) => (
-          <div key={item} className="rounded-lg bg-slate-100 px-2.5 py-2 text-center">
-            {item}
-          </div>
-        ))}
+      <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-6">
+        {sectionsInfo.map((item) => {
+          const isComplete = item.progress === 100;
+          const isStarted = item.progress > 0;
+          return (
+            <div
+              key={item.label}
+              className={cn(
+                "rounded-xl p-3 text-center border font-medium transition-all duration-300 flex flex-col justify-between gap-1 shadow-sm",
+                isComplete
+                  ? "bg-emerald-50/70 border-emerald-250 text-emerald-800"
+                  : isStarted
+                  ? "bg-amber-50/70 border-amber-250 text-amber-800"
+                  : "bg-slate-50/60 border-slate-200/50 text-slate-400"
+              )}
+            >
+              <span className="font-semibold text-slate-750">{item.label}</span>
+              <span className={cn(
+                "text-[10px] font-bold mt-1.5",
+                isComplete ? "text-emerald-600" : isStarted ? "text-amber-600" : "text-slate-450"
+              )}>
+                {isComplete ? "✓ Hoàn thành" : isStarted ? `Đang điền (${item.progress}%)` : "Chưa bắt đầu"}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -688,110 +383,89 @@ const saturdayIsoThisOrNextFromTodayLocal = () => {
   return toLocalIsoDate(base);
 };
 
-const parseDatePartsFromIso = (val) => {
-  if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    return { day: "", month: "", year: "" };
-  }
-  const [year, month, day] = val.split("-");
-  return { day, month, year };
-};
-
 const CustomDateField = ({ value, onChange }) => {
-  const [dateParts, setDateParts] = useState(() => parseDatePartsFromIso(value));
-  const [showDetail, setShowDetail] = useState(false);
-  const [prevValue, setPrevValue] = useState(value);
+  const todayIso = getTodayIsoDateLocal();
+  const tomorrowIso = tomorrowIsoFromTodayLocal();
+  const weekendIso = saturdayIsoThisOrNextFromTodayLocal();
 
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setDateParts(parseDatePartsFromIso(value));
-  }
+  const isToday = value === todayIso;
+  const isTomorrow = value === tomorrowIso;
+  const isWeekend = value === weekendIso;
 
-  const syncToFormValue = (nextParts) => {
-    const day = Number(nextParts.day);
-    const month = Number(nextParts.month);
-    const year = Number(nextParts.year);
-    if (!day || !month || !year) return;
-
-    const date = new Date(year, month - 1, day);
-    if (
-      Number.isNaN(date.getTime()) ||
-      date.getDate() !== day ||
-      date.getMonth() !== month - 1 ||
-      date.getFullYear() !== year
-    ) {
-      return;
-    }
-
-    const isoDate = `${year.toString().padStart(4, "0")}-${month
-      .toString()
-      .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
-    onChange(clampStartDateIsoToMin(isoDate, getTodayIsoDateLocal()));
-  };
-
-  const updatePart = (key, rawValue) => {
-    const numeric = rawValue.replace(/\D/g, "").slice(0, key === "year" ? 4 : 2);
-    const nextParts = { ...dateParts, [key]: numeric };
-    setDateParts(nextParts);
-    syncToFormValue(nextParts);
-  };
-
-  const applyIso = (isoDateRaw) => {
-    const isoDate = clampStartDateIsoToMin(isoDateRaw, getTodayIsoDateLocal());
-    onChange(isoDate);
-    const [year, month, day] = isoDate.split("-");
-    setDateParts({ day, month, year });
-  };
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedDate = value ? parseIsoToLocalMidnightDate(value) : undefined;
 
   return (
     <div className="space-y-2">
-      <button
-        type="button"
-        onClick={() => setShowDetail((prev) => !prev)}
-        className="flex h-11 w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-left transition hover:border-emerald-300 hover:bg-emerald-50/40"
-      >
-        <CalendarDays className="h-4 w-4 shrink-0 text-emerald-600" />
-        <span className="flex-1 text-sm font-medium text-slate-800">
-          {formatDdMmYyyyUi(value) || "Chọn ngày bắt đầu"}
-        </span>
-        <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', showDetail && 'rotate-180')} />
-      </button>
-      {showDetail && (
-        <div className="grid grid-cols-3 gap-2">
-          <Input
-            value={dateParts.day}
-            onChange={(event) => updatePart("day", event.target.value)}
-            placeholder="DD"
-            className="h-11 rounded-xl border-slate-200 text-center focus-visible:ring-emerald-200"
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "h-11 w-full justify-start text-left font-normal rounded-xl border border-slate-200 bg-white px-3.5 text-slate-800 hover:bg-slate-50 hover:text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100",
+              !value && "text-slate-500"
+            )}
+          >
+            <CalendarDays className="mr-2.5 h-4 w-4 text-emerald-600 shrink-0" />
+            {value ? formatDdMmYyyyUi(value) : <span>Chọn ngày bắt đầu</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => {
+              if (date) {
+                onChange(toLocalIsoDate(date));
+                setIsOpen(false);
+              }
+            }}
+            disabled={(date) => {
+              const today = parseIsoToLocalMidnightDate(todayIso);
+              return date < today;
+            }}
+            initialFocus
           />
-          <Input
-            value={dateParts.month}
-            onChange={(event) => updatePart("month", event.target.value)}
-            placeholder="MM"
-            className="h-11 rounded-xl border-slate-200 text-center focus-visible:ring-emerald-200"
-          />
-          <Input
-            value={dateParts.year}
-            onChange={(event) => updatePart("year", event.target.value)}
-            placeholder={String(new Date().getFullYear())}
-            className="h-11 rounded-xl border-slate-200 text-center focus-visible:ring-emerald-200"
-          />
-        </div>
-      )}
+        </PopoverContent>
+      </Popover>
+
       <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
           className={cn(
-            'rounded-full border px-2 py-1.5 text-xs font-semibold transition',
-            value === getTodayIsoDateLocal()
-              ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800',
+            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
+            isToday
+              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
           )}
-          onClick={() => applyIso(getTodayIsoDateLocal())}
+          onClick={() => onChange(todayIso)}
         >
           Hôm nay
         </button>
-        <button type="button" className="rounded-full border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800" onClick={() => applyIso(tomorrowIsoFromTodayLocal())}>Ngày mai</button>
-        <button type="button" className="rounded-full border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800" onClick={() => applyIso(saturdayIsoThisOrNextFromTodayLocal())}>Cuối tuần</button>
+        <button
+          type="button"
+          className={cn(
+            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
+            isTomorrow
+              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+          )}
+          onClick={() => onChange(tomorrowIso)}
+        >
+          Ngày mai
+        </button>
+        <button
+          type="button"
+          className={cn(
+            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
+            isWeekend
+              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+          )}
+          onClick={() => onChange(weekendIso)}
+        >
+          Cuối tuần
+        </button>
       </div>
     </div>
   );
@@ -823,13 +497,11 @@ const CustomMinutesField = ({ value, onChange, minuteOptions = [] }) => {
 
 const FindTutorRequestFormContent = ({ pricingConfig }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { quote, loadingQuote, creating, latestCreated, error } = useSelector((state) => state.classes);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [subjectOptions, setSubjectOptions] = useState([]);
-  const ALL_SUBJECTS_VALUE = "__all_subjects__";
-  const ALL_PROVINCES_VALUE = "__all_provinces__";
-  const ALL_DISTRICTS_VALUE = "__all_districts__";
   const minuteOptions = pricingConfig.minutesPerSessionOptions || [];
   const classRequestSchema = useMemo(() => buildClassRequestSchema(pricingConfig), [pricingConfig]);
   const defaultFormValues = useMemo(
@@ -926,6 +598,18 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
     if (!result.error) {
       clearClassRequestFormDraft();
       toast.success("Đăng lớp cần gia sư thành công");
+      const createdClass = result.payload;
+      const classId = createdClass?._id;
+
+      // Clear flow states & reset form
+      dispatch(clearClassFlow());
+      form.reset(getDefaultClassRequestValues(pricingConfig));
+
+      if (classId) {
+        navigate(`/classes/${classId}`);
+      } else {
+        navigate("/classes");
+      }
     }
   };
 
@@ -980,7 +664,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Số điện thoại liên hệ *</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Số điện thoại liên hệ <span className="text-rose-500">*</span></label>
                       <Input
                         className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
                         placeholder="Ví dụ: 0912 345 678"
@@ -989,17 +673,15 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                       {errors.contactPhone && <p className="mt-1 text-xs text-rose-600">{errors.contactPhone.message}</p>}
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Môn học *</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Môn học <span className="text-rose-500">*</span></label>
                       <Controller
                         name="subject"
                         control={form.control}
                         render={({ field }) => (
                           <SearchableSelect
-                            value={field.value || ALL_SUBJECTS_VALUE}
-                            onValueChange={(selectedValue) => field.onChange(selectedValue === ALL_SUBJECTS_VALUE ? "" : selectedValue)}
+                            value={field.value || ""}
+                            onValueChange={field.onChange}
                             placeholder="Chọn môn học"
-                            allValue={ALL_SUBJECTS_VALUE}
-                            allLabel="Tất cả môn học"
                             options={subjectSelectOptions}
                             searchPlaceholder="Tìm môn học..."
                             emptyText="Không tìm thấy môn học"
@@ -1011,7 +693,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                       {errors.subject && <p className="mt-1 text-xs text-rose-600">{errors.subject.message}</p>}
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Tóm tắt yêu cầu *</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Tóm tắt yêu cầu <span className="text-rose-500">*</span></label>
                       <Input
                         className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
                         placeholder="Ví dụ: Tìm gia sư Toán lớp 9 tại Quận 7"
@@ -1020,23 +702,21 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                       {errors.summary && <p className="mt-1 text-xs text-rose-600">{errors.summary.message}</p>}
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa điểm dạy *</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa điểm dạy <span className="text-rose-500">*</span></label>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Controller
                           name="provinceCode"
                           control={form.control}
                           render={({ field }) => (
                             <SearchableSelect
-                              value={field.value ? String(field.value) : ALL_PROVINCES_VALUE}
+                              value={field.value ? String(field.value) : ""}
                               onValueChange={(selectedValue) => {
-                                const normalized = selectedValue === ALL_PROVINCES_VALUE ? 0 : Number(selectedValue);
+                                const normalized = Number(selectedValue);
                                 field.onChange(normalized);
                                 form.setValue("districtCode", 0);
                                 setDistricts([]);
                               }}
-                              placeholder="Tỉnh/thành"
-                              allValue={ALL_PROVINCES_VALUE}
-                              allLabel="Tất cả khu vực"
+                              placeholder="Chọn tỉnh/thành phố"
                               options={provinceSelectOptions}
                               searchPlaceholder="Tìm tỉnh/thành..."
                               emptyText="Không tìm thấy khu vực"
@@ -1050,11 +730,9 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                           control={form.control}
                           render={({ field }) => (
                             <SearchableSelect
-                              value={field.value ? String(field.value) : ALL_DISTRICTS_VALUE}
-                              onValueChange={(selectedValue) => field.onChange(selectedValue === ALL_DISTRICTS_VALUE ? 0 : Number(selectedValue))}
-                              placeholder="Quận/huyện"
-                              allValue={ALL_DISTRICTS_VALUE}
-                              allLabel="Tất cả quận/huyện"
+                              value={field.value ? String(field.value) : ""}
+                              onValueChange={(selectedValue) => field.onChange(Number(selectedValue))}
+                              placeholder="Chọn quận/huyện"
                               options={districtSelectOptions}
                               searchPlaceholder="Tìm quận/huyện..."
                               emptyText="Không tìm thấy quận/huyện"
@@ -1073,7 +751,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa chỉ ngắn gọn *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Nhập địa chỉ chi tiết <span className="text-rose-500">*</span></label>
                     <Input
                       className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
                       placeholder="Ví dụ: Chung cư Sunrise City, đường Nguyễn Hữu Thọ"
@@ -1101,7 +779,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                   <div className="space-y-6">
                       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
                         <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số học viên *</label>
+                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số học viên <span className="text-rose-500">*</span></label>
                           <Controller
                             name="studentCount"
                             control={form.control}
@@ -1143,7 +821,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                           {errors.studentCount && <p className="mt-1 text-xs text-rose-600">{errors.studentCount.message}</p>}
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày bắt đầu *</label>
+                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày bắt đầu <span className="text-rose-500">*</span></label>
                           <Controller
                             name="startDate"
                             control={form.control}
@@ -1152,7 +830,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                           {errors.startDate && <p className="mt-1 text-xs text-rose-600">{errors.startDate.message}</p>}
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Thời lượng mỗi buổi *</label>
+                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Thời lượng mỗi buổi <span className="text-rose-500">*</span></label>
                           <p className="mb-1.5 text-xs text-slate-500">
                             Chọn một mức: {minuteOptions.join(", ")} phút
                           </p>
@@ -1170,7 +848,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                           {errors.minutesPerSession && <p className="mt-1 text-xs text-rose-600">{errors.minutesPerSession.message}</p>}
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số buổi / tuần *</label>
+                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số buổi / tuần <span className="text-rose-500">*</span></label>
                           <Controller
                             name="sessionsPerWeek"
                             control={form.control}
@@ -1266,11 +944,11 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                   </div>
 
                   <div className="mt-8 border-t border-slate-100 pt-6">
-                    <label className="mb-4 block text-sm font-semibold text-slate-800">Thời gian có thể học *</label>
+                    <label className="mb-4 block text-sm font-semibold text-slate-800">Thời gian có thể học <span className="text-rose-500">*</span></label>
                     <Controller
                       control={form.control}
                       name="availabilitySlots"
-                      render={({ field }) => <ScheduleTimeMatrix value={field.value} onChange={field.onChange} />}
+                      render={({ field }) => <WeeklyHourGrid value={field.value} onChange={field.onChange} />}
                     />
                     {errors.availabilitySlots && <p className="mt-2 text-xs text-rose-600">{errors.availabilitySlots.message}</p>}
                   </div>
@@ -1366,7 +1044,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <BookOpenCheck className="h-4 w-4 text-emerald-600" />
-                    5. Mô tả chi tiết
+                    5. Mô tả chi tiết <span className="text-rose-500">*</span>
                   </h2>
                   <textarea
                     className="min-h-[140px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"

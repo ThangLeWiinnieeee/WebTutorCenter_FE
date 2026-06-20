@@ -130,7 +130,7 @@ export default function TutorFilters({
           label="Tỉnh/Thành"
           value={filters.province || ""}
           onChange={(e) => update("province", e.target.value || undefined)}
-          placeholder="Tất cả tỉnh/thành"
+          placeholder="Chọn tỉnh/thành phố"
         >
           {provinces.map((p) => (
             <option key={p.value} value={p.value}>
@@ -144,7 +144,7 @@ export default function TutorFilters({
           value={filters.district || ""}
           onChange={(e) => update("district", e.target.value || undefined)}
           disabled={!filters.province}
-          placeholder={filters.province ? "Tất cả quận/huyện" : "Chọn tỉnh trước"}
+          placeholder={filters.province ? "Chọn quận/huyện" : "Chọn tỉnh trước"}
         >
           {districts.map((d) => (
             <option key={d.value} value={d.value}>
