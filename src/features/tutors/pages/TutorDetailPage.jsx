@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import AOS from "aos";
 import tutorService from "@/features/tutors/services/tutorService";
 import { OCCUPATION_STATUS_LABEL, DAYS_OF_WEEK_OPTIONS } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
@@ -65,6 +66,11 @@ export default function TutorDetailPage() {
     fetchTutor();
   }, [id]);
 
+  // Tính lại vị trí animation sau khi dữ liệu gia sư được tải
+  useEffect(() => {
+    if (tutor) AOS.refresh();
+  }, [tutor]);
+
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -96,7 +102,7 @@ export default function TutorDetailPage() {
       <BackButton navigate={navigate} />
 
       {/* Hero Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 flex flex-col sm:flex-row items-start gap-6">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 flex flex-col sm:flex-row items-start gap-6" data-aos="fade-down">
         {/* Avatar */}
         <div className="shrink-0 w-28 h-28 rounded-full bg-linear-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-4xl overflow-hidden">
           {tutor.avatar ? (
@@ -160,7 +166,7 @@ export default function TutorDetailPage() {
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Left sidebar */}
-        <div className="space-y-4">
+        <div className="space-y-4" data-aos="fade-right">
           {/* Thông tin liên hệ */}
           <InfoCard title="Liên hệ">
             {tutor.phone && (
@@ -203,7 +209,7 @@ export default function TutorDetailPage() {
         <div className="md:col-span-2 space-y-6">
           {/* Giới thiệu */}
           {tutor.bio && (
-            <section className="bg-white rounded-2xl border border-gray-200 p-6">
+            <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
               <h2 className="text-base font-bold text-gray-900 mb-3">Giới thiệu</h2>
               <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{tutor.bio}</p>
             </section>
@@ -211,7 +217,7 @@ export default function TutorDetailPage() {
 
           {/* Môn dạy */}
           {tutor.subjects?.length > 0 && (
-            <section className="bg-white rounded-2xl border border-gray-200 p-6">
+            <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
               <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-green-600" />
                 Môn học giảng dạy
@@ -231,7 +237,7 @@ export default function TutorDetailPage() {
 
           {/* Lịch giảng dạy */}
           {tutor.availability?.length > 0 && (
-            <section className="bg-white rounded-2xl border border-gray-200 p-6">
+            <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-green-600" />
                 Lịch giảng dạy

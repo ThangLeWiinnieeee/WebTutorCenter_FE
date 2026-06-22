@@ -30,6 +30,7 @@ import {
 } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import AOS from 'aos';
 
 import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
@@ -239,6 +240,11 @@ const NewClassesPage = () => {
     [pageSize]
   );
 
+  // Tính lại vị trí animation sau khi danh sách lớp (tải bất đồng bộ) thay đổi
+  useEffect(() => {
+    AOS.refresh();
+  }, [loadingList, list.length]);
+
   return (
     <div className="mx-auto max-w-[1360px] px-6 py-8">
       <div className="sticky top-16 z-40 mb-7 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-md backdrop-blur-md ring-1 ring-white/60">
@@ -418,9 +424,11 @@ const NewClassesPage = () => {
             </article>
           ))}
 
-          {!loadingList && list.map((item) => (
+          {!loadingList && list.map((item, idx) => (
             <article
               key={item._id}
+              data-aos="fade-up"
+              data-aos-delay={Math.min(idx, 4) * 60}
               className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-slate-300 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-6">

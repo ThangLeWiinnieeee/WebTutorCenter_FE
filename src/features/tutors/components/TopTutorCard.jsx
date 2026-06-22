@@ -23,7 +23,7 @@ export default function TopTutorCard({ tutor, rank }) {
         </span>
       )}
 
-      <div className="flex flex-col items-center px-4 pb-4 pt-6">
+      <div className="flex h-full flex-col items-center px-4 pb-6 pt-6">
         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-lg font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
             <img src={tutor.avatar} alt={tutor.fullName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
@@ -35,9 +35,9 @@ export default function TopTutorCard({ tutor, rank }) {
         <h3 className="mt-3 line-clamp-1 text-center text-sm font-bold text-slate-900">{tutor.fullName}</h3>
 
         {locationParts.length > 0 && (
-          <div className="mt-1 flex items-center justify-center gap-1 text-xs text-slate-500">
-            <MapPin className="h-3 w-3 shrink-0" />
-            <span className="truncate">{locationParts.join(", ")}</span>
+          <div className="mt-1 flex items-start justify-center gap-1 text-xs text-slate-500">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="text-center wrap-break-word">{locationParts.join(", ")}</span>
           </div>
         )}
 

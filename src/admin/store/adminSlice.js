@@ -12,6 +12,16 @@ import {
   getClassApplicationStatsThunk,
   approveClassApplicationThunk,
   rejectClassApplicationThunk,
+  getPromosThunk,
+  createPromoThunk,
+  updatePromoThunk,
+  deletePromoThunk,
+  getAdminClassesThunk,
+  deleteAdminClassThunk,
+  getTrashCountsThunk,
+  getTrashItemsThunk,
+  restoreTrashItemThunk,
+  purgeTrashItemThunk,
 } from "./adminThunks";
 
 const adminSlice = createSlice({
@@ -43,6 +53,37 @@ const adminSlice = createSlice({
     classApplicationActionLoading: null,
     classApplicationStats: { pending: 0, approved: 0, rejected: 0 },
     classApplicationStatsLoading: false,
+    promos: [],
+    promosPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    promosLoading: false,
+    promosError: null,
+    promoActionLoading: null,
+    classes: [],
+    classesPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    classesLoading: false,
+    classesError: null,
+    classActionLoading: null,
+    trashItems: [],
+    trashPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    trashLoading: false,
+    trashError: null,
+    trashActionLoading: null,
+    trashCounts: { users: 0, classes: 0, promos: 0 },
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -214,6 +255,130 @@ const adminSlice = createSlice({
       })
       .addCase(rejectClassApplicationThunk.rejected, (state) => {
         state.classApplicationActionLoading = null;
+      });
+
+    // ──────────────────────────── Promo ────────────────────────────
+    builder
+      .addCase(getPromosThunk.pending, (state) => {
+        state.promosLoading = true;
+        state.promosError = null;
+      })
+      .addCase(getPromosThunk.fulfilled, (state, action) => {
+        state.promosLoading = false;
+        state.promos = action.payload.promos || [];
+        state.promosPagination = action.payload.pagination || state.promosPagination;
+      })
+      .addCase(getPromosThunk.rejected, (state, action) => {
+        state.promosLoading = false;
+        state.promosError = action.payload;
+      });
+
+    builder
+      .addCase(createPromoThunk.pending, (state) => {
+        state.promoActionLoading = "create";
+      })
+      .addCase(createPromoThunk.fulfilled, (state) => {
+        state.promoActionLoading = null;
+      })
+      .addCase(createPromoThunk.rejected, (state) => {
+        state.promoActionLoading = null;
+      });
+
+    builder
+      .addCase(updatePromoThunk.pending, (state, action) => {
+        state.promoActionLoading = action.meta.arg.id;
+      })
+      .addCase(updatePromoThunk.fulfilled, (state, action) => {
+        state.promoActionLoading = null;
+        const updated = action.payload;
+        state.promos = state.promos.map((promo) => (promo.id === updated.id ? updated : promo));
+      })
+      .addCase(updatePromoThunk.rejected, (state) => {
+        state.promoActionLoading = null;
+      });
+
+    builder
+      .addCase(deletePromoThunk.pending, (state, action) => {
+        state.promoActionLoading = action.meta.arg;
+      })
+      .addCase(deletePromoThunk.fulfilled, (state, action) => {
+        state.promoActionLoading = null;
+        state.promos = state.promos.filter((promo) => promo.id !== action.payload.id);
+      })
+      .addCase(deletePromoThunk.rejected, (state) => {
+        state.promoActionLoading = null;
+      });
+
+    // ──────────────────────────── Class (bài đăng) ────────────────────────────
+    builder
+      .addCase(getAdminClassesThunk.pending, (state) => {
+        state.classesLoading = true;
+        state.classesError = null;
+      })
+      .addCase(getAdminClassesThunk.fulfilled, (state, action) => {
+        state.classesLoading = false;
+        state.classes = action.payload.classes || [];
+        state.classesPagination = action.payload.pagination || state.classesPagination;
+      })
+      .addCase(getAdminClassesThunk.rejected, (state, action) => {
+        state.classesLoading = false;
+        state.classesError = action.payload;
+      });
+
+    builder
+      .addCase(deleteAdminClassThunk.pending, (state, action) => {
+        state.classActionLoading = action.meta.arg;
+      })
+      .addCase(deleteAdminClassThunk.fulfilled, (state, action) => {
+        state.classActionLoading = null;
+        state.classes = state.classes.filter((item) => item.id !== action.payload.id);
+      })
+      .addCase(deleteAdminClassThunk.rejected, (state) => {
+        state.classActionLoading = null;
+      });
+
+    // ──────────────────────────── Trash (thùng rác) ────────────────────────────
+    builder
+      .addCase(getTrashCountsThunk.fulfilled, (state, action) => {
+        state.trashCounts = action.payload;
+      });
+
+    builder
+      .addCase(getTrashItemsThunk.pending, (state) => {
+        state.trashLoading = true;
+        state.trashError = null;
+      })
+      .addCase(getTrashItemsThunk.fulfilled, (state, action) => {
+        state.trashLoading = false;
+        state.trashItems = action.payload.items || [];
+        state.trashPagination = action.payload.pagination || state.trashPagination;
+      })
+      .addCase(getTrashItemsThunk.rejected, (state, action) => {
+        state.trashLoading = false;
+        state.trashError = action.payload;
+      });
+
+    const handleTrashRemoval = (state, action) => {
+      state.trashActionLoading = null;
+      state.trashItems = state.trashItems.filter((item) => item.id !== action.payload.id);
+    };
+
+    builder
+      .addCase(restoreTrashItemThunk.pending, (state, action) => {
+        state.trashActionLoading = action.meta.arg.id;
+      })
+      .addCase(restoreTrashItemThunk.fulfilled, handleTrashRemoval)
+      .addCase(restoreTrashItemThunk.rejected, (state) => {
+        state.trashActionLoading = null;
+      });
+
+    builder
+      .addCase(purgeTrashItemThunk.pending, (state, action) => {
+        state.trashActionLoading = action.meta.arg.id;
+      })
+      .addCase(purgeTrashItemThunk.fulfilled, handleTrashRemoval)
+      .addCase(purgeTrashItemThunk.rejected, (state) => {
+        state.trashActionLoading = null;
       });
   },
 });

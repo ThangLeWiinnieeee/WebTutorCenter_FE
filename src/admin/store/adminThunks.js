@@ -144,3 +144,141 @@ export const rejectClassApplicationThunk = createAsyncThunk(
     }
   }
 );
+
+// ──────────────────────────── Class (bài đăng tìm gia sư) ────────────────────────────
+
+export const getAdminClassesThunk = createAsyncThunk(
+  "admin/getClasses",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getAdminClasses(params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách bài đăng");
+    }
+  }
+);
+
+export const getAdminClassDetailThunk = createAsyncThunk(
+  "admin/getClassDetail",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getAdminClassDetail(id);
+      return res.data.data.classItem;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được chi tiết bài đăng");
+    }
+  }
+);
+
+export const deleteAdminClassThunk = createAsyncThunk(
+  "admin/deleteClass",
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminService.deleteAdminClass(id);
+      return { id };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa bài đăng thất bại");
+    }
+  }
+);
+
+// ──────────────────────────── Trash (thùng rác) ────────────────────────────
+
+export const getTrashCountsThunk = createAsyncThunk(
+  "admin/getTrashCounts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getTrashCounts();
+      return res.data.data.counts;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được số lượng thùng rác");
+    }
+  }
+);
+
+export const getTrashItemsThunk = createAsyncThunk(
+  "admin/getTrashItems",
+  async ({ type, params }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getTrashItems(type, params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách thùng rác");
+    }
+  }
+);
+
+export const restoreTrashItemThunk = createAsyncThunk(
+  "admin/restoreTrashItem",
+  async ({ type, id }, { rejectWithValue }) => {
+    try {
+      await adminService.restoreTrashItem(type, id);
+      return { id };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Khôi phục thất bại");
+    }
+  }
+);
+
+export const purgeTrashItemThunk = createAsyncThunk(
+  "admin/purgeTrashItem",
+  async ({ type, id }, { rejectWithValue }) => {
+    try {
+      await adminService.purgeTrashItem(type, id);
+      return { id };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa vĩnh viễn thất bại");
+    }
+  }
+);
+
+// ──────────────────────────── Promo (mã ưu đãi) ────────────────────────────
+
+export const getPromosThunk = createAsyncThunk(
+  "admin/getPromos",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getPromos(params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách mã ưu đãi");
+    }
+  }
+);
+
+export const createPromoThunk = createAsyncThunk(
+  "admin/createPromo",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const res = await adminService.createPromo(payload);
+      return res.data.data.promo;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Tạo mã ưu đãi thất bại");
+    }
+  }
+);
+
+export const updatePromoThunk = createAsyncThunk(
+  "admin/updatePromo",
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.updatePromo(id, payload);
+      return res.data.data.promo;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Cập nhật mã ưu đãi thất bại");
+    }
+  }
+);
+
+export const deletePromoThunk = createAsyncThunk(
+  "admin/deletePromo",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.deletePromo(id);
+      return res.data.data.promo;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa mã ưu đãi thất bại");
+    }
+  }
+);
