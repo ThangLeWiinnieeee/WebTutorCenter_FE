@@ -3,5 +3,8 @@ export { default as TutorApprovalPage } from "./pages/TutorApprovalPage";
 export { default as AdminDashboardPage } from "./pages/AdminDashboardPage";
 export { default as AdminUsersPage } from "./pages/AdminUsersPage";
 export { default as ClassApplicationsPage } from "./pages/ClassApplicationsPage";
+export { default as AdminClassesPage } from "./pages/AdminClassesPage";
+export { default as AdminTrashPage } from "./pages/AdminTrashPage";
+export { default as AdminPromosPage } from "./pages/AdminPromosPage";
 export { default as AdminSettingsPage } from "./pages/AdminSettingsPage";
 export { default as adminReducer } from "./store/adminSlice";

@@ -42,6 +42,7 @@ import {
 import useAuth from '@/features/auth/hooks/useAuth';
 import tutorService from '@/features/tutors/services/tutorService';
 import { toast } from 'sonner';
+import AOS from 'aos';
 
 const NewClassDetailPage = () => {
   const { id } = useParams();
@@ -59,6 +60,11 @@ const NewClassDetailPage = () => {
   useEffect(() => {
     if (id) dispatch(fetchClassDetailThunk(id));
   }, [dispatch, id]);
+
+  // Tính lại vị trí animation sau khi chi tiết lớp được tải
+  useEffect(() => {
+    if (detail?._id) AOS.refresh();
+  }, [detail?._id]);
 
   const mapClassToListItem = (item) => ({
     id: item._id,
@@ -224,7 +230,7 @@ const NewClassDetailPage = () => {
     <div className="mx-auto max-w-[1360px] px-6 py-8">
       <div className="grid grid-cols-12 gap-6">
         <section className="col-span-9 space-y-5">
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-aos="fade-up">
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <h1 className="text-3xl font-semibold leading-tight text-slate-900">
@@ -352,7 +358,7 @@ const NewClassDetailPage = () => {
             </div>
           </article>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" data-aos="fade-up" data-aos-delay="100">
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Các lớp tương tự</h3>
@@ -403,7 +409,7 @@ const NewClassDetailPage = () => {
           </div>
         </section>
 
-        <aside className="col-span-3 space-y-4">
+        <aside className="col-span-3 space-y-4" data-aos="fade-left" data-aos-delay="100">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
               Thông tin nhanh

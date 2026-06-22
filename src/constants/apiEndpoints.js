@@ -37,6 +37,13 @@ const API_ENDPOINTS = {
     CLASS_APPLICATIONS_STATS: "/admin/class-applications/stats",
     CLASS_APPLICATION_APPROVE: (id) => `/admin/class-applications/${id}/approve`,
     CLASS_APPLICATION_REJECT: (id) => `/admin/class-applications/${id}/reject`,
+    CLASSES: "/admin/classes",
+    CLASS_DETAIL: (id) => `/admin/classes/${id}`,
+    CLASS_DELETE: (id) => `/admin/classes/${id}`,
+    TRASH_COUNTS: "/admin/trash/counts",
+    TRASH_LIST: (type) => `/admin/trash/${type}`,
+    TRASH_RESTORE: (type, id) => `/admin/trash/${type}/${id}/restore`,
+    TRASH_PURGE: (type, id) => `/admin/trash/${type}/${id}`,
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
@@ -52,6 +59,13 @@ const API_ENDPOINTS = {
     ALL: "/lookups/all",
     BY_TYPE: (type) => `/lookups/type/${type}`,
     DISTRICTS_BY_PROVINCE: (province) => `/lookups/districts/${province}`,
+  },
+  PROMOS: {
+    VALIDATE: "/promos/validate",
+    LIST: "/promos",
+    CREATE: "/promos",
+    UPDATE: (id) => `/promos/${id}`,
+    DELETE: (id) => `/promos/${id}`,
   },
   CLASSES: {
     QUOTE: "/classes/quote",

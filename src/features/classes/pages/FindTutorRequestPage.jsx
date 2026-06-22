@@ -23,7 +23,6 @@ import {
   PhoneCall,
   Plus,
   ShieldCheck,
-  Sparkles,
   SunMedium,
   Sunset,
   Trash2,
@@ -161,19 +160,14 @@ const BookingProgressHeader = ({ control }) => {
     { label: '1. Thông tin lớp', progress: s1Progress },
     { label: '2. Lịch học', progress: s2Progress },
     { label: '3. Yêu cầu gia sư', progress: s3Progress },
-    { label: '4. Học phí', progress: 100 },
-    { label: '5. Mô tả chi tiết', progress: s5Progress },
-    { label: '6. Xác nhận', progress: progress === 100 ? 100 : 0 },
+    { label: '4. Mô tả chi tiết', progress: s5Progress },
+    { label: '5. Xác nhận', progress: progress === 100 ? 100 : 0 },
   ];
 
   return (
     <section className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            <Sparkles className="h-3.5 w-3.5" />
-            Đăng ký tìm gia sư trực tuyến
-          </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-4xl">
             Tìm gia sư phù hợp cho con bạn
           </h1>
@@ -189,7 +183,7 @@ const BookingProgressHeader = ({ control }) => {
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-6">
+      <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
         {sectionsInfo.map((item) => {
           const isComplete = item.progress === 100;
           const isStarted = item.progress > 0;
@@ -514,10 +508,64 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
   );
   const form = useForm({ resolver: zodResolver(classRequestSchema), defaultValues: defaultFormValues });
   const provinceCode = useWatch({ control: form.control, name: 'provinceCode' });
+  const studentCount = useWatch({ control: form.control, name: 'studentCount' });
+  const isSingleStudent = Number(studentCount) <= 1;
   const persistReadyRef = useRef(false);
   const {
     formState: { errors },
   } = form;
+
+  // 1 học viên không thể là "Nam & Nữ" -> reset về "Nam"
+  useEffect(() => {
+    if (isSingleStudent && form.getValues('studentGender') === 'other') {
+      form.setValue('studentGender', 'male', { shouldValidate: true });
+    }
+  }, [isSingleStudent, form]);
+
+  // ─── Mã ưu đãi (áp dụng ở màn báo giá) ───
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoChecking, setPromoChecking] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const promoCodeValue = useWatch({ control: form.control, name: 'promoCode' });
+
+  // Quay lại sửa (quote=null) hoặc đổi mã -> bỏ trạng thái đã áp dụng
+  useEffect(() => {
+    if (!quote) {
+      setAppliedPromo(null);
+      setPromoError("");
+    }
+  }, [quote]);
+
+  useEffect(() => {
+    if (appliedPromo && (promoCodeValue || "").trim().toUpperCase() !== appliedPromo.code) {
+      setAppliedPromo(null);
+    }
+  }, [promoCodeValue, appliedPromo]);
+
+  const handleApplyPromo = async () => {
+    const code = (form.getValues('promoCode') || "").trim();
+    if (!code) {
+      setPromoError("Vui lòng nhập mã ưu đãi");
+      return;
+    }
+    setPromoChecking(true);
+    setPromoError("");
+    try {
+      const res = await classService.validatePromo(code, quote.feePerMonth);
+      setAppliedPromo(res.data.data);
+    } catch (err) {
+      setAppliedPromo(null);
+      setPromoError(err.response?.data?.message || "Mã ưu đãi không hợp lệ");
+    } finally {
+      setPromoChecking(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoError("");
+    form.setValue('promoCode', "");
+  };
 
   useEffect(() => {
     classService
@@ -901,12 +949,14 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                             name="studentGender"
                             control={form.control}
                             render={({ field }) => (
-                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                              <div className={cn('grid grid-cols-1 gap-3', isSingleStudent ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
                                 {[
                                   { value: 'male', label: 'Nam', desc: '', Icon: UserRound },
                                   { value: 'female', label: 'Nữ', desc: '', Icon: UserRound },
                                   { value: 'other', label: 'Nam & Nữ', desc: 'Ghép lớp hỗn hợp', Icon: Users },
-                                ].map((item) => {
+                                ]
+                                  .filter((item) => !(isSingleStudent && item.value === 'other'))
+                                  .map((item) => {
                                   const selected = field.value === item.value;
                                   const IconCmp = item.Icon;
                                   return (
@@ -1023,28 +1073,8 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
 
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    <Clock3 className="h-4 w-4 text-emerald-600" />
-                    4. Học phí & lịch bắt đầu
-                  </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Mã ưu đãi (nếu có)</label>
-                      <Input className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200" placeholder="Nhập mã ưu đãi" {...form.register("promoCode")} />
-                      {errors.promoCode && <p className="mt-1 text-xs text-rose-600">{errors.promoCode.message}</p>}
-                    </div>
-                    <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900">
-                      <p className="font-semibold">Tạm tính tự động</p>
-                      <p className="mt-1 text-emerald-700">
-                        Hệ thống sẽ báo giá sau khi bạn xác nhận thông tin bên dưới.
-                      </p>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <BookOpenCheck className="h-4 w-4 text-emerald-600" />
-                    5. Mô tả chi tiết <span className="text-rose-500">*</span>
+                    4. Mô tả chi tiết <span className="text-rose-500">*</span>
                   </h2>
                   <textarea
                     className="min-h-[140px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
@@ -1062,7 +1092,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    6. Xác nhận yêu cầu
+                    5. Xác nhận yêu cầu
                   </h2>
                   {error && (
                     <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -1115,8 +1145,59 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                   </p>
                   <p className="mt-1 flex justify-between text-base">
                     <span className="text-slate-600">Phí 1 tháng</span>
-                    <span className="font-bold text-emerald-700">{formatPrice(quote.feePerMonth)}</span>
+                    <span className={cn("font-bold text-emerald-700", appliedPromo && "text-slate-400 line-through")}>
+                      {formatPrice(quote.feePerMonth)}
+                    </span>
                   </p>
+                  {appliedPromo && (
+                    <>
+                      <p className="mt-2 flex justify-between text-sm">
+                        <span className="text-slate-600">Giảm giá ({appliedPromo.code})</span>
+                        <span className="font-semibold text-rose-600">− {formatPrice(appliedPromo.discountAmount)}</span>
+                      </p>
+                      <p className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-base">
+                        <span className="font-semibold text-slate-700">Phí 1 tháng sau giảm</span>
+                        <span className="font-bold text-emerald-700">{formatPrice(appliedPromo.finalAmount)}</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className="mt-4 rounded-2xl border border-emerald-100 bg-white p-5">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Mã ưu đãi (nếu có)</label>
+                  <div className="flex gap-2">
+                    <Input
+                      className="h-11 flex-1 rounded-xl border-slate-200 uppercase focus-visible:ring-emerald-200 disabled:opacity-70"
+                      placeholder="Nhập mã ưu đãi"
+                      disabled={Boolean(appliedPromo)}
+                      {...form.register("promoCode")}
+                    />
+                    {appliedPromo ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 rounded-xl border-slate-300 px-5 text-slate-700 hover:bg-slate-100"
+                        onClick={handleRemovePromo}
+                      >
+                        Bỏ
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        className="h-11 rounded-xl bg-slate-800 px-5 font-semibold text-white hover:bg-slate-900"
+                        onClick={handleApplyPromo}
+                        disabled={promoChecking}
+                      >
+                        {promoChecking ? "Đang kiểm tra..." : "Áp dụng"}
+                      </Button>
+                    )}
+                  </div>
+                  {appliedPromo && (
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Đã áp dụng mã {appliedPromo.code}
+                    </p>
+                  )}
+                  {promoError && <p className="mt-2 text-xs text-rose-600">{promoError}</p>}
+                  {errors.promoCode && <p className="mt-1 text-xs text-rose-600">{errors.promoCode.message}</p>}
                 </div>
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <Button variant="outline" className="h-11 flex-1 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => dispatch(clearClassFlow())}>

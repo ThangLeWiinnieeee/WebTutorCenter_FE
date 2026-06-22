@@ -12,6 +12,8 @@ const classService = {
   feed: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.FEED, { params }),
   myPosts: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.MY_POSTS, { params }),
   apply: (id) => axiosInstance.post(API_ENDPOINTS.CLASSES.APPLY(id)),
+  validatePromo: (code, amount) =>
+    axiosInstance.post(API_ENDPOINTS.PROMOS.VALIDATE, { code, amount }),
 };
 
 export default classService;

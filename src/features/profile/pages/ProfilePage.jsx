@@ -92,7 +92,7 @@ const ProfilePage = () => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className={`grid gap-6 ${isTutor ? "lg:grid-cols-[300px_1fr]" : "lg:grid-cols-[300px_1fr]"}`}>
-        <div className="space-y-4">
+        <div className="space-y-4" data-aos="fade-right">
           <ProfileSidebar
             user={user}
             displayAvatar={displayAvatar}
@@ -104,7 +104,7 @@ const ProfilePage = () => {
           <ProfileMenu isTutor={isTutor} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6" data-aos="fade-up" data-aos-delay="100">
           <ProfilePersonalCard isEditing={isEditing} onEdit={handleEdit}>
             {isEditing ? (
               <ProfileEditForm

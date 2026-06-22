@@ -127,7 +127,7 @@ const RegisterTutorPage = () => {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8" data-aos="fade-down">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]">
             <GraduationCap className="h-6 w-6 text-white" />
@@ -142,7 +142,7 @@ const RegisterTutorPage = () => {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8" data-aos="fade-up" data-aos-delay="100">
         <TutorRegistrationForm onSuccess={() => setJustRegistered(true)} />
       </div>
     </div>

@@ -17,6 +17,17 @@ const adminService = {
   approveClassApplication: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_APPROVE(id)),
   rejectClassApplication: (id, rejectionReason) =>
     axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_REJECT(id), { rejectionReason }),
+  getAdminClasses: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASSES, { params }),
+  getAdminClassDetail: (id) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_DETAIL(id)),
+  deleteAdminClass: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.CLASS_DELETE(id)),
+  getTrashCounts: () => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_COUNTS),
+  getTrashItems: (type, params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_LIST(type), { params }),
+  restoreTrashItem: (type, id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.TRASH_RESTORE(type, id)),
+  purgeTrashItem: (type, id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.TRASH_PURGE(type, id)),
+  getPromos: (params) => axiosInstance.get(API_ENDPOINTS.PROMOS.LIST, { params }),
+  createPromo: (payload) => axiosInstance.post(API_ENDPOINTS.PROMOS.CREATE, payload),
+  updatePromo: (id, payload) => axiosInstance.patch(API_ENDPOINTS.PROMOS.UPDATE(id), payload),
+  deletePromo: (id) => axiosInstance.delete(API_ENDPOINTS.PROMOS.DELETE(id)),
 };
 
 export default adminService;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { Flame, UserX, X } from "lucide-react";
+import AOS from "aos";
 
 import { Button } from "@/components/ui/button";
 import TutorFilters from "@/features/tutors/components/TutorFilters";
@@ -147,6 +148,11 @@ export default function TutorListingPage() {
     return chips;
   }, [filters, lookups, districts]);
 
+  // Tính lại vị trí kích hoạt animation sau khi danh sách (load bất đồng bộ) thay đổi
+  useEffect(() => {
+    AOS.refresh();
+  }, [loading, searchResults.length, topTutorsThisMonth?.length]);
+
   const hasActiveFilters = activeChips.length > 0;
   const totalPages = Math.ceil(totalResults / LIMIT) || 1;
   const rangeStart = totalResults === 0 ? 0 : (page - 1) * LIMIT + 1;
@@ -156,7 +162,7 @@ export default function TutorListingPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Header band */}
       <div className="border-b border-slate-200 bg-linear-to-r from-[#1e3a5f] to-[#2c5282]">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mx-auto max-w-7xl px-6 py-10" data-aos="fade-down">
           <h1 className="text-3xl font-bold text-white">Danh sách gia sư</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-200">
             Kết nối với đội ngũ gia sư đã được duyệt hồ sơ — lọc theo môn học, khu vực và kinh nghiệm để tìm người phù hợp nhất.
@@ -183,7 +189,7 @@ export default function TutorListingPage() {
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
               {topTutorsThisMonth.slice(0, 5).map((tutor, idx) => (
-                <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
+                <Link key={tutor.id} to={`/tutors/${tutor.id}`} data-aos="fade-up" data-aos-delay={idx * 60}>
                   <TopTutorCard tutor={tutor} rank={idx + 1} />
                 </Link>
               ))}
@@ -257,8 +263,13 @@ export default function TutorListingPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4">
-              {searchResults.map((tutor) => (
-                <Link key={tutor.id} to={`/tutors/${tutor.id}`}>
+              {searchResults.map((tutor, idx) => (
+                <Link
+                  key={tutor.id}
+                  to={`/tutors/${tutor.id}`}
+                  data-aos="fade-up"
+                  data-aos-delay={Math.min(idx, 5) * 50}
+                >
                   <TutorCard tutor={tutor} />
                 </Link>
               ))}
