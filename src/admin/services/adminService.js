@@ -3,7 +3,7 @@ import API_ENDPOINTS from "@/constants/apiEndpoints";
 
 const adminService = {
   getDashboardStats: () => axiosInstance.get(API_ENDPOINTS.ADMIN.DASHBOARD_STATS),
-  getPendingTutors: () => axiosInstance.get(API_ENDPOINTS.ADMIN.TUTORS_PENDING),
+  getPendingTutors: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TUTORS_PENDING, { params }),
   approveTutor: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.TUTOR_APPROVE(id)),
   rejectTutor: (id, rejectionReason) =>
     axiosInstance.patch(API_ENDPOINTS.ADMIN.TUTOR_REJECT(id), { rejectionReason }),
@@ -24,6 +24,15 @@ const adminService = {
   getTrashItems: (type, params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_LIST(type), { params }),
   restoreTrashItem: (type, id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.TRASH_RESTORE(type, id)),
   purgeTrashItem: (type, id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.TRASH_PURGE(type, id)),
+  getProfileChanges: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.PROFILE_CHANGES, { params }),
+  approveProfileChange: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.PROFILE_CHANGE_APPROVE(id)),
+  rejectProfileChange: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.PROFILE_CHANGE_REJECT(id), { rejectionReason }),
+  getApplicationCancellations: (params) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.APPLICATION_CANCELLATIONS, { params }),
+  approveCancellation: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.CANCELLATION_APPROVE(id)),
+  rejectCancellation: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.CANCELLATION_REJECT(id), { rejectionReason }),
   getPromos: (params) => axiosInstance.get(API_ENDPOINTS.PROMOS.LIST, { params }),
   createPromo: (payload) => axiosInstance.post(API_ENDPOINTS.PROMOS.CREATE, payload),
   updatePromo: (id, payload) => axiosInstance.patch(API_ENDPOINTS.PROMOS.UPDATE(id), payload),

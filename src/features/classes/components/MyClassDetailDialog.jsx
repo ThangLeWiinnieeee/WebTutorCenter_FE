@@ -1,13 +1,18 @@
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
+  Ban,
   BookOpenText,
   CalendarClock,
   CalendarDays,
   CheckCircle2,
   Clock3,
   FileText,
+  Loader2,
   Lock,
   MapPin,
   PhoneCall,
+  RotateCcw,
   UserRound,
   Users,
   X,
@@ -24,14 +29,50 @@ import {
   formatStudentGender,
 } from "@/features/classes/utils/classFormatters";
 import { STATUS_META } from "@/features/classes/utils/applicationStatus";
+import { cancelApplicationThunk, completeClassThunk } from "@/features/classes/store/classThunks";
 
-const MyClassDetailDialog = ({ open, application, onClose }) => {
+const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onCompleted }) => {
+  const dispatch = useDispatch();
+  const cancelling = useSelector((state) => state.classes.cancellingApplication);
+  const [showCancelForm, setShowCancelForm] = useState(false);
+  const [reason, setReason] = useState("");
+  const [completing, setCompleting] = useState(false);
+
   if (!open || !application) return null;
 
   const classItem = application.classItem || {};
   const isUnlocked = application.isUnlocked || application.status === "approved";
   const status = STATUS_META[application.status] || STATUS_META.pending;
   const StatusIcon = status.icon;
+  const canCancel = application.status === "pending" || application.status === "approved";
+  // Gia sư xác nhận hoàn thành (lớp đã ghép = matched)
+  const canComplete = application.status === "approved" && classItem.status === "matched";
+  const classCompleted = classItem.status === "completed";
+
+  const handleComplete = async () => {
+    setCompleting(true);
+    const result = await dispatch(completeClassThunk(classItem.id));
+    setCompleting(false);
+    if (!result.error) onCompleted?.();
+  };
+
+  const handleCancelSubmit = async () => {
+    if (reason.trim().length < 5) return;
+    const result = await dispatch(
+      cancelApplicationThunk({ id: application.id, reason: reason.trim() })
+    );
+    if (!result.error) {
+      setShowCancelForm(false);
+      setReason("");
+      onCancelled?.();
+    }
+  };
+
+  const handleClose = () => {
+    setShowCancelForm(false);
+    setReason("");
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 py-8 backdrop-blur-sm">
@@ -65,7 +106,7 @@ const MyClassDetailDialog = ({ open, application, onClose }) => {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
             aria-label="Đóng"
           >
@@ -100,6 +141,30 @@ const MyClassDetailDialog = ({ open, application, onClose }) => {
               </p>
             </div>
           )}
+
+          {/* Completed notice */}
+          {classCompleted && (
+            <div className="rounded-xl border border-violet-100 bg-violet-50 px-4 py-3">
+              <p className="flex items-center gap-2 text-sm font-semibold text-violet-700">
+                <CheckCircle2 className="h-4 w-4" />
+                Lớp đã hoàn thành — bạn đã nhận mã giảm giá trong &quot;Kho mã giảm giá&quot;.
+              </p>
+            </div>
+          )}
+
+          {/* Cancellation notice */}
+          {(application.status === "cancel_requested" || application.status === "cancelled") &&
+            application.cancellationReason && (
+              <div className="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+                  <RotateCcw className="h-4 w-4" />
+                  {application.status === "cancel_requested"
+                    ? "Yêu cầu hủy đang chờ admin duyệt"
+                    : "Đơn đã được hủy"}
+                </p>
+                <p className="mt-1 text-sm text-orange-700/90">Lý do: {application.cancellationReason}</p>
+              </div>
+            )}
 
           {/* Fee */}
           <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
@@ -214,14 +279,86 @@ const MyClassDetailDialog = ({ open, application, onClose }) => {
 
         {/* Footer */}
         <div className="border-t border-slate-100 px-6 py-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="h-10 w-full rounded-lg border-slate-300 text-slate-700 sm:w-auto"
-          >
-            Đóng
-          </Button>
+          {showCancelForm ? (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-slate-700">
+                {application.status === "approved"
+                  ? "Nêu lý do xin hủy lớp đã nhận (cần admin duyệt):"
+                  : "Nêu lý do hủy đơn:"}
+              </p>
+              <textarea
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Lý do hủy (ít nhất 5 ký tự)..."
+                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowCancelForm(false);
+                    setReason("");
+                  }}
+                  disabled={cancelling}
+                >
+                  Quay lại
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCancelSubmit}
+                  disabled={cancelling || reason.trim().length < 5}
+                  className="bg-rose-600 text-white hover:bg-rose-700"
+                >
+                  {cancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Xác nhận hủy
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              {canComplete &&
+                (classItem.completedByTutor ? (
+                  <span className="text-sm font-medium text-amber-600 sm:mr-auto">
+                    Bạn đã xác nhận hoàn thành — đang chờ người đăng xác nhận.
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleComplete}
+                    disabled={completing}
+                    className="h-10 rounded-lg bg-violet-600 text-white hover:bg-violet-700 sm:mr-auto"
+                  >
+                    {completing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                    )}
+                    Xác nhận hoàn thành
+                  </Button>
+                ))}
+              {canCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCancelForm(true)}
+                  className="h-10 rounded-lg border-rose-200 text-rose-600 hover:bg-rose-50"
+                >
+                  <Ban className="mr-2 h-4 w-4" />
+                  Hủy đơn
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                className="h-10 rounded-lg border-slate-300 text-slate-700"
+              >
+                Đóng
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RefreshCw, Loader2, CheckCircle2 } from "lucide-react";
 
@@ -11,19 +11,32 @@ const PAGE_SIZE = 10;
 
 const TutorApprovalPage = () => {
   const dispatch = useDispatch();
-  const { pendingTutors, loading, actionLoading } = useSelector((state) => state.admin);
+  const { pendingTutors, pendingTutorsPagination, loading, actionLoading } = useSelector(
+    (state) => state.admin
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(pendingTutors.length / PAGE_SIZE);
-  const visiblePage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
 
-  const paginatedTutors = useMemo(() => {
-    const start = (visiblePage - 1) * PAGE_SIZE;
-    return pendingTutors.slice(start, start + PAGE_SIZE);
-  }, [pendingTutors, visiblePage]);
+  const totalPages = pendingTutorsPagination?.totalPages || 1;
+  const totalItems = pendingTutorsPagination?.totalItems || 0;
+
+  const loadPage = useCallback(() => {
+    dispatch(getPendingTutorsThunk({ page: currentPage, limit: PAGE_SIZE }));
+  }, [dispatch, currentPage]);
 
   useEffect(() => {
-    dispatch(getPendingTutorsThunk());
-  }, [dispatch]);
+    loadPage();
+  }, [loadPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Sau khi duyệt/từ chối 1 hồ sơ: nếu là hồ sơ cuối của trang thì lùi 1 trang, ngược lại tải lại trang hiện tại
+  const handleActionComplete = () => {
+    if (pendingTutors.length <= 1 && currentPage > 1) setCurrentPage((p) => p - 1);
+    else loadPage();
+  };
 
   return (
     <div>
@@ -31,13 +44,13 @@ const TutorApprovalPage = () => {
         <div>
           <h1 className="text-xl font-bold text-slate-800">Xét duyệt gia sư</h1>
           <p className="mt-0.5 text-sm text-slate-500">
-            Danh sách hồ sơ đang chờ xét duyệt ({pendingTutors.length})
+            Danh sách hồ sơ đang chờ xét duyệt ({totalItems})
           </p>
         </div>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => dispatch(getPendingTutorsThunk())}
+          onClick={loadPage}
           disabled={loading}
           className="gap-1.5"
         >
@@ -57,7 +70,7 @@ const TutorApprovalPage = () => {
             <p className="text-sm text-slate-500">Đang tải danh sách...</p>
           </div>
         </div>
-      ) : pendingTutors.length === 0 ? (
+      ) : totalItems === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
             <CheckCircle2 className="h-8 w-8 text-emerald-600" />
@@ -80,26 +93,25 @@ const TutorApprovalPage = () => {
               <span className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</span>
             </div>
 
-            {paginatedTutors.map((tutor, idx) => (
+            {pendingTutors.map((tutor, idx) => (
               <TutorApprovalCard
                 key={tutor.id}
                 tutor={tutor}
                 isActioning={actionLoading === tutor.id}
                 index={idx}
+                onActionComplete={handleActionComplete}
               />
             ))}
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
-              Hiển thị {(visiblePage - 1) * PAGE_SIZE + 1}–{Math.min(visiblePage * PAGE_SIZE, pendingTutors.length)} / {pendingTutors.length} hồ sơ
+              Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, totalItems)} / {totalItems} hồ sơ
             </p>
             <Pagination
-              currentPage={visiblePage}
+              currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={(page) => {
-                setCurrentPage(Math.min(Math.max(page, 1), totalPages || 1));
-              }}
+              onPageChange={handlePageChange}
             />
           </div>
         </div>

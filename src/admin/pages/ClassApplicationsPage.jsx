@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BookOpen,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/Pagination";
 import {
   approveClassApplicationThunk,
   getClassApplicationStatsThunk,
@@ -49,6 +50,8 @@ const genderLabel = (value) =>
 
 const occupationLabel = (value) =>
   value === "student" ? "Sinh viên" : value === "teacher" ? "Giáo viên" : "Đã tốt nghiệp";
+
+const PAGE_SIZE = 10;
 
 const TABS = [
   { key: "pending", label: "Chờ duyệt", color: "amber" },
@@ -138,12 +141,12 @@ const TutorAvatar = ({ tutor, size = "h-10 w-10" }) =>
 
 // ─── Detail modals ─────────────────────────────────────────────────────────────
 
-const ModalShell = ({ title, icon: Icon, onClose, children }) => (
+const ModalShell = ({ title, icon, onClose, children }) => (
   <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
     <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <div className="flex items-center gap-2 text-sm font-bold text-[#1e3a5f]">
-          <Icon className="h-4 w-4" />
+          {createElement(icon, { className: "h-4 w-4" })}
           {title}
         </div>
         <button
@@ -266,16 +269,10 @@ const TutorDetailModal = ({ tutor, classSubject, onClose }) => {
   );
 };
 
+// Mỗi lần mở lại được remount mới (qua prop key ở nơi sử dụng) nên state luôn sạch.
 const RejectDialog = ({ open, onConfirm, onCancel, loading }) => {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!open) {
-      setReason("");
-      setError("");
-    }
-  }, [open]);
 
   if (!open) return null;
 
@@ -434,6 +431,7 @@ const ClassApplicationsPage = () => {
   const dispatch = useDispatch();
   const {
     classApplications,
+    classApplicationsPagination,
     classApplicationsLoading,
     classApplicationsError,
     classApplicationActionLoading,
@@ -442,34 +440,59 @@ const ClassApplicationsPage = () => {
   } = useSelector((state) => state.admin);
 
   const [activeTab, setActiveTab] = useState("pending");
+  const [page, setPage] = useState(1);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [classModal, setClassModal] = useState(null);
   const [tutorModal, setTutorModal] = useState(null);
+
+  const totalPages = classApplicationsPagination?.totalPages || 1;
 
   useEffect(() => {
     dispatch(getClassApplicationStatsThunk());
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(getClassApplicationsThunk({ status: activeTab }));
+    dispatch(getClassApplicationsThunk({ status: activeTab, page, limit: PAGE_SIZE }));
+  }, [dispatch, activeTab, page]);
+
+  const reload = (targetPage = page) =>
+    dispatch(getClassApplicationsThunk({ status: activeTab, page: targetPage, limit: PAGE_SIZE }));
+
+  // Sau khi duyệt/từ chối: nếu vừa xử lý item cuối của trang thì lùi 1 trang, ngược lại tải lại trang hiện tại
+  const reloadAfterAction = () => {
+    if (classApplications.length <= 1 && page > 1) setPage(page - 1);
+    else reload();
+  };
+
+  const handleTab = (tab) => {
+    setActiveTab(tab);
+    setPage(1);
     setSearchQuery("");
-  }, [dispatch, activeTab]);
+  };
+
+  const handlePageChange = (next) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleRefresh = () => {
     dispatch(getClassApplicationStatsThunk());
-    dispatch(getClassApplicationsThunk({ status: activeTab }));
+    reload();
   };
 
   const handleApprove = (id) => {
-    dispatch(approveClassApplicationThunk(id));
+    dispatch(approveClassApplicationThunk(id)).then((r) => {
+      if (!r.error) reloadAfterAction();
+    });
   };
 
   const handleRejectOpen = (id) => setRejectTarget(id);
 
   const handleRejectConfirm = (rejectionReason) => {
-    dispatch(rejectClassApplicationThunk({ id: rejectTarget, rejectionReason })).then(() => {
+    dispatch(rejectClassApplicationThunk({ id: rejectTarget, rejectionReason })).then((r) => {
       setRejectTarget(null);
+      if (!r.error) reloadAfterAction();
     });
   };
 
@@ -541,7 +564,7 @@ const ClassApplicationsPage = () => {
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTab(tab.key)}
                 className={`flex flex-1 items-center justify-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                   isActive
                     ? style.active
@@ -619,6 +642,13 @@ const ClassApplicationsPage = () => {
             </div>
           )}
         </div>
+
+        {/* Phân trang (ẩn khi đang tìm kiếm vì tìm kiếm chỉ lọc trong trang hiện tại) */}
+        {!classApplicationsLoading && !searchQuery && totalPages > 1 && (
+          <div className="border-t border-slate-100 px-4 py-4">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+          </div>
+        )}
       </div>
 
       {classModal && <ClassDetailModal classItem={classModal} onClose={() => setClassModal(null)} />}
@@ -631,6 +661,7 @@ const ClassApplicationsPage = () => {
       )}
 
       <RejectDialog
+        key={rejectTarget || "reject-dialog"}
         open={!!rejectTarget}
         loading={classApplicationActionLoading === rejectTarget}
         onConfirm={handleRejectConfirm}

@@ -25,6 +25,30 @@ export const createClassThunk = createAsyncThunk(
   }
 );
 
+export const updateClassThunk = createAsyncThunk(
+  "classes/update",
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      const res = await classService.update(id, payload);
+      return res.data.data.classItem;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Cập nhật bài đăng thất bại");
+    }
+  }
+);
+
+export const deleteClassThunk = createAsyncThunk(
+  "classes/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      await classService.remove(id);
+      return id;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa bài đăng thất bại");
+    }
+  }
+);
+
 export const fetchClassesThunk = createAsyncThunk(
   "classes/fetchList",
   async (filters = {}, { rejectWithValue }) => {
@@ -57,7 +81,7 @@ export const fetchMyClassesThunk = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const res = await classService.mine(params);
-      return res.data.data.applications || [];
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lớp đã nhận");
     }
@@ -84,6 +108,30 @@ export const fetchMyPostsThunk = createAsyncThunk(
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không tải được danh sách bài đăng");
+    }
+  }
+);
+
+export const cancelApplicationThunk = createAsyncThunk(
+  "classes/cancelApplication",
+  async ({ id, reason }, { rejectWithValue }) => {
+    try {
+      const res = await classService.cancelApplication(id, reason);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Hủy đơn thất bại");
+    }
+  }
+);
+
+export const completeClassThunk = createAsyncThunk(
+  "classes/complete",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await classService.completeClass(id);
+      return res.data.data.classItem;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xác nhận hoàn thành thất bại");
     }
   }
 );

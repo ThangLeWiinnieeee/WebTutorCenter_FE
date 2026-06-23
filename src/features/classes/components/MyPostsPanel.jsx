@@ -1,29 +1,97 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import AOS from "aos";
 
 import {
   ArrowRight,
   BookOpenText,
   CalendarClock,
+  CheckCircle2,
   Clock3,
   FilePlus2,
   FileText,
+  Loader2,
   MapPin,
+  Pencil,
   RefreshCw,
+  Trash2,
   Users,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { fetchMyPostsThunk } from "@/features/classes/store/classThunks";
+import {
+  completeClassThunk,
+  deleteClassThunk,
+  fetchMyPostsThunk,
+} from "@/features/classes/store/classThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
+import Pagination from "@/components/shared/Pagination";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
+
+// Nhãn trạng thái vòng đời bài đăng (đồng bộ với CLASS_STATUS ở backend)
+const STATUS_META = {
+  open: { label: "Đang mở", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  matched: { label: "Đã có gia sư", className: "bg-sky-50 text-sky-700 border-sky-200" },
+  completed: { label: "Đã hoàn thành", className: "bg-violet-50 text-violet-700 border-violet-200" },
+  expired: { label: "Hết hạn", className: "bg-slate-100 text-slate-500 border-slate-200" },
+};
+
+const StatusBadge = ({ status }) => {
+  const meta = STATUS_META[status] || STATUS_META.open;
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}>
+      {meta.label}
+    </span>
+  );
+};
 
 export default function MyPostsPanel() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { myPosts, myPostsPagination, loadingMyPosts, error } = useSelector((state) => state.classes);
   const [page, setPage] = useState(1);
+  const [completingId, setCompletingId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Người đăng xác nhận hoàn thành lớp (lớp đang ở trạng thái matched)
+  const handleComplete = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCompletingId(id);
+    const result = await dispatch(completeClassThunk(id));
+    setCompletingId(null);
+    if (!result.error) {
+      dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }));
+    }
+  };
+
+  // Sửa bài: điều hướng sang form ở chế độ chỉnh sửa
+  const handleEdit = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/find-tutor/edit/${id}`);
+  };
+
+  // Mở hộp xác nhận xóa
+  const openDelete = (e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteTarget(item);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const result = await dispatch(deleteClassThunk(deleteTarget.id));
+    setDeleting(false);
+    if (!result.error) {
+      setDeleteTarget(null);
+      dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }));
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }));
@@ -32,11 +100,16 @@ export default function MyPostsPanel() {
   const totalPages = myPostsPagination?.totalPages || 1;
   const totalItems = myPostsPagination?.totalItems || 0;
 
-  const visiblePages = useMemo(() => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const set = new Set([1, totalPages, page - 1, page, page + 1]);
-    return [...set].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
-  }, [page, totalPages]);
+  // Đổi trang thì cuộn lên đầu để xem từ mục đầu tiên
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Tính lại vị trí animation sau khi danh sách (tải bất đồng bộ) thay đổi
+  useEffect(() => {
+    AOS.refresh();
+  }, [loadingMyPosts, myPosts.length]);
 
   return (
     <div className="space-y-5">
@@ -117,10 +190,12 @@ export default function MyPostsPanel() {
 
       {/* List */}
       {!loadingMyPosts &&
-        myPosts.map((item) => (
+        myPosts.map((item, idx) => (
           <Link
             key={item.id}
             to={`/classes/${item.id}`}
+            data-aos="fade-up"
+            data-aos-delay={Math.min(idx, 4) * 60}
             className="group block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
           >
             <div className="flex items-start justify-between gap-6">
@@ -129,6 +204,7 @@ export default function MyPostsPanel() {
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
                     Mã lớp {item.classCode}
                   </span>
+                  <StatusBadge status={item.status} />
                 </div>
                 <h4 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight text-slate-900">
                   {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
@@ -165,6 +241,55 @@ export default function MyPostsPanel() {
               </div>
             </div>
 
+            {item.status === "matched" && (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                {item.completedByPoster ? (
+                  <p className="text-sm font-medium text-amber-600">
+                    Bạn đã xác nhận hoàn thành — đang chờ gia sư xác nhận.
+                  </p>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={(e) => handleComplete(e, item.id)}
+                    disabled={completingId === item.id}
+                    className="h-9 rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-700"
+                  >
+                    {completingId === item.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                    )}
+                    Xác nhận đã hoàn thành
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {(item.status === "open" || item.status === "expired") && !item.hasActiveApplications && (
+              <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                {item.status === "open" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={(e) => handleEdit(e, item.id)}
+                    className="h-9 rounded-lg border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Sửa bài
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => openDelete(e, item)}
+                  className="h-9 rounded-lg border-rose-200 px-3 text-sm font-medium text-rose-600 hover:bg-rose-50"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Xóa bài
+                </Button>
+              </div>
+            )}
+
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
               <div className="flex items-center gap-2 text-slate-500">
                 <MapPin className="h-4 w-4 text-slate-400" />
@@ -179,42 +304,52 @@ export default function MyPostsPanel() {
         ))}
 
       {/* Pagination */}
-      {!loadingMyPosts && myPosts.length > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1.5 pt-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+      {!loadingMyPosts && myPosts.length > 0 && (
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-2" />
+      )}
+
+      {/* Hộp xác nhận xóa bài đăng */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
           >
-            Trước
-          </button>
-          {visiblePages.map((p, idx) => {
-            const prev = visiblePages[idx - 1];
-            const gap = idx > 0 && p - prev > 1;
-            return (
-              <div key={p} className="flex items-center gap-1.5">
-                {gap && <span className="px-1 text-slate-400">...</span>}
-                <button
-                  type="button"
-                  onClick={() => setPage(p)}
-                  className={`min-w-9 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
-                    p === page ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {p}
-                </button>
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <Trash2 className="h-6 w-6" />
               </div>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Sau
-          </button>
+              <div className="min-w-0">
+                <h3 className="text-lg font-bold text-slate-900">Xóa bài đăng?</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Bạn có chắc muốn xóa bài đăng{" "}
+                  <span className="font-semibold">Mã lớp {deleteTarget.classCode}</span> ({deleteTarget.subject})?
+                  Hành động này sẽ gỡ bài khỏi danh sách của bạn.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="h-10 rounded-lg border-slate-300 text-slate-700"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="h-10 rounded-lg bg-rose-600 text-white hover:bg-rose-700"
+              >
+                {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                Xóa bài
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

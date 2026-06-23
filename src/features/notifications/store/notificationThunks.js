@@ -3,10 +3,10 @@ import notificationService from "@/features/notifications/services/notificationS
 
 export const fetchNotificationsThunk = createAsyncThunk(
   "notifications/fetch",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await notificationService.getNotifications();
-      return res.data.data.notifications;
+      const res = await notificationService.getNotifications(params);
+      return res.data.data; // { notifications, unreadCount, pagination }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Lấy thông báo thất bại");
     }

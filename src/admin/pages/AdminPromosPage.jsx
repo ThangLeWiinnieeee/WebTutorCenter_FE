@@ -27,22 +27,12 @@ import {
   deletePromoThunk,
 } from "@/admin/store/adminThunks";
 import { promoSchema } from "@/admin/schemas/promoSchema";
-
-const PAGE_SIZE = 10;
-
-const TYPE_OPTIONS = [
-  { value: "", label: "Tất cả loại giảm" },
-  { value: "percent", label: "Giảm theo %" },
-  { value: "fixed", label: "Giảm số tiền" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "", label: "Tất cả trạng thái" },
-  { value: "true", label: "Đang bật" },
-  { value: "false", label: "Đã tắt" },
-];
-
-const DEFAULT_FILTERS = { keyword: "", discountType: "", isActive: "" };
+import {
+  ADMIN_PAGE_SIZE as PAGE_SIZE,
+  PROMO_TYPE_OPTIONS as TYPE_OPTIONS,
+  PROMO_STATUS_OPTIONS as STATUS_OPTIONS,
+  PROMO_DEFAULT_FILTERS as DEFAULT_FILTERS,
+} from "@/admin/constants";
 
 const formatPrice = (value) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(

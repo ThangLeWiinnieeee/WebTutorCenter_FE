@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Search, Sparkles, GraduationCap, ShieldCheck } from "lucide-react";
+import { Search, GraduationCap, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HeroSearchBar() {
@@ -22,14 +22,6 @@ export default function HeroSearchBar() {
       <div className="pointer-events-none absolute -bottom-16 -right-10 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl" />
 
       <div className="relative text-center mb-10">
-        <span
-          data-aos="fade-down"
-          className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/70 px-4 py-1.5 text-sm font-medium text-emerald-700 shadow-sm backdrop-blur"
-        >
-          <Sparkles className="h-4 w-4" />
-          Nền tảng kết nối gia sư hàng đầu
-        </span>
-
         <h1
           data-aos="fade-up"
           data-aos-delay="100"

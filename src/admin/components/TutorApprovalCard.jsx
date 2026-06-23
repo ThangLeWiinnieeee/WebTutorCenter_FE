@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { approveTutorThunk, rejectTutorThunk } from "@/admin/store/adminThunks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DAYS_OF_WEEK_OPTIONS, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
+import { OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
 
 const InfoItem = ({ icon, label, value }) => (
@@ -53,9 +53,6 @@ const TutorAvatar = ({ tutor, size = "md" }) => {
     </div>
   );
 };
-
-const dayLabel = (day) =>
-  DAYS_OF_WEEK_OPTIONS.find((d) => d.value === day)?.label ?? day;
 
 const currentAreaLabel = (tutor) =>
   tutor.currentArea
@@ -196,7 +193,7 @@ const RejectForm = ({ reason, reasonError, isActioning, onReasonChange, onSubmit
   </div>
 );
 
-const TutorApprovalCard = ({ tutor, isActioning, index }) => {
+const TutorApprovalCard = ({ tutor, isActioning, index, onActionComplete }) => {
   const dispatch = useDispatch();
   const [rejectMode, setRejectMode] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -207,6 +204,7 @@ const TutorApprovalCard = ({ tutor, isActioning, index }) => {
     const result = await dispatch(approveTutorThunk(tutor.id));
     if (!result.error) {
       toast.success(`Đã phê duyệt gia sư ${tutor.fullName}`);
+      onActionComplete?.();
     } else {
       toast.error(result.payload);
     }
@@ -224,12 +222,12 @@ const TutorApprovalCard = ({ tutor, isActioning, index }) => {
 
     if (!result.error) {
       toast.success(`Đã từ chối hồ sơ của ${tutor.fullName}`);
+      setRejectMode(false);
+      setReason("");
+      onActionComplete?.();
     } else {
       toast.error(result.payload);
     }
-
-    setRejectMode(false);
-    setReason("");
   };
 
   const submittedAt = tutor.createdAt

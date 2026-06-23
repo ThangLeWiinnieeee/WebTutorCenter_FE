@@ -1,20 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, Ticket, UserRound } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getInitials } from "@/features/profile";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
-
-const NAV_LINKS = [
-  { label: "Trang chủ", to: "/", paths: ["/"] },
-  { label: "Lớp cần gia sư", to: "/classes", paths: ["/classes"] },
-  { label: "Tìm gia sư", to: "/find-tutor", paths: ["/find-tutor"] },
-  { label: "Danh sách gia sư", to: "/tutors", paths: ["/tutors"] },
-  { label: "Trở thành gia sư", to: "/register-tutor", paths: ["/register-tutor"], hideForTutor: true },
-];
+import { NAV_LINKS } from "@/constants/navigation";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -159,6 +152,15 @@ const Header = () => {
                     >
                       <FileText className="h-4 w-4 text-slate-400" />
                       Danh sách bài đăng
+                    </Link>
+
+                    <Link
+                      to="/my-vouchers"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <Ticket className="h-4 w-4 text-slate-400" />
+                      Kho mã giảm giá
                     </Link>
 
                     <button

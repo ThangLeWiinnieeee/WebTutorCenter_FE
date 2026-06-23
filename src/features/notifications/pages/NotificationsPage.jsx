@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Bell, BellRing, CheckCheck, CheckCircle2, Clock, GraduationCap, XCircle } from "lucide-react";
+import { Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, RotateCcw, UserCheck, XCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import ClassFeedPanel from "@/features/classes/components/ClassFeedPanel";
+import Pagination from "@/components/shared/Pagination";
 import {
   selectNotifications,
+  selectNotificationsPagination,
   selectUnreadCount,
 } from "@/features/notifications/store/notificationSlice";
 import {
@@ -15,6 +17,8 @@ import {
 } from "@/features/notifications/store/notificationThunks";
 import { fetchClassFeedThunk } from "@/features/classes/store/classThunks";
 
+const PAGE_SIZE = 10;
+
 // Icon cho từng loại thông báo — lấy từ thư viện lucide-react, không dùng emoji thẳng.
 const NOTIFICATION_ICON_MAP = {
   TUTOR_PENDING: { icon: Clock, className: "bg-amber-50 text-amber-600" },
@@ -23,6 +27,16 @@ const NOTIFICATION_ICON_MAP = {
   CLASS_APPLICATION_PENDING: { icon: Clock, className: "bg-amber-50 text-amber-600" },
   CLASS_APPLICATION_APPROVED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
   CLASS_APPLICATION_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  PROFILE_CHANGE_PENDING: { icon: Clock, className: "bg-amber-50 text-amber-600" },
+  PROFILE_CHANGE_APPROVED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
+  PROFILE_CHANGE_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  CLASS_APPLICATION_CANCELLED: { icon: Ban, className: "bg-slate-100 text-slate-500" },
+  CLASS_APPLICATION_CANCEL_REQUESTED: { icon: RotateCcw, className: "bg-orange-50 text-orange-600" },
+  CLASS_APPLICATION_CANCEL_APPROVED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
+  CLASS_APPLICATION_CANCEL_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  CLASS_MATCHED: { icon: UserCheck, className: "bg-emerald-50 text-emerald-600" },
+  CLASS_EXPIRED: { icon: CalendarX2, className: "bg-rose-50 text-rose-600" },
+  CLASS_COMPLETED_REWARD: { icon: Gift, className: "bg-violet-50 text-violet-600" },
 };
 
 const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-slate-500" };
@@ -41,8 +55,20 @@ const splitReason = (message = "") => {
 const NotificationsList = () => {
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
+  const pagination = useSelector(selectNotificationsPagination);
   const unreadCount = useSelector(selectUnreadCount);
   const loading = useSelector((state) => state.notifications.loading);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    dispatch(fetchNotificationsThunk({ page, limit: PAGE_SIZE }));
+  }, [dispatch, page]);
+
+  const totalPages = pagination?.totalPages || 1;
+  const handlePageChange = (next) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (loading && notifications.length === 0) {
     return (
@@ -121,6 +147,13 @@ const NotificationsList = () => {
           </div>
         );
       })}
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        className="pt-3"
+      />
     </div>
   );
 };
@@ -134,8 +167,8 @@ const NotificationsPage = () => {
   const [activeTab, setActiveTab] = useState("notifications");
 
   useEffect(() => {
-    dispatch(fetchNotificationsThunk());
-    // Lấy số bài đăng mới phù hợp môn dạy để hiển thị badge đỏ trên tab
+    // Danh sách thông báo (kèm phân trang) do NotificationsList tự tải.
+    // Ở đây chỉ lấy số bài đăng mới phù hợp môn dạy để hiển thị badge đỏ trên tab.
     if (isTutor) dispatch(fetchClassFeedThunk());
   }, [dispatch, isTutor]);
 

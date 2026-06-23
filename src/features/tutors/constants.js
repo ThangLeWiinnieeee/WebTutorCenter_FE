@@ -1,3 +1,7 @@
+// Nhãn dùng chung lấy từ nguồn sự thật duy nhất (src/constants/enums.js)
+export { GENDER_LABEL } from "@/constants/enums";
+export { DAY_OPTIONS as DAYS_OF_WEEK_OPTIONS } from "@/constants/enums";
+
 export const SUBJECTS = [
   "Toán", "Ngữ văn", "Tiếng Anh", "Vật lý", "Hóa học", "Sinh học",
   "Lịch sử", "Địa lý", "Giáo dục công dân", "Tin học", "Tiếng Pháp",
@@ -11,16 +15,6 @@ export const OCCUPATION_STATUS_OPTIONS = [
   { value: "student", label: "Sinh viên" },
   { value: "graduated", label: "Đã tốt nghiệp" },
   { value: "teacher", label: "Giáo viên" },
-];
-
-export const DAYS_OF_WEEK_OPTIONS = [
-  { value: "Mon", label: "Thứ 2" },
-  { value: "Tue", label: "Thứ 3" },
-  { value: "Wed", label: "Thứ 4" },
-  { value: "Thu", label: "Thứ 5" },
-  { value: "Fri", label: "Thứ 6" },
-  { value: "Sat", label: "Thứ 7" },
-  { value: "Sun", label: "Chủ nhật" },
 ];
 
 export const TUTOR_STATUS_CONFIG = {
@@ -42,12 +36,6 @@ export const OCCUPATION_STATUS_LABEL = {
   student: "Sinh viên",
   graduated: "Đã tốt nghiệp",
   teacher: "Giáo viên",
-};
-
-export const GENDER_LABEL = {
-  male: "Nam",
-  female: "Nữ",
-  other: "Khác",
 };
 
 // Tính tuổi từ ngày sinh (ISO string hoặc Date)
