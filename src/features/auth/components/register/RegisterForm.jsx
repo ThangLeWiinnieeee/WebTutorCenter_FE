@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { registerSchema } from '@/features/auth/schemas/authSchema';
+import { scrollToFirstError } from '@/lib/formErrors';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const RegisterForm = ({ onSubmit }) => {
@@ -45,7 +46,7 @@ const RegisterForm = ({ onSubmit }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate className="space-y-4">
           {/* Full name */}
           <div className="space-y-1.5">
             <Label htmlFor="fullName" className="text-slate-700 font-medium text-sm">

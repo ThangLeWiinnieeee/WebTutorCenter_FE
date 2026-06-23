@@ -5,11 +5,10 @@ import { Loader2, GraduationCap, BookOpen, MapPin, User2, CalendarClock } from "
 import { toast } from "sonner";
 
 import { tutorSchema } from "@/features/tutors/schemas/tutorSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { registerTutorThunk } from "@/features/tutors/store/tutorThunks";
-import {
-  SUBJECTS,
-  OCCUPATION_STATUS_OPTIONS,
-} from "@/features/tutors/constants";
+import { OCCUPATION_STATUS_OPTIONS } from "@/features/tutors/constants";
+import useSubjects from "@/hooks/useSubjects";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,7 @@ const SectionTitle = ({ icon: Icon, title }) => (
 const TutorRegistrationForm = ({ onSuccess }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.tutors);
+  const { subjects: subjectOptions } = useSubjects();
 
   const form = useForm({
     resolver: zodResolver(tutorSchema),
@@ -67,7 +67,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, scrollToFirstError)} className="space-y-8">
         {/* === PHẦN 1: THÔNG TIN CÁ NHÂN === */}
 
         {/* Contact */}
@@ -226,7 +226,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
               <FormItem>
                 <FormLabel>Chọn môn bạn có thể dạy <span className="text-rose-500">*</span></FormLabel>
                 <MultiCheckbox
-                  options={SUBJECTS}
+                  options={subjectOptions}
                   value={field.value}
                   onChange={field.onChange}
                   columns={3}

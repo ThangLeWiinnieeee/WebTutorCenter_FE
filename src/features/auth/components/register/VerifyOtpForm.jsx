@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, GraduationCap, Mail } from "lucide-react";
 
 import { verifyOtpSchema } from "@/features/auth/schemas/authSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { Button } from "@/components/ui/button";
 
 const OTP_LENGTH = 6;
@@ -104,7 +105,7 @@ const VerifyOtpForm = ({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate className="space-y-6">
           {/* OTP boxes */}
           <div className="flex gap-2 justify-between" onPaste={handlePaste}>
             {Array.from({ length: OTP_LENGTH }).map((_, i) => (

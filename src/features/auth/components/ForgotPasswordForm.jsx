@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { forgotPasswordSchema } from "@/features/auth/schemas/authSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const ForgotPasswordForm = ({ onSubmit, serverError, defaultEmail = "" }) => {
@@ -46,7 +47,7 @@ const ForgotPasswordForm = ({ onSubmit, serverError, defaultEmail = "" }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate className="space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-slate-700 font-medium text-sm">
               Thư điện tử

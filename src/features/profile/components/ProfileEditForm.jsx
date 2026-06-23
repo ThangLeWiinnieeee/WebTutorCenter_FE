@@ -5,6 +5,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { scrollToFirstError } from '@/lib/formErrors';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -25,7 +26,7 @@ import {
 
 const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
   <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={form.handleSubmit(onSubmit, scrollToFirstError)} className="space-y-5">
       <FormField
         control={form.control}
         name="fullName"

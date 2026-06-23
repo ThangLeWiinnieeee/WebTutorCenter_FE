@@ -2,14 +2,8 @@
 export { GENDER_LABEL } from "@/constants/enums";
 export { DAY_OPTIONS as DAYS_OF_WEEK_OPTIONS } from "@/constants/enums";
 
-export const SUBJECTS = [
-  "Toán", "Ngữ văn", "Tiếng Anh", "Vật lý", "Hóa học", "Sinh học",
-  "Lịch sử", "Địa lý", "Giáo dục công dân", "Tin học", "Tiếng Pháp",
-  "Tiếng Trung", "Tiếng Nhật", "Tiếng Hàn", "Tiếng Đức", "Âm nhạc",
-  "Mỹ thuật", "Thể dục", "Toán cao cấp", "Vật lý đại cương",
-  "Hóa học đại cương", "Lập trình", "Kế toán", "Kinh tế",
-];
-
+// Lưu ý: danh sách môn học giờ lấy từ DB qua hook useSubjects (admin quản lý),
+// không còn fix cứng ở đây.
 
 export const OCCUPATION_STATUS_OPTIONS = [
   { value: "student", label: "Sinh viên" },

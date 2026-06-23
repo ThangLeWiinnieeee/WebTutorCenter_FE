@@ -28,6 +28,7 @@ import {
   updateAdminUserThunk,
 } from "@/admin/store/adminThunks";
 import { adminUserSchema } from "@/admin/schemas/adminUserSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import useAuth from "@/features/auth/hooks/useAuth";
 import {
   ADMIN_PAGE_SIZE as PAGE_SIZE,
@@ -201,7 +202,7 @@ const EditUserModal = ({ user, onClose, onSubmit, loading }) => {
       dateOfBirth: values.dateOfBirth || null,
       isVerified: values.isVerified === "true",
     });
-  });
+  }, scrollToFirstError);
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">

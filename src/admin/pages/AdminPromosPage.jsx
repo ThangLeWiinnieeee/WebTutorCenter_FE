@@ -27,6 +27,7 @@ import {
   deletePromoThunk,
 } from "@/admin/store/adminThunks";
 import { promoSchema } from "@/admin/schemas/promoSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import {
   ADMIN_PAGE_SIZE as PAGE_SIZE,
   PROMO_TYPE_OPTIONS as TYPE_OPTIONS,
@@ -131,7 +132,7 @@ const PromoFormModal = ({ promo, onClose, onSubmit, loading }) => {
     form.reset(getPromoFormValues(promo));
   }, [form, promo]);
 
-  const handleSubmit = form.handleSubmit((values) => onSubmit(buildPayload(values)));
+  const handleSubmit = form.handleSubmit((values) => onSubmit(buildPayload(values)), scrollToFirstError);
 
   const inputCls =
     "h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10";

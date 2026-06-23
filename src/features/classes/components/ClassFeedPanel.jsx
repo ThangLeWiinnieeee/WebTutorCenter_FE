@@ -219,11 +219,21 @@ export default function ClassFeedPanel() {
                   <Clock3 className="h-3.5 w-3.5" />
                   <span>Đăng lúc {formatDateTime(item.createdAt)}</span>
                 </div>
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                  <BookOpenText className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>
+                    Học phí / buổi:{" "}
+                    <strong className="font-semibold text-slate-700">{formatPrice(item.feePerSession)}</strong>
+                  </span>
+                </div>
               </div>
 
               <div className="w-[200px] shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right">
-                <p className="text-xs uppercase tracking-wide text-emerald-700">Học phí / buổi</p>
-                <p className="mt-1 text-2xl font-bold leading-none text-emerald-700">{formatPrice(item.feePerSession)}</p>
+                <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
+                <p className="mt-1 text-2xl font-bold leading-none text-emerald-700">
+                  {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}
+                </p>
+                <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
                 {user?.id && item.createdBy === user.id ? (
                   <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
                     Bài đăng của bạn

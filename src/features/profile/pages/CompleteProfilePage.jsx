@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { completeProfileSchema } from "@/features/profile/schemas/completeProfileSchema";
 import { updateProfileThunk } from "@/features/auth/store/authThunks";
 import useAuth from "@/features/auth/hooks/useAuth";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -49,7 +50,7 @@ const CompleteProfilePage = () => {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit, scrollToFirstError)} className="space-y-5">
             <FormField
               control={form.control}
               name="phone"

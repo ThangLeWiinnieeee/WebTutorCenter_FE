@@ -55,4 +55,13 @@ export const tutorSchema = z.object({
     .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
 
   availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
+}).superRefine((data, ctx) => {
+  // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
+  if (data.occupationStatus !== "student" && data.graduationYear == null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["graduationYear"],
+      message: "Vui lòng nhập năm tốt nghiệp",
+    });
+  }
 });

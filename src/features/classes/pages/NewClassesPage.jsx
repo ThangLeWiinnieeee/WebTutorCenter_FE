@@ -453,17 +453,22 @@ const NewClassesPage = () => {
                       <Clock3 className="h-3.5 w-3.5" />
                       <span>Đăng ngày: {formatDateTime(item.createdAt)}</span>
                     </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <BookOpenText className="h-4 w-4 text-emerald-600" />
+                      <span className="text-sm text-slate-500">Học phí / buổi:</span>
+                      <strong className="text-lg font-bold leading-none text-emerald-600">
+                        {formatPrice(item.feePerSession)}đ
+                      </strong>
+                    </div>
                   </div>
                 </div>
 
                 <div className="w-[220px] shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right">
-                  <p className="text-xs uppercase tracking-wide text-emerald-700">Học phí / buổi</p>
+                  <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                   <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
-                    {formatPrice(item.feePerSession)}đ
+                    {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ
                   </p>
-                  <p className="mt-1 text-xs text-emerald-700/80">
-                    Phí nhận lớp 5% ({formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ)
-                  </p>
+                  <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
                   {user?.id && item.createdBy === user.id ? (
                     <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
                       Bài đăng của bạn

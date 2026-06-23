@@ -358,3 +358,41 @@ export const deletePromoThunk = createAsyncThunk(
     }
   }
 );
+
+// ──────────────────────────── Subject (môn học) ────────────────────────────
+
+export const getSubjectsThunk = createAsyncThunk(
+  "admin/getSubjects",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getSubjects(params);
+      return res.data.data.subjects;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách môn học");
+    }
+  }
+);
+
+export const createSubjectThunk = createAsyncThunk(
+  "admin/createSubject",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const res = await adminService.createSubject(payload);
+      return res.data.data.subject;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Thêm môn học thất bại");
+    }
+  }
+);
+
+export const updateSubjectThunk = createAsyncThunk(
+  "admin/updateSubject",
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.updateSubject(id, payload);
+      return res.data.data.subject;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Cập nhật môn học thất bại");
+    }
+  }
+);

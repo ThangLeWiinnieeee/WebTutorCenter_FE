@@ -37,6 +37,9 @@ const adminService = {
   createPromo: (payload) => axiosInstance.post(API_ENDPOINTS.PROMOS.CREATE, payload),
   updatePromo: (id, payload) => axiosInstance.patch(API_ENDPOINTS.PROMOS.UPDATE(id), payload),
   deletePromo: (id) => axiosInstance.delete(API_ENDPOINTS.PROMOS.DELETE(id)),
+  getSubjects: (params) => axiosInstance.get(API_ENDPOINTS.SUBJECTS.ADMIN_LIST, { params }),
+  createSubject: (payload) => axiosInstance.post(API_ENDPOINTS.SUBJECTS.CREATE, payload),
+  updateSubject: (id, payload) => axiosInstance.patch(API_ENDPOINTS.SUBJECTS.UPDATE(id), payload),
 };
 
 export default adminService;

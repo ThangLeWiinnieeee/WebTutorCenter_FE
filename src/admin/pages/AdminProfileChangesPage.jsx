@@ -29,6 +29,8 @@ const FIELD_LABELS = {
   currentArea: "Khu vực hiện tại",
   bio: "Giới thiệu bản thân",
   availability: "Lịch giảng dạy",
+  subjects: "Môn học giảng dạy",
+  graduationYear: "Năm tốt nghiệp",
 };
 
 const formatFieldValue = (key, value) => {
@@ -44,6 +46,8 @@ const formatFieldValue = (key, value) => {
       return [value.districtName, value.provinceName].filter(Boolean).join(", ") || "—";
     case "availability":
       return formatAvailabilitySlotsOneLine(value);
+    case "subjects":
+      return Array.isArray(value) ? value.join(", ") : String(value);
     default:
       return String(value);
   }

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { loginSchema } from '@/features/auth/schemas/authSchema';
+import { scrollToFirstError } from '@/lib/formErrors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -45,7 +46,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate className="space-y-5">
           {/* Thư điện tử */}
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-slate-700 font-medium text-sm">

@@ -67,6 +67,12 @@ const API_ENDPOINTS = {
     BY_TYPE: (type) => `/lookups/type/${type}`,
     DISTRICTS_BY_PROVINCE: (province) => `/lookups/districts/${province}`,
   },
+  SUBJECTS: {
+    LIST: "/subjects",
+    ADMIN_LIST: "/subjects/admin",
+    CREATE: "/subjects",
+    UPDATE: (id) => `/subjects/${id}`,
+  },
   PROMOS: {
     VALIDATE: "/promos/validate",
     MINE: "/promos/mine",

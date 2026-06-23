@@ -52,6 +52,7 @@ import {
   getDefaultClassRequestValues,
   getTodayIsoDateLocal,
 } from '@/features/classes/schemas/classRequestSchema';
+import { scrollToFirstError } from '@/lib/formErrors';
 import classService from '@/features/classes/services/classService';
 import { clearClassFlow } from '@/features/classes/store/classSlice';
 import {
@@ -745,7 +746,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-5 lg:col-span-9">
             {!quote && (
-              <form className="space-y-5" onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote)}>
+              <form className="space-y-5" onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote, scrollToFirstError)}>
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <PhoneCall className="h-4 w-4 text-emerald-600" />

@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchNotificationsThunk,
+  refreshUnreadCountThunk,
   markAsReadThunk,
   markAllAsReadThunk,
 } from "./notificationThunks";
@@ -41,6 +42,12 @@ const notificationSlice = createSlice({
       .addCase(fetchNotificationsThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      });
+
+    builder
+      // Polling/focus: chỉ cập nhật số chưa đọc, giữ nguyên danh sách + phân trang đang xem.
+      .addCase(refreshUnreadCountThunk.fulfilled, (state, action) => {
+        state.unreadCount = action.payload ?? 0;
       });
 
     builder

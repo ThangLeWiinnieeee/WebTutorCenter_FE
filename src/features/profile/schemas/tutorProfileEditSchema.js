@@ -29,6 +29,28 @@ export const tutorProfileEditSchema = z.object({
     .min(10, "Giới thiệu bản thân phải có ít nhất 10 ký tự")
     .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
   availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
+  subjects: z.array(z.string()).min(1, "Phải chọn ít nhất 1 môn học"),
+  graduationYear: z
+    .union([
+      z
+        .number()
+        .int()
+        .min(1950, "Năm tốt nghiệp phải từ 1950 trở lên")
+        .max(new Date().getFullYear(), `Năm tốt nghiệp không được lớn hơn ${new Date().getFullYear()}`),
+      z.null(),
+      z.literal(""),
+    ])
+    .optional()
+    .transform((v) => (v === "" ? null : v)),
+}).superRefine((data, ctx) => {
+  // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
+  if (data.occupationStatus !== "student" && data.graduationYear == null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["graduationYear"],
+      message: "Vui lòng nhập năm tốt nghiệp",
+    });
+  }
 });
 
 // Chuyển hồ sơ gia sư (đã resolve tên khu vực) → giá trị mặc định cho form (mã số).
@@ -45,6 +67,8 @@ export const tutorProfileToFormValues = (profile) => ({
   },
   bio: profile?.bio ?? "",
   availability: (profile?.availability ?? []).map((s) => ({ day: s.day, hour: Number(s.hour) })),
+  subjects: profile?.subjects ?? [],
+  graduationYear: profile?.graduationYear ?? null,
 });
 
 // Chỉ giữ lại các field thực sự thay đổi so với giá trị gốc (so sánh sâu đơn giản).

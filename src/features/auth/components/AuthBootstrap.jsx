@@ -3,24 +3,30 @@ import { useDispatch, useSelector } from "react-redux";
 import { Loader2 } from "lucide-react";
 
 import { getUserInfoThunk } from "@/features/auth/store/authThunks";
-import { fetchNotificationsThunk } from "@/features/notifications/store/notificationThunks";
+import {
+  fetchNotificationsThunk,
+  refreshUnreadCountThunk,
+} from "@/features/notifications/store/notificationThunks";
 import { clearNotifications } from "@/features/notifications/store/notificationSlice";
 import tokenStorage from "@/utils/tokenStorage";
+
+// Chu kỳ làm tươi số thông báo chưa đọc (ms) — để chuông cập nhật gần realtime, không cần reload.
+const NOTIFICATION_POLL_MS = 30000;
 
 const AuthBootstrap = ({ children }) => {
   const dispatch = useDispatch();
   const initialized = useSelector((state) => state.auth.initialized);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const userId = useSelector((state) => state.auth.user?.id);
-  const [ready, setReady] = useState(false);
+  // Không có token → không cần khôi phục phiên, sẵn sàng ngay (tính ở initializer để
+  // tránh setState đồng bộ trong effect gây cascading render).
+  const [ready, setReady] = useState(() => !tokenStorage.get());
   const prevUserIdRef = useRef(null);
 
   useEffect(() => {
     const token = tokenStorage.get();
     if (token) {
       dispatch(getUserInfoThunk()).finally(() => setReady(true));
-    } else {
-      setReady(true);
     }
   }, [dispatch]);
 
@@ -32,6 +38,26 @@ const AuthBootstrap = ({ children }) => {
     }
     prevUserIdRef.current = userId || null;
   }, [dispatch, userId, isAuthenticated]);
+
+  // Khi đã đăng nhập: định kỳ làm tươi số thông báo chưa đọc + làm tươi ngay khi tab được focus lại.
+  // Giúp chuông thông báo cập nhật mà không cần tải lại trang.
+  useEffect(() => {
+    if (!isAuthenticated || !userId) return undefined;
+
+    const refresh = () => {
+      if (document.visibilityState === "visible") dispatch(refreshUnreadCountThunk());
+    };
+
+    const intervalId = setInterval(refresh, NOTIFICATION_POLL_MS);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [dispatch, isAuthenticated, userId]);
 
   if (!ready && !initialized) {
     return (

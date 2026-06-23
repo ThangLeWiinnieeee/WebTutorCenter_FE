@@ -16,7 +16,7 @@ import {
 } from "@/features/classes";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage } from "@/admin";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminSubjectsPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage } from "@/admin";
 
 import {
   LoginPage,
@@ -112,6 +112,7 @@ const router = createBrowserRouter([
       { path: "/admin/profile-changes", element: <AdminProfileChangesPage /> },
       { path: "/admin/classes", element: <AdminClassesPage /> },
       { path: "/admin/promos", element: <AdminPromosPage /> },
+      { path: "/admin/subjects", element: <AdminSubjectsPage /> },
       { path: "/admin/trash", element: <AdminTrashPage /> },
       { path: "/admin/settings", element: <AdminSettingsPage /> },
     ],

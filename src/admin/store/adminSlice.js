@@ -16,6 +16,9 @@ import {
   createPromoThunk,
   updatePromoThunk,
   deletePromoThunk,
+  getSubjectsThunk,
+  createSubjectThunk,
+  updateSubjectThunk,
   getAdminClassesThunk,
   deleteAdminClassThunk,
   getTrashCountsThunk,
@@ -81,6 +84,10 @@ const adminSlice = createSlice({
     promosLoading: false,
     promosError: null,
     promoActionLoading: null,
+    subjects: [],
+    subjectsLoading: false,
+    subjectsError: null,
+    subjectActionLoading: null,
     classes: [],
     classesPagination: {
       page: 1,
@@ -163,6 +170,10 @@ const adminSlice = createSlice({
         state.pendingTutors = state.pendingTutors.filter(
           (t) => t.id !== action.payload.id
         );
+        if (state.dashboardStats) {
+          if (state.dashboardStats.pendingCount > 0) state.dashboardStats.pendingCount--;
+          state.dashboardStats.approvedCount = (state.dashboardStats.approvedCount || 0) + 1;
+        }
       })
       .addCase(approveTutorThunk.rejected, (state) => {
         state.actionLoading = null;
@@ -177,6 +188,10 @@ const adminSlice = createSlice({
         state.pendingTutors = state.pendingTutors.filter(
           (t) => t.id !== action.payload.id
         );
+        if (state.dashboardStats) {
+          if (state.dashboardStats.pendingCount > 0) state.dashboardStats.pendingCount--;
+          state.dashboardStats.rejectedCount = (state.dashboardStats.rejectedCount || 0) + 1;
+        }
       })
       .addCase(rejectTutorThunk.rejected, (state) => {
         state.actionLoading = null;
@@ -278,6 +293,9 @@ const adminSlice = createSlice({
         );
         if (state.classApplicationStats.pending > 0) state.classApplicationStats.pending--;
         state.classApplicationStats.approved++;
+        if (state.dashboardStats?.pendingClassApplicationsCount > 0) {
+          state.dashboardStats.pendingClassApplicationsCount--;
+        }
       })
       .addCase(approveClassApplicationThunk.rejected, (state) => {
         state.classApplicationActionLoading = null;
@@ -294,6 +312,9 @@ const adminSlice = createSlice({
         );
         if (state.classApplicationStats.pending > 0) state.classApplicationStats.pending--;
         state.classApplicationStats.rejected++;
+        if (state.dashboardStats?.pendingClassApplicationsCount > 0) {
+          state.dashboardStats.pendingClassApplicationsCount--;
+        }
       })
       .addCase(rejectClassApplicationThunk.rejected, (state) => {
         state.classApplicationActionLoading = null;
@@ -349,6 +370,45 @@ const adminSlice = createSlice({
       })
       .addCase(deletePromoThunk.rejected, (state) => {
         state.promoActionLoading = null;
+      });
+
+    // ──────────────────────────── Subject (môn học) ────────────────────────────
+    builder
+      .addCase(getSubjectsThunk.pending, (state) => {
+        state.subjectsLoading = true;
+        state.subjectsError = null;
+      })
+      .addCase(getSubjectsThunk.fulfilled, (state, action) => {
+        state.subjectsLoading = false;
+        state.subjects = action.payload || [];
+      })
+      .addCase(getSubjectsThunk.rejected, (state, action) => {
+        state.subjectsLoading = false;
+        state.subjectsError = action.payload;
+      });
+
+    builder
+      .addCase(createSubjectThunk.pending, (state) => {
+        state.subjectActionLoading = "create";
+      })
+      .addCase(createSubjectThunk.fulfilled, (state) => {
+        state.subjectActionLoading = null;
+      })
+      .addCase(createSubjectThunk.rejected, (state) => {
+        state.subjectActionLoading = null;
+      });
+
+    builder
+      .addCase(updateSubjectThunk.pending, (state, action) => {
+        state.subjectActionLoading = action.meta.arg.id;
+      })
+      .addCase(updateSubjectThunk.fulfilled, (state, action) => {
+        state.subjectActionLoading = null;
+        const updated = action.payload;
+        state.subjects = state.subjects.map((s) => (s.id === updated.id ? updated : s));
+      })
+      .addCase(updateSubjectThunk.rejected, (state) => {
+        state.subjectActionLoading = null;
       });
 
     // ──────────────────────────── Class (bài đăng) ────────────────────────────
