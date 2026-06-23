@@ -1,21 +1,15 @@
 import { z } from "zod";
 
-const availabilitySlotSchema = z
-  .object({
-    day: z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], {
-      message: "Ngày không hợp lệ",
-    }),
-    startTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Giờ bắt đầu phải theo định dạng HH:mm"),
-    endTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Giờ kết thúc phải theo định dạng HH:mm"),
-  })
-  .refine((slot) => slot.endTime > slot.startTime, {
-    message: "Giờ kết thúc phải sau giờ bắt đầu",
-    path: ["endTime"],
-  });
+const availabilitySlotSchema = z.object({
+  day: z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], {
+    message: "Ngày không hợp lệ",
+  }),
+  hour: z
+    .number()
+    .int()
+    .min(0, "Khung giờ phải từ 0 đến 23")
+    .max(23, "Khung giờ phải từ 0 đến 23"),
+});
 
 export const tutorSchema = z.object({
   phone: z
