@@ -31,6 +31,40 @@ const Section = ({ icon, title, children }) => (
 const dayLabel = (day) =>
   DAYS_OF_WEEK_OPTIONS.find((d) => d.value === day)?.label ?? day;
 
+const hhmm = (h) => `${String(h).padStart(2, "0")}:00`;
+
+// Gộp các giờ liên tiếp trong cùng 1 ngày thành 1 khoảng; tách khi có quãng trống.
+// VD ngày T2 có giờ [7..15] → "07:00 – 16:00"; nếu thêm [19..21] → thành 2 khoảng.
+const buildAvailabilityRanges = (availability = []) => {
+  const order = DAYS_OF_WEEK_OPTIONS.map((d) => d.value);
+  const hoursByDay = new Map();
+  for (const slot of availability) {
+    if (!slot || slot.hour == null) continue;
+    if (!hoursByDay.has(slot.day)) hoursByDay.set(slot.day, []);
+    hoursByDay.get(slot.day).push(Number(slot.hour));
+  }
+
+  const ranges = [];
+  for (const day of order) {
+    const hours = hoursByDay.get(day);
+    if (!hours?.length) continue;
+    const sorted = [...new Set(hours)].sort((a, b) => a - b);
+    let start = sorted[0];
+    let prev = sorted[0];
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === prev + 1) {
+        prev = sorted[i];
+      } else {
+        ranges.push({ day, start, end: prev + 1 });
+        start = sorted[i];
+        prev = sorted[i];
+      }
+    }
+    ranges.push({ day, start, end: prev + 1 });
+  }
+  return ranges;
+};
+
 const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest = null, onEdit }) => {
   if (loading) {
     return (
@@ -191,15 +225,15 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
         {tutorProfile.availability?.length > 0 && (
           <Section icon={Clock} title="Lịch giảng dạy">
             <div className="flex flex-wrap gap-2">
-              {tutorProfile.availability.map((slot, i) => (
+              {buildAvailabilityRanges(tutorProfile.availability).map((r, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5"
                 >
-                  <span className="text-xs font-medium text-slate-700">{dayLabel(slot.day)}</span>
+                  <span className="text-xs font-medium text-slate-700">{dayLabel(r.day)}</span>
                   <span className="text-xs text-slate-400">|</span>
                   <span className="text-xs text-slate-600">
-                    {slot.startTime} – {slot.endTime}
+                    {hhmm(r.start)} – {hhmm(r.end)}
                   </span>
                 </div>
               ))}
