@@ -1,7 +1,13 @@
-import { Link } from "react-router-dom";
-import { ChevronRight, ClipboardList, FileText } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { ChevronRight, ClipboardList, FileText, LogOut, Ticket } from "lucide-react";
+
+import { logoutThunk } from "@/features/auth/store/authThunks";
 
 const ProfileMenu = ({ isTutor }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const items = [
     ...(isTutor
       ? [
@@ -19,7 +25,18 @@ const ProfileMenu = ({ isTutor }) => {
       desc: "Bài đăng tìm gia sư bạn đã tạo",
       icon: FileText,
     },
+    {
+      to: "/my-vouchers",
+      label: "Kho mã giảm giá",
+      desc: "Mã giảm giá bạn đã nhận",
+      icon: Ticket,
+    },
   ];
+
+  const handleLogout = async () => {
+    await dispatch(logoutThunk());
+    navigate("/login");
+  };
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
@@ -42,6 +59,21 @@ const ProfileMenu = ({ isTutor }) => {
           </Link>
         );
       })}
+
+      {/* Đăng xuất — đặt dưới danh sách bài đăng */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-rose-50"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+          <LogOut className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-rose-600">Đăng xuất</p>
+          <p className="truncate text-xs text-slate-500">Thoát khỏi tài khoản hiện tại</p>
+        </div>
+      </button>
     </div>
   );
 };

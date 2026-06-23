@@ -1,12 +1,7 @@
-import { GraduationCap, BookOpen, Users, Star } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { createElement } from "react";
 import { Link } from "react-router-dom";
-
-const FEATURES = [
-  { icon: BookOpen, text: "Hơn 500+ gia sư chất lượng cao" },
-  { icon: Users,    text: "Kết nối học sinh – gia sư dễ dàng" },
-  { icon: Star,     text: "Đánh giá minh bạch, học phí linh hoạt" },
-];
+import { AUTH_PANEL_FEATURES } from "@/features/auth/constants";
 
 const AuthLeftPanel = () => (
   <div className="hidden lg:flex lg:w-[52%] flex-col justify-between bg-[#1e3a5f] px-14 py-12 relative overflow-hidden">
@@ -40,7 +35,7 @@ const AuthLeftPanel = () => (
 
       {/* Feature list */}
       <ul className="space-y-4">
-        {FEATURES.map(({ icon: IconComponent, text }) => (
+        {AUTH_PANEL_FEATURES.map(({ icon: IconComponent, text }) => (
           <li key={text} className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
               {createElement(IconComponent, { className: "h-4 w-4 text-blue-200" })}

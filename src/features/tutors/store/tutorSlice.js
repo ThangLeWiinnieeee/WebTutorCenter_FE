@@ -6,12 +6,16 @@ import {
   getTopTutorsThisMonthThunk,
   getNewTutorsThunk,
   searchTutorsThunk,
+  fetchMyProfileChangeRequestThunk,
+  requestProfileChangeThunk,
 } from "./tutorThunks";
 
 const initialState = {
   // Profile
   profile: null,
-  
+  profileChangeRequest: null, // yêu cầu đổi hồ sơ đang chờ duyệt (null nếu không có)
+  submittingProfileChange: false,
+
   // Danh sách
   topTutors: [],
   topTutorsThisMonth: [],
@@ -120,6 +124,24 @@ const tutorSlice = createSlice({
       })
       .addCase(getNewTutorsThunk.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Profile change request (gia sư đổi hồ sơ)
+    builder
+      .addCase(fetchMyProfileChangeRequestThunk.fulfilled, (state, action) => {
+        state.profileChangeRequest = action.payload;
+      })
+      .addCase(requestProfileChangeThunk.pending, (state) => {
+        state.submittingProfileChange = true;
+        state.error = null;
+      })
+      .addCase(requestProfileChangeThunk.fulfilled, (state, action) => {
+        state.submittingProfileChange = false;
+        state.profileChangeRequest = action.payload;
+      })
+      .addCase(requestProfileChangeThunk.rejected, (state, action) => {
+        state.submittingProfileChange = false;
         state.error = action.payload;
       });
 

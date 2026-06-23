@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import tutorService from "@/features/tutors/services/tutorService";
-import { OCCUPATION_STATUS_LABEL, DAYS_OF_WEEK_OPTIONS } from "@/features/tutors/constants";
+import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
 import {
   MapPin,
@@ -20,8 +20,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
-
 function formatDate(dateStr) {
   if (!dateStr) return null;
   const d = new Date(dateStr);
@@ -37,11 +35,6 @@ function getInitials(name) {
     .join("")
     .toUpperCase()
     .slice(0, 2);
-}
-
-function getDayLabel(dayValue) {
-  const found = DAYS_OF_WEEK_OPTIONS.find((d) => d.value === dayValue);
-  return found ? found.label : dayValue;
 }
 
 export default function TutorDetailPage() {

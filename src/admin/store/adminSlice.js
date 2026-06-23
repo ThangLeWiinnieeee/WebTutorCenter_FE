@@ -22,6 +22,12 @@ import {
   getTrashItemsThunk,
   restoreTrashItemThunk,
   purgeTrashItemThunk,
+  getProfileChangesThunk,
+  approveProfileChangeThunk,
+  rejectProfileChangeThunk,
+  getApplicationCancellationsThunk,
+  approveCancellationThunk,
+  rejectCancellationThunk,
 } from "./adminThunks";
 
 const adminSlice = createSlice({
@@ -34,6 +40,12 @@ const adminSlice = createSlice({
     },
     statsLoading: false,
     pendingTutors: [],
+    pendingTutorsPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
     loading: false,
     actionLoading: null,
     error: null,
@@ -48,6 +60,12 @@ const adminSlice = createSlice({
     usersError: null,
     userActionLoading: null,
     classApplications: [],
+    classApplicationsPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
     classApplicationsLoading: false,
     classApplicationsError: null,
     classApplicationActionLoading: null,
@@ -84,6 +102,28 @@ const adminSlice = createSlice({
     trashError: null,
     trashActionLoading: null,
     trashCounts: { users: 0, classes: 0, promos: 0 },
+    profileChanges: [],
+    profileChangesPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    profileChangesCounts: { all: 0, pending: 0, approved: 0, rejected: 0 },
+    profileChangesLoading: false,
+    profileChangesError: null,
+    profileChangeActionLoading: null,
+    cancellations: [],
+    cancellationsPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    cancellationsCounts: { all: 0, cancel_requested: 0, cancelled: 0 },
+    cancellationsLoading: false,
+    cancellationsError: null,
+    cancellationActionLoading: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -106,7 +146,8 @@ const adminSlice = createSlice({
       })
       .addCase(getPendingTutorsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.pendingTutors = action.payload;
+        state.pendingTutors = action.payload.tutors || [];
+        if (action.payload.pagination) state.pendingTutorsPagination = action.payload.pagination;
       })
       .addCase(getPendingTutorsThunk.rejected, (state, action) => {
         state.loading = false;
@@ -206,7 +247,8 @@ const adminSlice = createSlice({
       })
       .addCase(getClassApplicationsThunk.fulfilled, (state, action) => {
         state.classApplicationsLoading = false;
-        state.classApplications = action.payload || [];
+        state.classApplications = action.payload.applications || [];
+        if (action.payload.pagination) state.classApplicationsPagination = action.payload.pagination;
       })
       .addCase(getClassApplicationsThunk.rejected, (state, action) => {
         state.classApplicationsLoading = false;
@@ -379,6 +421,95 @@ const adminSlice = createSlice({
       .addCase(purgeTrashItemThunk.fulfilled, handleTrashRemoval)
       .addCase(purgeTrashItemThunk.rejected, (state) => {
         state.trashActionLoading = null;
+      });
+
+    // ──────────────────────────── Profile change requests (gia sư đổi hồ sơ) ────────────────────────────
+    builder
+      .addCase(getProfileChangesThunk.pending, (state) => {
+        state.profileChangesLoading = true;
+        state.profileChangesError = null;
+      })
+      .addCase(getProfileChangesThunk.fulfilled, (state, action) => {
+        state.profileChangesLoading = false;
+        state.profileChanges = action.payload.requests || [];
+        if (action.payload.pagination) state.profileChangesPagination = action.payload.pagination;
+        if (action.payload.counts) state.profileChangesCounts = action.payload.counts;
+      })
+      .addCase(getProfileChangesThunk.rejected, (state, action) => {
+        state.profileChangesLoading = false;
+        state.profileChangesError = action.payload;
+      });
+
+    builder
+      .addCase(approveProfileChangeThunk.pending, (state, action) => {
+        state.profileChangeActionLoading = action.meta.arg;
+      })
+      .addCase(approveProfileChangeThunk.fulfilled, (state, action) => {
+        state.profileChangeActionLoading = null;
+        state.profileChanges = state.profileChanges.filter((r) => r.id !== action.payload.id);
+        if (state.profileChangesCounts.pending > 0) state.profileChangesCounts.pending--;
+        state.profileChangesCounts.approved++;
+      })
+      .addCase(approveProfileChangeThunk.rejected, (state) => {
+        state.profileChangeActionLoading = null;
+      });
+
+    builder
+      .addCase(rejectProfileChangeThunk.pending, (state, action) => {
+        state.profileChangeActionLoading = action.meta.arg.id;
+      })
+      .addCase(rejectProfileChangeThunk.fulfilled, (state, action) => {
+        state.profileChangeActionLoading = null;
+        state.profileChanges = state.profileChanges.filter((r) => r.id !== action.payload.id);
+        if (state.profileChangesCounts.pending > 0) state.profileChangesCounts.pending--;
+        state.profileChangesCounts.rejected++;
+      })
+      .addCase(rejectProfileChangeThunk.rejected, (state) => {
+        state.profileChangeActionLoading = null;
+      });
+
+    // ──────────────────────────── Hủy đơn nhận lớp ────────────────────────────
+    builder
+      .addCase(getApplicationCancellationsThunk.pending, (state) => {
+        state.cancellationsLoading = true;
+        state.cancellationsError = null;
+      })
+      .addCase(getApplicationCancellationsThunk.fulfilled, (state, action) => {
+        state.cancellationsLoading = false;
+        state.cancellations = action.payload.cancellations || [];
+        if (action.payload.pagination) state.cancellationsPagination = action.payload.pagination;
+        if (action.payload.counts) state.cancellationsCounts = action.payload.counts;
+      })
+      .addCase(getApplicationCancellationsThunk.rejected, (state, action) => {
+        state.cancellationsLoading = false;
+        state.cancellationsError = action.payload;
+      });
+
+    builder
+      .addCase(approveCancellationThunk.pending, (state, action) => {
+        state.cancellationActionLoading = action.meta.arg;
+      })
+      .addCase(approveCancellationThunk.fulfilled, (state, action) => {
+        state.cancellationActionLoading = null;
+        state.cancellations = state.cancellations.filter((c) => c.id !== action.payload.id);
+        if (state.cancellationsCounts.cancel_requested > 0) state.cancellationsCounts.cancel_requested--;
+        state.cancellationsCounts.cancelled++;
+      })
+      .addCase(approveCancellationThunk.rejected, (state) => {
+        state.cancellationActionLoading = null;
+      });
+
+    builder
+      .addCase(rejectCancellationThunk.pending, (state, action) => {
+        state.cancellationActionLoading = action.meta.arg.id;
+      })
+      .addCase(rejectCancellationThunk.fulfilled, (state, action) => {
+        state.cancellationActionLoading = null;
+        state.cancellations = state.cancellations.filter((c) => c.id !== action.payload.id);
+        if (state.cancellationsCounts.cancel_requested > 0) state.cancellationsCounts.cancel_requested--;
+      })
+      .addCase(rejectCancellationThunk.rejected, (state) => {
+        state.cancellationActionLoading = null;
       });
   },
 });

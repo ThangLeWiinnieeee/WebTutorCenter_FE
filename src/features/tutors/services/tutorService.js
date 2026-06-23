@@ -28,6 +28,10 @@ const tutorService = {
     }),
 
   getTutorById: (id) => axiosInstance.get(API_ENDPOINTS.TUTORS.GET_BY_ID(id)),
+
+  // Gia sư đổi hồ sơ (chờ admin duyệt)
+  getMyProfileChangeRequest: () => axiosInstance.get(API_ENDPOINTS.TUTORS.PROFILE_CHANGE_REQUEST),
+  requestProfileChange: (data) => axiosInstance.post(API_ENDPOINTS.TUTORS.PROFILE_CHANGE_REQUEST, data),
 };
 
 export default tutorService;

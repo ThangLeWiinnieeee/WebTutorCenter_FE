@@ -7,18 +7,21 @@ import {
   Briefcase,
   AlertCircle,
   Loader2,
+  Pencil,
+  Hourglass,
 } from "lucide-react";
 import {
   TUTOR_STATUS_CONFIG,
   OCCUPATION_STATUS_LABEL,
   DAYS_OF_WEEK_OPTIONS,
 } from "@/features/tutors/constants";
+import { createElement } from "react";
 import { ProfileBadge } from "./ProfileBadges";
 
-const Section = ({ icon: Icon, title, children }) => (
+const Section = ({ icon, title, children }) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-      <Icon className="h-4 w-4 text-slate-500" />
+      {createElement(icon, { className: "h-4 w-4 text-slate-500" })}
       <h4 className="text-sm font-semibold text-slate-700">{title}</h4>
     </div>
     {children}
@@ -28,7 +31,7 @@ const Section = ({ icon: Icon, title, children }) => (
 const dayLabel = (day) =>
   DAYS_OF_WEEK_OPTIONS.find((d) => d.value === day)?.label ?? day;
 
-const TutorInfoCard = ({ tutorProfile, loading }) => {
+const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest = null, onEdit }) => {
   if (loading) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-8 flex items-center justify-center">
@@ -50,10 +53,32 @@ const TutorInfoCard = ({ tutorProfile, loading }) => {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <h3 className="text-base font-semibold text-slate-700">Hồ sơ gia sư</h3>
-        <ProfileBadge className={statusConfig.className}>{statusConfig.label}</ProfileBadge>
+        <div className="flex items-center gap-3">
+          {canEdit && !pendingRequest && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Chỉnh sửa
+            </button>
+          )}
+          <ProfileBadge className={statusConfig.className}>{statusConfig.label}</ProfileBadge>
+        </div>
       </div>
 
       <div className="px-6 py-5 space-y-6">
+        {/* Đang chờ duyệt thay đổi */}
+        {pendingRequest && (
+          <div className="flex gap-3 rounded-lg bg-amber-50 border border-amber-100 p-4">
+            <Hourglass className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-700">
+              Bạn có một yêu cầu đổi thông tin đang chờ admin duyệt. Khi được duyệt, hồ sơ sẽ tự động cập nhật.
+            </p>
+          </div>
+        )}
+
         {/* Rejection notice */}
         {tutorProfile.status === "rejected" && tutorProfile.rejectionReason && (
           <div className="flex gap-3 rounded-lg bg-rose-50 border border-rose-100 p-4">

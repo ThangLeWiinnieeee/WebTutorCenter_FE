@@ -23,6 +23,7 @@ const API_ENDPOINTS = {
     GET_NEW: "/tutors/new",
     SEARCH: "/tutors/search",
     GET_BY_ID: (id) => `/tutors/${id}`,
+    PROFILE_CHANGE_REQUEST: "/tutors/profile/change-request",
   },
   ADMIN: {
     DASHBOARD_STATS: "/admin/tutors/stats",
@@ -44,6 +45,12 @@ const API_ENDPOINTS = {
     TRASH_LIST: (type) => `/admin/trash/${type}`,
     TRASH_RESTORE: (type, id) => `/admin/trash/${type}/${id}/restore`,
     TRASH_PURGE: (type, id) => `/admin/trash/${type}/${id}`,
+    PROFILE_CHANGES: "/admin/profile-changes",
+    PROFILE_CHANGE_APPROVE: (id) => `/admin/profile-changes/${id}/approve`,
+    PROFILE_CHANGE_REJECT: (id) => `/admin/profile-changes/${id}/reject`,
+    APPLICATION_CANCELLATIONS: "/admin/application-cancellations",
+    CANCELLATION_APPROVE: (id) => `/admin/application-cancellations/${id}/approve`,
+    CANCELLATION_REJECT: (id) => `/admin/application-cancellations/${id}/reject`,
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
@@ -62,6 +69,7 @@ const API_ENDPOINTS = {
   },
   PROMOS: {
     VALIDATE: "/promos/validate",
+    MINE: "/promos/mine",
     LIST: "/promos",
     CREATE: "/promos",
     UPDATE: (id) => `/promos/${id}`,
@@ -70,6 +78,8 @@ const API_ENDPOINTS = {
   CLASSES: {
     QUOTE: "/classes/quote",
     CREATE: "/classes",
+    UPDATE: (id) => `/classes/${id}`,
+    DELETE: (id) => `/classes/${id}`,
     LIST: "/classes",
     SUBJECTS: "/classes/subjects",
     PRICING_CONFIG: "/classes/pricing-config",
@@ -78,6 +88,8 @@ const API_ENDPOINTS = {
     FEED: "/classes/feed",
     MY_POSTS: "/classes/my-posts",
     APPLY: (id) => `/classes/${id}/apply`,
+    CANCEL_APPLICATION: (id) => `/classes/applications/${id}/cancel`,
+    COMPLETE: (id) => `/classes/${id}/complete`,
   },
 };
 

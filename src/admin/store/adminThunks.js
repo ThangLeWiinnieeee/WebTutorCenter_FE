@@ -15,10 +15,10 @@ export const getDashboardStatsThunk = createAsyncThunk(
 
 export const getPendingTutorsThunk = createAsyncThunk(
   "admin/getPendingTutors",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await adminService.getPendingTutors();
-      return res.data.data.tutors;
+      const res = await adminService.getPendingTutors(params);
+      return res.data.data; // { tutors, pagination }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách");
     }
@@ -102,7 +102,7 @@ export const getClassApplicationsThunk = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const res = await adminService.getClassApplications(params);
-      return res.data.data.applications;
+      return res.data.data; // { applications, pagination, counts }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đơn đăng ký");
     }
@@ -229,6 +229,82 @@ export const purgeTrashItemThunk = createAsyncThunk(
       return { id };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Xóa vĩnh viễn thất bại");
+    }
+  }
+);
+
+// ──────────────────────────── Profile change requests (gia sư đổi hồ sơ) ────────────────────────────
+
+export const getProfileChangesThunk = createAsyncThunk(
+  "admin/getProfileChanges",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getProfileChanges(params);
+      return res.data.data; // { requests, pagination, counts }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách yêu cầu đổi thông tin");
+    }
+  }
+);
+
+export const approveProfileChangeThunk = createAsyncThunk(
+  "admin/approveProfileChange",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.approveProfileChange(id);
+      return res.data.data.request;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Duyệt yêu cầu thất bại");
+    }
+  }
+);
+
+export const rejectProfileChangeThunk = createAsyncThunk(
+  "admin/rejectProfileChange",
+  async ({ id, rejectionReason }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.rejectProfileChange(id, rejectionReason);
+      return res.data.data.request;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Từ chối yêu cầu thất bại");
+    }
+  }
+);
+
+// ──────────────────────────── Hủy đơn nhận lớp (gia sư rút đơn) ────────────────────────────
+
+export const getApplicationCancellationsThunk = createAsyncThunk(
+  "admin/getApplicationCancellations",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getApplicationCancellations(params);
+      return res.data.data; // { cancellations, pagination, counts }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đơn hủy");
+    }
+  }
+);
+
+export const approveCancellationThunk = createAsyncThunk(
+  "admin/approveCancellation",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.approveCancellation(id);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Duyệt hủy đơn thất bại");
+    }
+  }
+);
+
+export const rejectCancellationThunk = createAsyncThunk(
+  "admin/rejectCancellation",
+  async ({ id, rejectionReason }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.rejectCancellation(id, rejectionReason);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Từ chối hủy đơn thất bại");
     }
   }
 );

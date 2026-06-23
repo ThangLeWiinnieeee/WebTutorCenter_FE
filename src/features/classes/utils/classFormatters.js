@@ -1,3 +1,5 @@
+import { DAYS_OF_WEEK, DAY_SHORT_LABEL_VI } from "@/constants/enums";
+
 export const formatPrice = (value) => `${(value || 0).toLocaleString("vi-VN")}đ`;
 
 export const formatDate = (value) => {
@@ -16,18 +18,6 @@ export const formatDateTime = (value) => {
       year: "numeric",
     })
     .replace(",", "");
-};
-
-const DAY_SORT_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-const DAY_SHORT_LABEL_VI = {
-  Mon: "T2",
-  Tue: "T3",
-  Wed: "T4",
-  Thu: "T5",
-  Fri: "T6",
-  Sat: "T7",
-  Sun: "CN",
 };
 
 const rangesFromSortedHours = (sortedUnique) => {
@@ -75,7 +65,7 @@ export function formatAvailabilitySlotsDetailed(slots) {
   const byDay = groupSlotsByDay(slots);
   if (byDay.size === 0) return "—";
   const lines = [];
-  for (const day of DAY_SORT_ORDER) {
+  for (const day of DAYS_OF_WEEK) {
     const hours = byDay.get(day);
     if (!hours?.length) continue;
     const ranges = rangesFromSortedHours(hours);

@@ -61,6 +61,30 @@ export const getNewTutorsThunk = createAsyncThunk(
   }
 );
 
+export const fetchMyProfileChangeRequestThunk = createAsyncThunk(
+  "tutors/fetchMyProfileChange",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await tutorService.getMyProfileChangeRequest();
+      return res.data.data.request; // null nếu không có yêu cầu chờ duyệt
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được yêu cầu đổi thông tin");
+    }
+  }
+);
+
+export const requestProfileChangeThunk = createAsyncThunk(
+  "tutors/requestProfileChange",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await tutorService.requestProfileChange(data);
+      return res.data.data.request;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Gửi yêu cầu đổi thông tin thất bại");
+    }
+  }
+);
+
 export const searchTutorsThunk = createAsyncThunk(
   "tutors/search",
   async ({ filters = {}, page = 1, limit = 10 } = {}, { rejectWithValue }) => {

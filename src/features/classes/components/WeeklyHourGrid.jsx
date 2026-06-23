@@ -2,16 +2,9 @@ import { useEffect, useState, useMemo, useRef, memo } from "react";
 import { SunMedium, Sunset, Check, Trash2, Lightbulb, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { DAY_OPTIONS } from "@/constants/enums";
 
-const SCHEDULE_DAYS = [
-  { value: "Mon", label: "Thứ 2" },
-  { value: "Tue", label: "Thứ 3" },
-  { value: "Wed", label: "Thứ 4" },
-  { value: "Thu", label: "Thứ 5" },
-  { value: "Fri", label: "Thứ 6" },
-  { value: "Sat", label: "Thứ 7" },
-  { value: "Sun", label: "Chủ nhật" },
-];
+const SCHEDULE_DAYS = DAY_OPTIONS;
 
 const HOURS_24 = Array.from({ length: 24 }, (_, index) => index);
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -135,18 +128,6 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
   };
 
   const clearAll = () => onChange([]);
-
-  const dayLabelMap = {
-    Mon: "T2",
-    Tue: "T3",
-    Wed: "T4",
-    Thu: "T5",
-    Fri: "T6",
-    Sat: "T7",
-    Sun: "CN",
-  };
-
-  const dayLabel = (val) => dayLabelMap[val] || val;
 
   return (
     <div className="space-y-4">

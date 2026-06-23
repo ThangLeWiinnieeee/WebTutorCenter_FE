@@ -15,7 +15,8 @@ import {
   MyPostsPage,
 } from "@/features/classes";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminTrashPage, AdminSettingsPage } from "@/admin";
+import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage } from "@/admin";
 
 import {
   LoginPage,
@@ -79,6 +80,8 @@ const router = createBrowserRouter([
           { path: "/profile", element: <ProfilePage /> },
           { path: "/notifications", element: <NotificationsPage /> },
           { path: "/my-posts", element: <MyPostsPage /> },
+          { path: "/find-tutor/edit/:id", element: <FindTutorRequestPage /> },
+          { path: "/my-vouchers", element: <MyVouchersPage /> },
         ],
       },
     ],
@@ -105,6 +108,8 @@ const router = createBrowserRouter([
       { path: "/admin/users", element: <AdminUsersPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
       { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
+      { path: "/admin/application-cancellations", element: <AdminApplicationCancellationsPage /> },
+      { path: "/admin/profile-changes", element: <AdminProfileChangesPage /> },
       { path: "/admin/classes", element: <AdminClassesPage /> },
       { path: "/admin/promos", element: <AdminPromosPage /> },
       { path: "/admin/trash", element: <AdminTrashPage /> },

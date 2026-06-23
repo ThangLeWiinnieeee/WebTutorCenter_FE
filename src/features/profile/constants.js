@@ -4,7 +4,7 @@ export const ROLE_CONFIG = {
   admin: { label: "Quản trị viên", className: "bg-rose-50 text-rose-700 border border-rose-200" },
 };
 
-export const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
+export { GENDER_LABEL } from "@/constants/enums";
 
 export const toInputDate = (dateVal) => {
   if (!dateVal) return "";

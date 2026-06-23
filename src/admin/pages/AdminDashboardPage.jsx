@@ -169,7 +169,7 @@ const AdminDashboardPage = () => {
 
   useEffect(() => {
     dispatch(getDashboardStatsThunk());
-    dispatch(getPendingTutorsThunk());
+    dispatch(getPendingTutorsThunk({ page: 1, limit: 5 }));
   }, [dispatch]);
 
   const stats = dashboardStats || {};
@@ -185,7 +185,7 @@ const AdminDashboardPage = () => {
 
   const handleRefresh = () => {
     dispatch(getDashboardStatsThunk());
-    dispatch(getPendingTutorsThunk());
+    dispatch(getPendingTutorsThunk({ page: 1, limit: 5 }));
   };
 
   return (

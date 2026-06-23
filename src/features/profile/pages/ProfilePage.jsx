@@ -4,7 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { updateProfileThunk, uploadAvatarThunk } from "@/features/auth/store/authThunks";
-import { getTutorProfileThunk } from "@/features/tutors/store/tutorThunks";
+import {
+  getTutorProfileThunk,
+  fetchMyProfileChangeRequestThunk,
+  requestProfileChangeThunk,
+} from "@/features/tutors/store/tutorThunks";
 import { profileSchema } from "@/features/profile/schemas/profileSchema";
 import { toInputDate } from "@/features/profile/constants";
 import ProfileSidebar from "@/features/profile/components/ProfileSidebar";
@@ -12,13 +16,20 @@ import ProfilePersonalCard from "@/features/profile/components/ProfilePersonalCa
 import ProfileViewDetails from "@/features/profile/components/ProfileViewDetails";
 import ProfileEditForm from "@/features/profile/components/ProfileEditForm";
 import TutorInfoCard from "@/features/profile/components/TutorInfoCard";
+import TutorProfileEditForm from "@/features/profile/components/TutorProfileEditForm";
 import ProfileMenu from "@/features/profile/components/ProfileMenu";
 
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const dispatch = useDispatch();
-  const { profile: tutorProfile, loading: tutorLoading } = useSelector((state) => state.tutors);
+  const {
+    profile: tutorProfile,
+    loading: tutorLoading,
+    profileChangeRequest,
+    submittingProfileChange,
+  } = useSelector((state) => state.tutors);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingTutor, setIsEditingTutor] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef(null);
@@ -30,6 +41,20 @@ const ProfilePage = () => {
       dispatch(getTutorProfileThunk());
     }
   }, [isTutor, tutorProfile, dispatch]);
+
+  // Lấy yêu cầu đổi hồ sơ đang chờ duyệt (nếu có) để khóa nút sửa + hiện banner
+  useEffect(() => {
+    if (isTutor) {
+      dispatch(fetchMyProfileChangeRequestThunk());
+    }
+  }, [isTutor, dispatch]);
+
+  const handleTutorProfileSubmit = async (changes) => {
+    const result = await dispatch(requestProfileChangeThunk(changes));
+    if (!result.error) {
+      setIsEditingTutor(false);
+    }
+  };
 
   const form = useForm({
     resolver: zodResolver(profileSchema),
@@ -119,9 +144,23 @@ const ProfilePage = () => {
             )}
           </ProfilePersonalCard>
 
-          {isTutor && (
-            <TutorInfoCard tutorProfile={tutorProfile} loading={tutorLoading} />
-          )}
+          {isTutor &&
+            (isEditingTutor ? (
+              <TutorProfileEditForm
+                tutorProfile={tutorProfile}
+                submitting={submittingProfileChange}
+                onSubmit={handleTutorProfileSubmit}
+                onCancel={() => setIsEditingTutor(false)}
+              />
+            ) : (
+              <TutorInfoCard
+                tutorProfile={tutorProfile}
+                loading={tutorLoading}
+                canEdit={tutorProfile?.status === "approved"}
+                pendingRequest={profileChangeRequest}
+                onEdit={() => setIsEditingTutor(true)}
+              />
+            ))}
         </div>
       </div>
     </div>

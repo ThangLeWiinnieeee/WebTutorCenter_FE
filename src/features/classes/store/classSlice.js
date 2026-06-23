@@ -8,6 +8,7 @@ import {
   fetchClassFeedThunk,
   fetchMyPostsThunk,
   applyForClassThunk,
+  cancelApplicationThunk,
 } from "./classThunks";
 
 const initialState = {
@@ -24,6 +25,15 @@ const initialState = {
   },
   detail: null,
   myClasses: [],
+  myClassesPagination: {
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  myClassesCounts: { all: 0, pending: 0, approved: 0, rejected: 0 },
   loadingMyClasses: false,
   feed: [],
   feedPagination: {
@@ -53,6 +63,7 @@ const initialState = {
   loadingDetail: false,
   applying: false,
   applyError: null,
+  cancellingApplication: false,
   error: null,
 };
 
@@ -134,7 +145,9 @@ const classSlice = createSlice({
       })
       .addCase(fetchMyClassesThunk.fulfilled, (state, action) => {
         state.loadingMyClasses = false;
-        state.myClasses = action.payload || [];
+        state.myClasses = action.payload.applications || [];
+        if (action.payload.pagination) state.myClassesPagination = action.payload.pagination;
+        if (action.payload.counts) state.myClassesCounts = action.payload.counts;
       })
       .addCase(fetchMyClassesThunk.rejected, (state, action) => {
         state.loadingMyClasses = false;
@@ -178,6 +191,19 @@ const classSlice = createSlice({
       .addCase(applyForClassThunk.rejected, (state, action) => {
         state.applying = false;
         state.applyError = action.payload;
+      });
+
+    builder
+      .addCase(cancelApplicationThunk.pending, (state) => {
+        state.cancellingApplication = true;
+        state.error = null;
+      })
+      .addCase(cancelApplicationThunk.fulfilled, (state) => {
+        state.cancellingApplication = false;
+      })
+      .addCase(cancelApplicationThunk.rejected, (state, action) => {
+        state.cancellingApplication = false;
+        state.error = action.payload;
       });
   },
 });

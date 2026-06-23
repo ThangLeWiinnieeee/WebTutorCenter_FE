@@ -1,5 +1,4 @@
 import {
-  memo,
   startTransition,
   useEffect,
   useMemo,
@@ -39,7 +38,7 @@ import {
   useDispatch,
   useSelector,
 } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -58,6 +57,7 @@ import { clearClassFlow } from '@/features/classes/store/classSlice';
 import {
   createClassThunk,
   quoteClassThunk,
+  updateClassThunk,
 } from '@/features/classes/store/classThunks';
 import {
   formatDate,
@@ -92,7 +92,7 @@ const BOOKING_PROGRESS_FIELD_NAMES = [
   'description',
 ];
 
-const BookingProgressHeader = ({ control }) => {
+const BookingProgressHeader = ({ control, isEdit = false }) => {
   const watched = useWatch({ control, name: BOOKING_PROGRESS_FIELD_NAMES }) || [];
   const [
     contactPhone,
@@ -169,10 +169,12 @@ const BookingProgressHeader = ({ control }) => {
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-            Tìm gia sư phù hợp cho con bạn
+            {isEdit ? "Chỉnh sửa bài đăng tìm gia sư" : "Tìm gia sư phù hợp cho con bạn"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500 md:text-base">
-            Cung cấp càng rõ thông tin lớp học, hệ thống càng ghép gia sư nhanh và chính xác.
+            {isEdit
+              ? "Cập nhật thông tin lớp học. Học phí sẽ được tính lại tự động khi bạn lưu."
+              : "Cung cấp càng rõ thông tin lớp học, hệ thống càng ghép gia sư nhanh và chính xác."}
           </p>
         </div>
         <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 min-w-[150px] text-center md:text-left">
@@ -356,7 +358,27 @@ const toLocalIsoDate = (date) => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
-const clampStartDateIsoToMin = (iso, minIso) => (iso >= minIso ? iso : minIso);
+// Map dữ liệu bài đăng (DTO) sang giá trị form khi chỉnh sửa
+const mapClassToFormValues = (cls) => ({
+  contactPhone: cls.contactPhone || "",
+  summary: cls.summary || "",
+  description: cls.description || "",
+  subject: cls.subject || "",
+  studentGender: cls.studentGender || "male",
+  studentCount: cls.studentCount || 1,
+  startDate: cls.startDate ? toLocalIsoDate(new Date(cls.startDate)) : getTodayIsoDateLocal(),
+  minutesPerSession: cls.minutesPerSession,
+  sessionsPerWeek: cls.sessionsPerWeek,
+  provinceCode: cls.provinceCode || 0,
+  districtCode: cls.districtCode || 0,
+  locationLabel: cls.locationLabel || "",
+  availabilitySlots: Array.isArray(cls.availabilitySlots)
+    ? cls.availabilitySlots.map((s) => ({ day: s.day, hour: s.hour }))
+    : [],
+  tutorGenderPref: cls.tutorGenderPref || "any",
+  tutorLevelPref: cls.tutorLevelPref || "any",
+  promoCode: "", // không sửa mã ưu đãi qua chức năng chỉnh sửa
+});
 
 const parseIsoToLocalMidnightDate = (iso) => {
   const [y, m, d] = iso.split("-").map(Number);
@@ -489,22 +511,23 @@ const CustomMinutesField = ({ value, onChange, minuteOptions = [] }) => {
   );
 };
 
-const FindTutorRequestFormContent = ({ pricingConfig }) => {
+const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isEdit = Boolean(editClass);
   const { quote, loadingQuote, creating, latestCreated, error } = useSelector((state) => state.classes);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [subjectOptions, setSubjectOptions] = useState([]);
-  const minuteOptions = pricingConfig.minutesPerSessionOptions || [];
+  const [saving, setSaving] = useState(false);
+  const minuteOptions = useMemo(() => pricingConfig.minutesPerSessionOptions || [], [pricingConfig]);
   const classRequestSchema = useMemo(() => buildClassRequestSchema(pricingConfig), [pricingConfig]);
   const defaultFormValues = useMemo(
     () =>
-      loadClassRequestFormDraft(
-        getDefaultClassRequestValues(pricingConfig),
-        minuteOptions,
-      ),
-    [pricingConfig, minuteOptions],
+      isEdit
+        ? mapClassToFormValues(editClass)
+        : loadClassRequestFormDraft(getDefaultClassRequestValues(pricingConfig), minuteOptions),
+    [pricingConfig, minuteOptions, isEdit, editClass],
   );
   const form = useForm({ resolver: zodResolver(classRequestSchema), defaultValues: defaultFormValues });
   const provinceCode = useWatch({ control: form.control, name: 'provinceCode' });
@@ -603,7 +626,13 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  // Chế độ chỉnh sửa: bỏ qua nháp (draft) và xoá trạng thái báo giá/đăng-mới còn sót lại
   useEffect(() => {
+    if (isEdit) dispatch(clearClassFlow());
+  }, [isEdit, dispatch]);
+
+  useEffect(() => {
+    if (isEdit) return undefined; // không lưu nháp khi đang sửa bài đã đăng
     let debounceId;
     const unsubscribe = form.subscribe({
       formState: { values: true },
@@ -619,7 +648,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
       unsubscribe();
       clearTimeout(debounceId);
     };
-  }, [form]);
+  }, [form, isEdit]);
 
   const subjectSelectOptions = useMemo(
     () => subjectOptions.map((subject) => ({ value: subject, label: subject })),
@@ -661,12 +690,24 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
     }
   };
 
+  const onUpdate = async (values) => {
+    setSaving(true);
+    const result = await dispatch(updateClassThunk({ id: editClass.id, payload: values }));
+    setSaving(false);
+    if (!result.error) {
+      toast.success("Cập nhật bài đăng thành công");
+      navigate(`/classes/${editClass.id}`);
+    } else {
+      toast.error(result.payload || "Cập nhật bài đăng thất bại");
+    }
+  };
+
   const startNewClassRequest = () => {
     dispatch(clearClassFlow());
     form.reset(getDefaultClassRequestValues(pricingConfig));
   };
 
-  if (latestCreated) {
+  if (!isEdit && latestCreated) {
     return (
       <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-emerald-100 bg-white p-8 text-center shadow-lg shadow-emerald-100/50">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -699,12 +740,12 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
   return (
     <div className="min-h-screen bg-slate-50/60">
       <div className="mx-auto max-w-[1360px] px-4 py-6 md:px-6 md:py-8">
-        <BookingProgressHeader control={form.control} />
+        <BookingProgressHeader control={form.control} isEdit={isEdit} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-5 lg:col-span-9">
             {!quote && (
-              <form className="space-y-5" onSubmit={form.handleSubmit(onQuote)}>
+              <form className="space-y-5" onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote)}>
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <PhoneCall className="h-4 w-4 text-emerald-600" />
@@ -1104,9 +1145,15 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                     <Button
                       type="submit"
                       className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700"
-                      disabled={loadingQuote}
+                      disabled={isEdit ? saving : loadingQuote}
                     >
-                      {loadingQuote ? "Đang xử lý..." : "Xem báo giá & xác nhận"}
+                      {isEdit
+                        ? saving
+                          ? "Đang lưu..."
+                          : "Lưu thay đổi"
+                        : loadingQuote
+                          ? "Đang xử lý..."
+                          : "Xem báo giá & xác nhận"}
                     </Button>
                   </div>
                 </section>
@@ -1115,9 +1162,15 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
                   <Button
                     type="submit"
                     className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                    disabled={loadingQuote}
+                    disabled={isEdit ? saving : loadingQuote}
                   >
-                    {loadingQuote ? "Đang xử lý..." : "Xem báo giá & xác nhận"}
+                    {isEdit
+                      ? saving
+                        ? "Đang lưu..."
+                        : "Lưu thay đổi"
+                      : loadingQuote
+                        ? "Đang xử lý..."
+                        : "Xem báo giá & xác nhận"}
                   </Button>
                 </div>
               </form>
@@ -1246,9 +1299,13 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
 };
 
 const FindTutorRequestPage = () => {
+  const { id: editId } = useParams();
   const [pricingConfig, setPricingConfig] = useState(null);
   const [pricingConfigError, setPricingConfigError] = useState(null);
   const [loadingPricingConfig, setLoadingPricingConfig] = useState(true);
+  const [editClass, setEditClass] = useState(null);
+  const [loadingClass, setLoadingClass] = useState(Boolean(editId));
+  const [classError, setClassError] = useState(null);
 
   useEffect(() => {
     classService
@@ -1265,10 +1322,24 @@ const FindTutorRequestPage = () => {
       .finally(() => setLoadingPricingConfig(false));
   }, []);
 
-  if (loadingPricingConfig) {
+  // Chế độ chỉnh sửa: tải dữ liệu bài đăng theo id (loadingClass khởi tạo true khi có editId)
+  useEffect(() => {
+    if (!editId) return;
+    classService
+      .detail(editId)
+      .then((res) => {
+        const item = res.data?.data?.classItem;
+        if (!item) setClassError("Không tìm thấy bài đăng");
+        else setEditClass(item);
+      })
+      .catch((err) => setClassError(err.response?.data?.message || "Không tải được bài đăng"))
+      .finally(() => setLoadingClass(false));
+  }, [editId]);
+
+  if (loadingPricingConfig || loadingClass) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center text-slate-600">
-        Đang tải cấu hình học phí...
+        {loadingClass ? "Đang tải bài đăng..." : "Đang tải cấu hình học phí..."}
       </div>
     );
   }
@@ -1282,7 +1353,18 @@ const FindTutorRequestPage = () => {
     );
   }
 
-  return <FindTutorRequestFormContent pricingConfig={pricingConfig} />;
+  if (editId && (classError || !editClass)) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center">
+        <p className="text-rose-600">{classError || "Không tìm thấy bài đăng"}</p>
+        <Link to="/my-posts" className="mt-3 inline-block text-sm font-medium text-emerald-700 hover:underline">
+          Quay lại danh sách bài đăng
+        </Link>
+      </div>
+    );
+  }
+
+  return <FindTutorRequestFormContent pricingConfig={pricingConfig} editClass={editClass} />;
 };
 
 export default FindTutorRequestPage;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import AOS from "aos";
 
 import {
   ArrowRight,
@@ -20,31 +21,44 @@ import MyClassDetailDialog from "@/features/classes/components/MyClassDetailDial
 import { fetchMyClassesThunk } from "@/features/classes/store/classThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
 import { STATUS_META, STATUS_TABS } from "@/features/classes/utils/applicationStatus";
+import Pagination from "@/components/shared/Pagination";
+
+const PAGE_SIZE = 5;
 
 export default function MyClassesPanel() {
   const dispatch = useDispatch();
-  const { myClasses, loadingMyClasses, error } = useSelector((state) => state.classes);
+  const { myClasses, myClassesPagination, myClassesCounts, loadingMyClasses, error } = useSelector(
+    (state) => state.classes,
+  );
   const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchMyClassesThunk());
-  }, [dispatch]);
+    dispatch(fetchMyClassesThunk({ page, limit: PAGE_SIZE, status: activeTab }));
+  }, [dispatch, page, activeTab]);
 
-  const counts = useMemo(() => {
-    const base = { all: myClasses.length, pending: 0, approved: 0, rejected: 0 };
-    myClasses.forEach((item) => {
-      if (base[item.status] !== undefined) base[item.status] += 1;
-    });
-    return base;
-  }, [myClasses]);
+  // Đổi tab thì quay về trang 1 (server lọc + phân trang lại theo trạng thái)
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setPage(1);
+  };
 
-  const filtered = useMemo(() => {
-    if (activeTab === "all") return myClasses;
-    return myClasses.filter((item) => item.status === activeTab);
-  }, [activeTab, myClasses]);
+  // Đổi trang thì cuộn lên đầu để xem từ mục đầu tiên
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const counts = myClassesCounts;
+  const totalPages = myClassesPagination?.totalPages || 1;
 
   const skeletonItems = useMemo(() => Array.from({ length: 3 }, (_, index) => `my-class-skeleton-${index}`), []);
+
+  // Tính lại vị trí animation sau khi danh sách (tải bất đồng bộ) thay đổi
+  useEffect(() => {
+    AOS.refresh();
+  }, [loadingMyClasses, myClasses.length]);
 
   return (
     <div className="space-y-5">
@@ -64,7 +78,7 @@ export default function MyClassesPanel() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => dispatch(fetchMyClassesThunk())}
+          onClick={() => dispatch(fetchMyClassesThunk({ page, limit: PAGE_SIZE, status: activeTab }))}
           disabled={loadingMyClasses}
           className="h-10 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50"
         >
@@ -81,7 +95,7 @@ export default function MyClassesPanel() {
             <button
               key={tab.value}
               type="button"
-              onClick={() => setActiveTab(tab.value)}
+              onClick={() => handleTabChange(tab.value)}
               className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
                 isActive
                   ? "border-emerald-600 bg-emerald-600 text-white"
@@ -126,7 +140,7 @@ export default function MyClassesPanel() {
       )}
 
       {/* Empty */}
-      {!loadingMyClasses && !error && filtered.length === 0 && (
+      {!loadingMyClasses && !error && myClasses.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <Inbox className="h-7 w-7" />
@@ -147,9 +161,9 @@ export default function MyClassesPanel() {
       )}
 
       {/* List */}
-      {!loadingMyClasses && filtered.length > 0 && (
+      {!loadingMyClasses && myClasses.length > 0 && (
         <div className="space-y-4">
-          {filtered.map((application) => {
+          {myClasses.map((application, idx) => {
             const classItem = application.classItem || {};
             const status = STATUS_META[application.status] || STATUS_META.pending;
             const StatusIcon = status.icon;
@@ -159,6 +173,8 @@ export default function MyClassesPanel() {
               <button
                 key={application.id}
                 type="button"
+                data-aos="fade-up"
+                data-aos-delay={Math.min(idx, 4) * 60}
                 onClick={() => setSelected(application)}
                 className="group block w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
               >
@@ -232,7 +248,23 @@ export default function MyClassesPanel() {
         </div>
       )}
 
-      <MyClassDetailDialog open={Boolean(selected)} application={selected} onClose={() => setSelected(null)} />
+      {!loadingMyClasses && myClasses.length > 0 && (
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-2" />
+      )}
+
+      <MyClassDetailDialog
+        open={Boolean(selected)}
+        application={selected}
+        onClose={() => setSelected(null)}
+        onCancelled={() => {
+          setSelected(null);
+          dispatch(fetchMyClassesThunk({ page, limit: PAGE_SIZE, status: activeTab }));
+        }}
+        onCompleted={() => {
+          setSelected(null);
+          dispatch(fetchMyClassesThunk({ page, limit: PAGE_SIZE, status: activeTab }));
+        }}
+      />
     </div>
   );
 }

@@ -20,22 +20,18 @@ import {
   purgeTrashItemThunk,
 } from "@/admin/store/adminThunks";
 import { formatPrice, formatDateTime } from "@/features/classes/utils/classFormatters";
-
-const PAGE_SIZE = 10;
+import {
+  ADMIN_PAGE_SIZE as PAGE_SIZE,
+  TRASH_ROLE_LABEL as ROLE_LABEL,
+  TRASH_PURGE_COPY as PURGE_COPY,
+  TRASH_SECONDARY_HEADER as SECONDARY_HEADER,
+} from "@/admin/constants";
 
 const TABS = [
   { key: "users", label: "Người dùng", icon: Users },
   { key: "classes", label: "Bài đăng", icon: BookOpen },
   { key: "promos", label: "Mã ưu đãi", icon: Ticket },
 ];
-
-const ROLE_LABEL = { admin: "Quản trị", tutor: "Gia sư", user: "Người dùng" };
-
-const PURGE_COPY = {
-  users: "Tài khoản sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.",
-  classes: "Bài đăng cùng toàn bộ đơn nhận lớp liên quan sẽ bị xóa vĩnh viễn.",
-  promos: "Mã ưu đãi sẽ bị xóa vĩnh viễn khỏi hệ thống.",
-};
 
 // Mô tả ngắn của item theo loại — dùng trong modal xác nhận xóa vĩnh viễn
 const describeItem = (type, item) => {
@@ -147,8 +143,6 @@ const SecondaryCell = ({ type, item }) => {
     </span>
   );
 };
-
-const SECONDARY_HEADER = { users: "Vai trò", classes: "Người đăng", promos: "Giảm giá" };
 
 const AdminTrashPage = () => {
   const dispatch = useDispatch();

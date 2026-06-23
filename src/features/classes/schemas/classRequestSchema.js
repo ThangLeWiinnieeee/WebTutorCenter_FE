@@ -1,9 +1,8 @@
 import { z } from 'zod';
-
-const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import { DAYS_OF_WEEK } from "@/constants/enums";
 
 const availabilitySlotSchema = z.object({
-  day: z.enum(dayOptions),
+  day: z.enum(DAYS_OF_WEEK),
   hour: z.number().int().min(0).max(23),
 });
 

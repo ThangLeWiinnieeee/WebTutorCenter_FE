@@ -2,6 +2,7 @@ import { useEffect, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 import { GraduationCap, MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 import settingsService from "@/services/settingsService";
+import { DEFAULT_FOOTER } from "@/constants/footer";
 
 const Facebook = ({ className }) => (
   <svg
@@ -18,14 +19,6 @@ const Facebook = ({ className }) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
-
-const DEFAULT_FOOTER = {
-  address: "54 Nguyễn Lương Bằng, Hòa Khánh Bắc, Liên Chiểu, Đà Nẵng",
-  phone: "093 143 9203",
-  email: "contact@webtutor.vn",
-  facebookLink: "https://facebook.com/webtutor",
-  zaloLink: "https://zalo.me/0931439203",
-};
 
 const Footer = () => {
   const [data, setData] = useState(DEFAULT_FOOTER);
