@@ -55,6 +55,13 @@ export const tutorSchema = z.object({
     .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
 
   availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
+
+  // Ảnh giấy tờ xác thực — đã upload trước, lưu URL trong form
+  cccdFrontImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt trước"),
+  cccdBackImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt sau"),
+  studentCardFrontImage: z.string().optional().default(""),
+  studentCardBackImage: z.string().optional().default(""),
+  certificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp").default([]),
 }).superRefine((data, ctx) => {
   // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
   if (data.occupationStatus !== "student" && data.graduationYear == null) {
@@ -62,6 +69,36 @@ export const tutorSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ["graduationYear"],
       message: "Vui lòng nhập năm tốt nghiệp",
+    });
+  }
+
+  // Sinh viên → thẻ sinh viên mặt trước & mặt sau đều bắt buộc
+  if (data.occupationStatus === "student") {
+    if (!data.studentCardFrontImage) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["studentCardFrontImage"],
+        message: "Vui lòng tải ảnh thẻ sinh viên mặt trước",
+      });
+    }
+    if (!data.studentCardBackImage) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["studentCardBackImage"],
+        message: "Vui lòng tải ảnh thẻ sinh viên mặt sau",
+      });
+    }
+  }
+
+  // Đã tốt nghiệp / giáo viên → ít nhất 1 ảnh bằng cấp
+  if (
+    (data.occupationStatus === "graduated" || data.occupationStatus === "teacher") &&
+    (data.certificateImages?.length ?? 0) < 1
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["certificateImages"],
+      message: "Vui lòng tải lên ít nhất 1 ảnh bằng cấp",
     });
   }
 });

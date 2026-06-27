@@ -43,6 +43,9 @@ const adminSlice = createSlice({
       pendingCount: 0,
       approvedCount: 0,
       rejectedCount: 0,
+      pendingClassApplicationsCount: 0,
+      pendingProfileChangesCount: 0,
+      pendingCancellationsCount: 0,
     },
     statsLoading: false,
     pendingTutors: [],
@@ -523,6 +526,9 @@ const adminSlice = createSlice({
         state.profileChanges = state.profileChanges.filter((r) => r.id !== action.payload.id);
         if (state.profileChangesCounts.pending > 0) state.profileChangesCounts.pending--;
         state.profileChangesCounts.approved++;
+        if (state.dashboardStats?.pendingProfileChangesCount > 0) {
+          state.dashboardStats.pendingProfileChangesCount--;
+        }
       })
       .addCase(approveProfileChangeThunk.rejected, (state) => {
         state.profileChangeActionLoading = null;
@@ -537,6 +543,9 @@ const adminSlice = createSlice({
         state.profileChanges = state.profileChanges.filter((r) => r.id !== action.payload.id);
         if (state.profileChangesCounts.pending > 0) state.profileChangesCounts.pending--;
         state.profileChangesCounts.rejected++;
+        if (state.dashboardStats?.pendingProfileChangesCount > 0) {
+          state.dashboardStats.pendingProfileChangesCount--;
+        }
       })
       .addCase(rejectProfileChangeThunk.rejected, (state) => {
         state.profileChangeActionLoading = null;
@@ -568,6 +577,9 @@ const adminSlice = createSlice({
         state.cancellations = state.cancellations.filter((c) => c.id !== action.payload.id);
         if (state.cancellationsCounts.cancel_requested > 0) state.cancellationsCounts.cancel_requested--;
         state.cancellationsCounts.cancelled++;
+        if (state.dashboardStats?.pendingCancellationsCount > 0) {
+          state.dashboardStats.pendingCancellationsCount--;
+        }
       })
       .addCase(approveCancellationThunk.rejected, (state) => {
         state.cancellationActionLoading = null;
@@ -581,6 +593,9 @@ const adminSlice = createSlice({
         state.cancellationActionLoading = null;
         state.cancellations = state.cancellations.filter((c) => c.id !== action.payload.id);
         if (state.cancellationsCounts.cancel_requested > 0) state.cancellationsCounts.cancel_requested--;
+        if (state.dashboardStats?.pendingCancellationsCount > 0) {
+          state.dashboardStats.pendingCancellationsCount--;
+        }
       })
       .addCase(rejectCancellationThunk.rejected, (state) => {
         state.cancellationActionLoading = null;

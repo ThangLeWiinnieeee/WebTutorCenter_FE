@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { updateProfileThunk, uploadAvatarThunk } from "@/features/auth/store/authThunks";
 import {
@@ -17,6 +18,7 @@ import ProfileViewDetails from "@/features/profile/components/ProfileViewDetails
 import ProfileEditForm from "@/features/profile/components/ProfileEditForm";
 import TutorInfoCard from "@/features/profile/components/TutorInfoCard";
 import TutorProfileEditForm from "@/features/profile/components/TutorProfileEditForm";
+import TutorDocumentsCard from "@/features/profile/components/TutorDocumentsCard";
 import ProfileMenu from "@/features/profile/components/ProfileMenu";
 
 const ProfilePage = () => {
@@ -28,6 +30,8 @@ const ProfilePage = () => {
     profileChangeRequest,
     submittingProfileChange,
   } = useSelector((state) => state.tutors);
+  const [searchParams] = useSearchParams();
+  const focusDocuments = searchParams.get("section") === "documents";
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingTutor, setIsEditingTutor] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -53,6 +57,14 @@ const ProfilePage = () => {
     const result = await dispatch(requestProfileChangeThunk(changes));
     if (!result.error) {
       setIsEditingTutor(false);
+    }
+  };
+
+  // Gửi bổ sung/cập nhật hồ sơ chứng thực (CCCD + thẻ SV/bằng cấp) qua luồng duyệt đổi hồ sơ
+  const handleDocumentsSubmit = async (changes, onDone) => {
+    const result = await dispatch(requestProfileChangeThunk(changes));
+    if (!result.error) {
+      onDone?.();
     }
   };
 
@@ -161,6 +173,16 @@ const ProfilePage = () => {
                 onEdit={() => setIsEditingTutor(true)}
               />
             ))}
+
+          {isTutor && tutorProfile && !isEditingTutor && (
+            <TutorDocumentsCard
+              tutorProfile={tutorProfile}
+              pendingRequest={profileChangeRequest}
+              submitting={submittingProfileChange}
+              onSubmit={handleDocumentsSubmit}
+              autoEdit={focusDocuments}
+            />
+          )}
         </div>
       </div>
     </div>

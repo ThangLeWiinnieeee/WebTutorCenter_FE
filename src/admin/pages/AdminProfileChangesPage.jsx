@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Check, Clock, Loader2, UserCheck, X } from "lucide-react";
+import { Check, Clock, Eye, Loader2, UserCheck, X, ZoomIn } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/shared/Pagination";
@@ -31,7 +31,74 @@ const FIELD_LABELS = {
   availability: "Lịch giảng dạy",
   subjects: "Môn học giảng dạy",
   graduationYear: "Năm tốt nghiệp",
+  cccdFrontImage: "CCCD mặt trước",
+  cccdBackImage: "CCCD mặt sau",
+  studentCardFrontImage: "Thẻ sinh viên mặt trước",
+  studentCardBackImage: "Thẻ sinh viên mặt sau",
+  certificateImages: "Bằng cấp",
 };
+
+// Field ảnh đơn / ảnh nhiều — hiển thị ảnh thay vì text
+const SINGLE_IMAGE_FIELDS = new Set([
+  "cccdFrontImage",
+  "cccdBackImage",
+  "studentCardFrontImage",
+  "studentCardBackImage",
+]);
+const MULTI_IMAGE_FIELDS = new Set(["certificateImages"]);
+const isImageField = (key) => SINGLE_IMAGE_FIELDS.has(key) || MULTI_IMAGE_FIELDS.has(key);
+
+const ZoomThumb = ({ src, onZoom }) =>
+  src ? (
+    <button
+      type="button"
+      onClick={() => onZoom(src)}
+      className="group relative block aspect-[16/10] w-full overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+    >
+      <img src={src} alt="Ảnh giấy tờ" className="h-full w-full object-contain" />
+      <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/40 group-hover:opacity-100">
+        <ZoomIn className="h-4 w-4 text-white" />
+      </span>
+    </button>
+  ) : (
+    <div className="flex aspect-[16/10] w-full items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-400">
+      —
+    </div>
+  );
+
+const ImageFieldValue = ({ fieldKey, value, onZoom }) => {
+  if (MULTI_IMAGE_FIELDS.has(fieldKey)) {
+    const list = Array.isArray(value) ? value : [];
+    if (list.length === 0) return <p className="text-sm text-slate-400">—</p>;
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {list.map((src) => (
+          <ZoomThumb key={src} src={src} onZoom={onZoom} />
+        ))}
+      </div>
+    );
+  }
+  return <ZoomThumb src={value} onZoom={onZoom} />;
+};
+
+const ImageLightbox = ({ src, onClose }) => (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4" onClick={onClose}>
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Đóng ảnh phóng to"
+      className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+    >
+      <X className="h-5 w-5" />
+    </button>
+    <img
+      src={src}
+      alt="Ảnh phóng to"
+      className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    />
+  </div>
+);
 
 const formatFieldValue = (key, value) => {
   if (value == null) return "—";
@@ -66,6 +133,136 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const AvatarBlock = ({ user, size = "md" }) => {
+  const cls = size === "lg" ? "h-11 w-11" : "h-10 w-10";
+  return user?.avatar ? (
+    <img
+      src={user.avatar}
+      alt={user.fullName}
+      referrerPolicy="no-referrer"
+      className={`${cls} rounded-full object-cover ring-2 ring-slate-100`}
+    />
+  ) : (
+    <div className={`flex ${cls} items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white`}>
+      {getInitials(user?.fullName)}
+    </div>
+  );
+};
+
+// Modal chi tiết các thay đổi của một yêu cầu đổi hồ sơ
+const DetailModal = ({ request, acting, onClose, onApprove, onReject, onZoom }) => {
+  const changeKeys = Object.keys(request.changes || {});
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 border-b border-slate-100 bg-slate-50 px-6 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <AvatarBlock user={request.user} size="lg" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-900">{request.user?.fullName || "—"}</p>
+              <p className="truncate text-xs text-slate-500">{request.user?.email}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={request.status} />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Các thay đổi đề xuất
+          </p>
+          {changeKeys.length === 0 ? (
+            <p className="text-sm text-slate-500">Không có thay đổi.</p>
+          ) : (
+            <div className="space-y-3">
+              {changeKeys.map((key) => (
+                <div key={key} className="text-sm">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {FIELD_LABELS[key] || key}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <p className="mb-0.5 text-[11px] text-slate-400">Hiện tại</p>
+                      {isImageField(key) ? (
+                        <ImageFieldValue fieldKey={key} value={request.current?.[key]} onZoom={onZoom} />
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words text-slate-600">
+                          {formatFieldValue(key, request.current?.[key])}
+                        </p>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                      <p className="mb-0.5 text-[11px] text-emerald-600">Đề xuất mới</p>
+                      {isImageField(key) ? (
+                        <ImageFieldValue fieldKey={key} value={request.changes[key]} onZoom={onZoom} />
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words text-emerald-800">
+                          {formatFieldValue(key, request.changes[key])}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {request.status === "rejected" && request.rejectionReason && (
+            <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              Lý do từ chối: {request.rejectionReason}
+            </p>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        {request.status === "pending" && (
+          <div className="flex gap-3 border-t border-slate-100 px-6 py-4">
+            <Button
+              type="button"
+              onClick={() => onApprove(request)}
+              disabled={acting}
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              {acting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+              Duyệt
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onReject(request)}
+              disabled={acting}
+              className="border-rose-200 text-rose-600 hover:bg-rose-50"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Từ chối
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function AdminProfileChangesPage() {
   const dispatch = useDispatch();
   const {
@@ -80,6 +277,8 @@ export default function AdminProfileChangesPage() {
   const [page, setPage] = useState(1);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [zoomSrc, setZoomSrc] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
 
   useEffect(() => {
     dispatch(getProfileChangesThunk({ status: activeTab, page, limit: PAGE_SIZE }));
@@ -108,8 +307,20 @@ export default function AdminProfileChangesPage() {
     }
   };
 
+  const handleApprove = async (req) => {
+    const result = await dispatch(approveProfileChangeThunk(req.id));
+    if (!result.error) setDetailTarget(null);
+  };
+
+  // Mở modal nhập lý do từ chối (đóng modal chi tiết để tránh chồng modal)
+  const openReject = (req) => {
+    setDetailTarget(null);
+    setRejectTarget(req);
+    setRejectReason("");
+  };
+
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       {/* Heading */}
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
@@ -164,102 +375,49 @@ export default function AdminProfileChangesPage() {
         </div>
       )}
 
-      {/* List */}
+      {/* List (gọn): avatar, họ tên, email, tình trạng nghề nghiệp + nút xem chi tiết */}
       {!profileChangesLoading && profileChanges.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {profileChanges.map((req) => {
-            const acting = profileChangeActionLoading === req.id;
-            const changeKeys = Object.keys(req.changes || {});
+            const occupation = OCCUPATION_STATUS_LABEL[req.current?.occupationStatus] || "—";
+            const changeCount = Object.keys(req.changes || {}).length;
             return (
-              <div key={req.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                {/* Tutor info */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    {req.user?.avatar ? (
-                      <img
-                        src={req.user.avatar}
-                        alt={req.user.fullName}
-                        referrerPolicy="no-referrer"
-                        className="h-11 w-11 rounded-full object-cover ring-2 ring-slate-100"
-                      />
-                    ) : (
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
-                        {getInitials(req.user?.fullName)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{req.user?.fullName || "—"}</p>
-                      <p className="text-xs text-slate-500">{req.user?.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1.5">
-                    <StatusBadge status={req.status} />
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Clock className="h-3 w-3" />
-                      {formatDateTime(req.createdAt)}
-                    </span>
-                  </div>
+              <div
+                key={req.id}
+                className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm"
+              >
+                <AvatarBlock user={req.user} size="lg" />
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-900">{req.user?.fullName || "—"}</p>
+                  <p className="truncate text-xs text-slate-500">{req.user?.email}</p>
                 </div>
 
-                {/* Diff */}
-                <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                  {changeKeys.map((key) => (
-                    <div key={key} className="text-sm">
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        {FIELD_LABELS[key] || key}
-                      </p>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                          <p className="mb-0.5 text-[11px] text-slate-400">Hiện tại</p>
-                          <p className="whitespace-pre-wrap break-words text-slate-600">
-                            {formatFieldValue(key, req.current?.[key])}
-                          </p>
-                        </div>
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                          <p className="mb-0.5 text-[11px] text-emerald-600">Đề xuất mới</p>
-                          <p className="whitespace-pre-wrap break-words text-emerald-800">
-                            {formatFieldValue(key, req.changes[key])}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="hidden min-w-[140px] sm:block">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-400">Tình trạng</p>
+                  <p className="text-sm font-medium text-slate-700">{occupation}</p>
                 </div>
 
-                {/* Rejection reason (nếu đã từ chối) */}
-                {req.status === "rejected" && req.rejectionReason && (
-                  <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    Lý do từ chối: {req.rejectionReason}
-                  </p>
-                )}
+                <div className="flex flex-col items-end gap-1.5">
+                  <StatusBadge status={req.status} />
+                  <span className="flex items-center gap-1 text-xs text-slate-400">
+                    <Clock className="h-3 w-3" />
+                    {formatDateTime(req.createdAt)}
+                  </span>
+                </div>
 
-                {/* Actions (chỉ khi pending) */}
-                {req.status === "pending" && (
-                  <div className="mt-4 flex gap-3 border-t border-slate-100 pt-4">
-                    <Button
-                      type="button"
-                      onClick={() => dispatch(approveProfileChangeThunk(req.id))}
-                      disabled={acting}
-                      className="bg-emerald-600 text-white hover:bg-emerald-700"
-                    >
-                      {acting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-                      Duyệt
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setRejectTarget(req);
-                        setRejectReason("");
-                      }}
-                      disabled={acting}
-                      className="border-rose-200 text-rose-600 hover:bg-rose-50"
-                    >
-                      <X className="mr-2 h-4 w-4" />
-                      Từ chối
-                    </Button>
-                  </div>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDetailTarget(req)}
+                  className="h-9 border-blue-200 px-3 text-xs text-blue-600 hover:bg-blue-50"
+                >
+                  <Eye className="mr-1.5 h-4 w-4" />
+                  Xem chi tiết
+                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-blue-50 px-1.5 text-[11px] font-semibold text-blue-600">
+                    {changeCount}
+                  </span>
+                </Button>
               </div>
             );
           })}
@@ -274,6 +432,20 @@ export default function AdminProfileChangesPage() {
           className="pt-6"
         />
       )}
+
+      {/* Detail modal */}
+      {detailTarget && (
+        <DetailModal
+          request={detailTarget}
+          acting={profileChangeActionLoading === detailTarget.id}
+          onClose={() => setDetailTarget(null)}
+          onApprove={handleApprove}
+          onReject={openReject}
+          onZoom={setZoomSrc}
+        />
+      )}
+
+      {zoomSrc && <ImageLightbox src={zoomSrc} onClose={() => setZoomSrc(null)} />}
 
       {/* Reject modal */}
       {rejectTarget && (
