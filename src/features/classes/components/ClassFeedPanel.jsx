@@ -17,6 +17,8 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import useAuth from "@/features/auth/hooks/useAuth";
+import tutorService from "@/features/tutors/services/tutorService";
+import { hasCompleteTutorDocuments } from "@/features/tutors/utils/tutorDocuments";
 import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
 import { applyForClassThunk, fetchClassFeedThunk } from "@/features/classes/store/classThunks";
 import {
@@ -83,8 +85,18 @@ export default function ClassFeedPanel() {
     setPage(1);
   };
 
-  const handleReceive = (item) => {
+  const handleReceive = async (item) => {
     if (user?.id && item.createdBy === user.id) return;
+    // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
+    try {
+      const response = await tutorService.getProfile();
+      if (!hasCompleteTutorDocuments(response.data?.data?.tutor)) {
+        setReceiveDialog({ open: true, type: "documentsRequired", classItem: item });
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to check tutor documents", err);
+    }
     setReceiveDialog({ open: true, type: "confirm", classItem: item });
   };
 

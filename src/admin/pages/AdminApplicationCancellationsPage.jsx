@@ -74,7 +74,7 @@ export default function AdminApplicationCancellationsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       {/* Heading */}
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/Pagination";
 import {
   getSubjectsThunk,
   createSubjectThunk,
@@ -22,6 +23,8 @@ import {
 } from "@/admin/store/adminThunks";
 import { subjectSchema } from "@/admin/schemas/subjectSchema";
 import { scrollToFirstError } from "@/lib/formErrors";
+
+const PAGE_SIZE = 10;
 
 const getFormValues = (subject) => ({
   name: subject?.name || "",
@@ -134,6 +137,7 @@ const AdminSubjectsPage = () => {
   );
 
   const [keyword, setKeyword] = useState("");
+  const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [formSubject, setFormSubject] = useState(null);
 
@@ -148,6 +152,28 @@ const AdminSubjectsPage = () => {
     if (!kw) return subjects;
     return subjects.filter((s) => s.name.toLowerCase().includes(kw));
   }, [subjects, keyword]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  // Giữ trang hiện tại hợp lệ khi danh sách đã lọc thu nhỏ lại.
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
+
+  const handleKeywordChange = (value) => {
+    setKeyword(value);
+    setPage(1);
+  };
+
+  const handlePageChange = (next) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const openCreate = () => {
     setFormSubject(null);
@@ -224,7 +250,7 @@ const AdminSubjectsPage = () => {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              onChange={(e) => handleKeywordChange(e.target.value)}
               placeholder="Tìm theo tên môn"
               className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
             />
@@ -257,7 +283,7 @@ const AdminSubjectsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {filtered.map((subject) => {
+                {paged.map((subject) => {
                   const busy = subjectActionLoading === subject.id;
                   return (
                     <tr key={subject.id} className="transition hover:bg-slate-50">
@@ -302,6 +328,14 @@ const AdminSubjectsPage = () => {
                 })}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="border-t border-slate-100 px-5 py-4"
+              />
+            )}
           </div>
         )}
       </section>

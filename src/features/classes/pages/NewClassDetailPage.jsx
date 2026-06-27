@@ -44,6 +44,7 @@ import {
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
 import tutorService from '@/features/tutors/services/tutorService';
+import { hasCompleteTutorDocuments } from '@/features/tutors/utils/tutorDocuments';
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from '@/features/tutors/constants';
 import { toast } from 'sonner';
 import AOS from 'aos';
@@ -182,6 +183,13 @@ const NewClassDetailPage = () => {
     try {
       const response = await tutorService.getProfile();
       const tutorProfile = response.data?.data?.tutor;
+
+      // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
+      if (!hasCompleteTutorDocuments(tutorProfile)) {
+        setReceiveDialog({ open: true, type: "documentsRequired", classItem: detail });
+        return;
+      }
+
       const registeredSubjects = tutorProfile?.subjects || [];
       const mismatchReasons = [];
 

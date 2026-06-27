@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Loader2, LogIn, Send, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, IdCard, Loader2, LogIn, Send, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,15 @@ const DIALOG_CONFIG = {
     description: "Tài khoản của bạn chưa có vai trò gia sư. Vui lòng đăng ký và chờ duyệt hồ sơ trước khi nhận lớp.",
     primaryLabel: "Đăng ký làm gia sư",
     primaryTo: "/register-tutor",
+  },
+  documentsRequired: {
+    icon: IdCard,
+    iconClassName: "bg-amber-50 text-amber-700 border-amber-100",
+    title: "Cần bổ sung hồ sơ chứng thực",
+    description:
+      "Bạn chưa cập nhật ảnh CCCD và thẻ sinh viên/bằng cấp. Vui lòng bổ sung hồ sơ chứng thực rồi gửi cho admin duyệt trước khi nhận lớp.",
+    primaryLabel: "Bổ sung hồ sơ ngay",
+    primaryTo: "/profile?section=documents",
   },
   confirm: {
     icon: Send,
@@ -186,7 +195,7 @@ const ClassReceiveDialog = ({
             </Button>
           )}
 
-          {(type === "login" || type === "tutorRequired") && (
+          {(type === "login" || type === "tutorRequired" || type === "documentsRequired") && (
             <Button
               asChild
               className="h-10 rounded-lg bg-[#1e3a5f] px-5 font-semibold text-white hover:bg-[#16304f]"

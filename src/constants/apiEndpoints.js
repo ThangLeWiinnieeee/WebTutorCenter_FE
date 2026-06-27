@@ -16,6 +16,7 @@ const API_ENDPOINTS = {
   },
   TUTORS: {
     REGISTER: "/tutors/register",
+    UPLOAD_DOCUMENT: "/tutors/upload-document",
     GET_PROFILE: "/tutors/profile",
     GET_ACTIVE: "/tutors/active",
     GET_TOP: "/tutors/top",
