@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import { TutorChatWidget } from "@/features/chat";
 
 const MainLayout = () => {
   return (
@@ -12,6 +13,8 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      {/* Khung nhắn tin nổi cho gia sư (tự ẩn với vai trò khác) */}
+      <TutorChatWidget />
     </div>
   );
 };

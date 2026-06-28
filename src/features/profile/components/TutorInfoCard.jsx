@@ -17,6 +17,7 @@ import {
 } from "@/features/tutors/constants";
 import { createElement } from "react";
 import { ProfileBadge } from "./ProfileBadges";
+import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 
 const Section = ({ icon, title, children }) => (
   <div className="space-y-3">
@@ -88,6 +89,7 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <h3 className="text-base font-semibold text-slate-700">Hồ sơ gia sư</h3>
         <div className="flex items-center gap-3">
+          {tutorProfile.isTrusted && <TrustedTutorBadge />}
           {canEdit && !pendingRequest && (
             <button
               type="button"

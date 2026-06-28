@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
-import { updateProfileThunk, uploadAvatarThunk } from "@/features/auth/store/authThunks";
+import { updateProfileThunk, uploadAvatarThunk, getUserInfoThunk } from "@/features/auth/store/authThunks";
 import {
   getTutorProfileThunk,
   fetchMyProfileChangeRequestThunk,
@@ -40,11 +40,19 @@ const ProfilePage = () => {
 
   const isTutor = user?.role === "tutor";
 
+  // Vào trang hồ sơ → làm mới thông tin user (vd vừa được admin duyệt lên gia sư,
+  // role user→tutor) để các khu vực gia sư hiển thị đúng.
   useEffect(() => {
-    if (isTutor && !tutorProfile) {
+    dispatch(getUserInfoThunk());
+  }, [dispatch]);
+
+  // Luôn tải lại hồ sơ gia sư khi vào trang / khi role chuyển thành tutor — tránh hiển
+  // thị trạng thái cũ "đang chờ duyệt" sau khi admin đã duyệt (state Redux còn lưu cache).
+  useEffect(() => {
+    if (isTutor) {
       dispatch(getTutorProfileThunk());
     }
-  }, [isTutor, tutorProfile, dispatch]);
+  }, [isTutor, dispatch]);
 
   // Lấy yêu cầu đổi hồ sơ đang chờ duyệt (nếu có) để khóa nút sửa + hiện banner
   useEffect(() => {
@@ -127,7 +135,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <div className={`grid gap-6 ${isTutor ? "lg:grid-cols-[300px_1fr]" : "lg:grid-cols-[300px_1fr]"}`}>
         <div className="min-w-0 space-y-4" data-aos="fade-right">
           <ProfileSidebar

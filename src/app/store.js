@@ -6,6 +6,7 @@ import notificationReducer from "@/features/notifications/store/notificationSlic
 import { classReducer } from "@/features/classes";
 import voucherReducer from "@/features/vouchers/store/voucherSlice";
 import { reviewReducer } from "@/features/reviews";
+import { chatReducer } from "@/features/chat";
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
     classes: classReducer,
     vouchers: voucherReducer,
     reviews: reviewReducer,
+    chat: chatReducer,
   },
 });

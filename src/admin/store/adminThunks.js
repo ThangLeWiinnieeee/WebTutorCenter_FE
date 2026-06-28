@@ -111,12 +111,31 @@ export const getClassApplicationsThunk = createAsyncThunk(
 
 export const getClassApplicationStatsThunk = createAsyncThunk(
   "admin/getClassApplicationStats",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await adminService.getClassApplicationStats();
+      const res = await adminService.getClassApplicationStats(params);
       return res.data.data.stats;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Không lấy được thống kê đơn đăng ký");
+    }
+  }
+);
+
+// Số đơn "chờ duyệt" (status selected) cho CẢ 2 mục origin để hiện badge trên 2 tab.
+export const getClassApplicationOriginCountsThunk = createAsyncThunk(
+  "admin/getClassApplicationOriginCounts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const [applyRes, inviteRes] = await Promise.all([
+        adminService.getClassApplicationStats({ origin: "apply" }),
+        adminService.getClassApplicationStats({ origin: "invite" }),
+      ]);
+      return {
+        apply: applyRes.data.data.stats.selected ?? 0,
+        invite: inviteRes.data.data.stats.selected ?? 0,
+      };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được số đơn chờ duyệt");
     }
   }
 );

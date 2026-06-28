@@ -36,12 +36,21 @@ const presetRanges = {
   evening: [18, 19, 20, 21, 22],
 };
 
-const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
+const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allowedSlots = null }) {
   const slotSet = useMemo(
     () => new Set(value.map((slot) => slotKey(slot.day, slot.hour))),
     [value]
   );
   const slotActive = (day, hour) => slotSet.has(slotKey(day, hour));
+
+  // allowedSlots != null → giới hạn chỉ cho phép chọn các khung giờ này (luồng mời gia sư:
+  // chỉ những giờ gia sư có thể dạy). null/undefined = không giới hạn (hành vi mặc định).
+  const allowedSet = useMemo(
+    () => (allowedSlots ? new Set(allowedSlots.map((slot) => slotKey(slot.day, Number(slot.hour)))) : null),
+    [allowedSlots]
+  );
+  const slotAllowed = (day, hour) => !allowedSet || allowedSet.has(slotKey(day, hour));
+  const filterAllowed = (slots) => (!allowedSet ? slots : slots.filter((s) => allowedSet.has(slotKey(s.day, Number(s.hour)))));
 
   const [dragMode, setDragMode] = useState(null); // 'add' | 'remove' | null
   const valueRef = useRef(value);
@@ -61,6 +70,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
   }, []);
 
   const handleMouseDown = (day, hour, active) => {
+    if (!active && !slotAllowed(day, hour)) return; // không cho thêm ô ngoài lịch dạy của gia sư
     const nextMode = active ? "remove" : "add";
     setDragMode(nextMode);
 
@@ -78,6 +88,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
     if (!dragMode) return;
 
     const active = valueRef.current.some((slot) => slot.day === day && Number(slot.hour) === hour);
+    if (dragMode === "add" && !slotAllowed(day, hour)) return;
     let nextValue = valueRef.current;
 
     if (dragMode === "add" && !active) {
@@ -103,7 +114,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
         next = addSlots(next, [{ day, hour }]);
       });
     });
-    onChange(next);
+    onChange(filterAllowed(next));
   };
 
   const applyWeekendPreset = () => {
@@ -114,7 +125,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
         next = addSlots(next, [{ day, hour }]);
       });
     });
-    onChange(next);
+    onChange(filterAllowed(next));
   };
 
   const mergePresetEveningWeekdays = () => {
@@ -124,7 +135,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
         next = addSlots(next, [{ day, hour }]);
       });
     });
-    onChange(next);
+    onChange(filterAllowed(next));
   };
 
   const clearAll = () => onChange([]);
@@ -223,25 +234,35 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange }) {
                       const prevOn = hour > 0 && slotActive(day.value, hour - 1);
                       const nextOn = hour < 23 && slotActive(day.value, hour + 1);
                       const isQuarter = hour % 6 === 0;
+                      const disabled = !active && !slotAllowed(day.value, hour);
                       return (
                         <button
                           key={slotKey(day.value, hour)}
                           type="button"
-                          title={`${day.label}: ${String(hour).padStart(2, "0")}:00–${String(hour + 1).padStart(2, "0")}:00`}
+                          disabled={disabled}
+                          title={
+                            disabled
+                              ? `${day.label}: ${String(hour).padStart(2, "0")}:00 — gia sư không dạy giờ này`
+                              : `${day.label}: ${String(hour).padStart(2, "0")}:00–${String(hour + 1).padStart(2, "0")}:00`
+                          }
                           onMouseDown={() => handleMouseDown(day.value, hour, active)}
                           onMouseEnter={() => handleMouseEnter(day.value, hour)}
                           className={cn(
-                            "relative flex min-h-[32px] min-w-[22px] w-full items-center justify-center text-[9px] font-semibold tabular-nums transition-all duration-150 cursor-pointer select-none",
-                            active
+                            "relative flex min-h-[32px] min-w-[22px] w-full items-center justify-center text-[9px] font-semibold tabular-nums transition-all duration-150 select-none",
+                            disabled
+                              ? "cursor-not-allowed bg-slate-200/80 text-slate-300"
+                              : "cursor-pointer",
+                            !disabled && active
                               ? cn(
                                   "z-[1] bg-emerald-600 text-white shadow-sm hover:bg-emerald-700",
                                   !prevOn && "rounded-l-[5px]",
                                   !nextOn && "rounded-r-[5px]"
                                 )
-                              : cn(
-                                  "bg-slate-50 text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 hover:ring-1 hover:ring-inset hover:ring-emerald-300/60",
-                                  isQuarter && "bg-slate-100 text-slate-600"
-                                )
+                              : !disabled &&
+                                  cn(
+                                    "bg-slate-50 text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 hover:ring-1 hover:ring-inset hover:ring-emerald-300/60",
+                                    isQuarter && "bg-slate-100 text-slate-600"
+                                  )
                           )}
                         >
                           <span className="pointer-events-none select-none opacity-90">{hour}</span>

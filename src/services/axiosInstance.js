@@ -30,6 +30,8 @@ const processPendingRequests = (error, token = null) => {
 const SILENT_ENDPOINTS = [
   API_ENDPOINTS.AUTH.REFRESH_TOKEN,
   API_ENDPOINTS.AUTH.USER_INFO,
+  // Nhắn tin: gửi/đọc tin diễn ra liên tục → không hiện toast thành công
+  "/chat/",
 ];
 
 axiosInstance.interceptors.response.use(
@@ -81,13 +83,10 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Hiển thị toast cho tất cả lỗi người dùng (4xx) và lỗi hệ thống (5xx)
-    if (status && status >= 400) {
-      if (status >= 500) {
-        toast.error("Lỗi hệ thống, vui lòng thử lại sau", { duration: 2500 });
-      } else {
-        toast.error(message || "Đã có lỗi xảy ra, vui lòng thử lại", { duration: 2500 });
-      }
+    // Chỉ hiển thị lỗi do người dùng thao tác sai (4xx) ra giao diện.
+    // Lỗi hệ thống (5xx) đã được log ở terminal BE → KHÔNG hiện gì ra phía FE.
+    if (status && status >= 400 && status < 500) {
+      toast.error(message || "Đã có lỗi xảy ra, vui lòng thử lại", { duration: 2500 });
     }
 
     return Promise.reject(error);

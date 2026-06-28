@@ -13,10 +13,13 @@ import {
   NewClassDetailPage,
   MyClassesPage,
   MyPostsPage,
+  ClassInvitationsPage,
 } from "@/features/classes";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
+import { MyReviewsPage } from "@/features/reviews";
 import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminSubjectsPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage, AdminReviewsPage } from "@/admin";
+import { AdminMessagesPage } from "@/features/chat";
 
 import {
   LoginPage,
@@ -95,6 +98,8 @@ const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { path: "/my-classes", element: <MyClassesPage /> },
+          { path: "/class-invitations", element: <ClassInvitationsPage /> },
+          { path: "/my-reviews", element: <MyReviewsPage /> },
         ],
       },
     ],
@@ -106,6 +111,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/admin", element: <AdminDashboardPage /> },
       { path: "/admin/users", element: <AdminUsersPage /> },
+      { path: "/admin/messages", element: <AdminMessagesPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
       { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
       { path: "/admin/application-cancellations", element: <AdminApplicationCancellationsPage /> },

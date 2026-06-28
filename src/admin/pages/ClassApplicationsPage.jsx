@@ -19,6 +19,7 @@ import Pagination from "@/components/shared/Pagination";
 import {
   approveClassApplicationThunk,
   getClassApplicationStatsThunk,
+  getClassApplicationOriginCountsThunk,
   getClassApplicationsThunk,
   rejectClassApplicationThunk,
 } from "@/admin/store/adminThunks";
@@ -58,6 +59,12 @@ const TABS = [
   { key: "selected", label: "Chờ duyệt", color: "amber" },
   { key: "approved", label: "Đã duyệt", color: "emerald" },
   { key: "rejected", label: "Từ chối", color: "rose" },
+];
+
+// 2 mục: gia sư tự ứng tuyển bài đăng công khai vs gia sư được người đăng mời trực tiếp
+const ORIGIN_TABS = [
+  { key: "apply", label: "Gia sư tự ứng tuyển" },
+  { key: "invite", label: "Gia sư được mời" },
 ];
 
 const TAB_STYLE = {
@@ -498,8 +505,10 @@ const ClassApplicationsPage = () => {
     classApplicationActionLoading,
     classApplicationStats,
     classApplicationStatsLoading,
+    classApplicationOriginCounts,
   } = useSelector((state) => state.admin);
 
+  const [activeOrigin, setActiveOrigin] = useState("apply");
   const [activeTab, setActiveTab] = useState("selected");
   const [page, setPage] = useState(1);
   const [rejectTarget, setRejectTarget] = useState(null);
@@ -510,15 +519,22 @@ const ClassApplicationsPage = () => {
   const totalPages = classApplicationsPagination?.totalPages || 1;
 
   useEffect(() => {
-    dispatch(getClassApplicationStatsThunk());
+    dispatch(getClassApplicationStatsThunk({ origin: activeOrigin }));
+  }, [dispatch, activeOrigin]);
+
+  // Số đơn chờ duyệt cho CẢ 2 mục (badge trên 2 tab origin) — tải 1 lần khi vào trang.
+  useEffect(() => {
+    dispatch(getClassApplicationOriginCountsThunk());
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(getClassApplicationsThunk({ status: activeTab, page, limit: PAGE_SIZE }));
-  }, [dispatch, activeTab, page]);
+    dispatch(getClassApplicationsThunk({ status: activeTab, origin: activeOrigin, page, limit: PAGE_SIZE }));
+  }, [dispatch, activeTab, activeOrigin, page]);
 
   const reload = (targetPage = page) =>
-    dispatch(getClassApplicationsThunk({ status: activeTab, page: targetPage, limit: PAGE_SIZE }));
+    dispatch(
+      getClassApplicationsThunk({ status: activeTab, origin: activeOrigin, page: targetPage, limit: PAGE_SIZE }),
+    );
 
   // Sau khi duyệt/từ chối: nếu vừa xử lý item cuối của trang thì lùi 1 trang, ngược lại tải lại trang hiện tại
   const reloadAfterAction = () => {
@@ -532,19 +548,30 @@ const ClassApplicationsPage = () => {
     setSearchQuery("");
   };
 
+  const handleOrigin = (origin) => {
+    setActiveOrigin(origin);
+    setActiveTab("selected");
+    setPage(1);
+    setSearchQuery("");
+  };
+
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleRefresh = () => {
-    dispatch(getClassApplicationStatsThunk());
+    dispatch(getClassApplicationStatsThunk({ origin: activeOrigin }));
+    dispatch(getClassApplicationOriginCountsThunk());
     reload();
   };
 
   const handleApprove = (id) => {
     dispatch(approveClassApplicationThunk(id)).then((r) => {
-      if (!r.error) reloadAfterAction();
+      if (!r.error) {
+        reloadAfterAction();
+        dispatch(getClassApplicationOriginCountsThunk());
+      }
     });
   };
 
@@ -553,7 +580,10 @@ const ClassApplicationsPage = () => {
   const handleRejectConfirm = (rejectionReason) => {
     dispatch(rejectClassApplicationThunk({ id: rejectTarget, rejectionReason })).then((r) => {
       setRejectTarget(null);
-      if (!r.error) reloadAfterAction();
+      if (!r.error) {
+        reloadAfterAction();
+        dispatch(getClassApplicationOriginCountsThunk());
+      }
     });
   };
 
@@ -607,6 +637,34 @@ const ClassApplicationsPage = () => {
           </Button>
         </div>
       </section>
+
+      {/* Origin segmented control — 2 mục: tự ứng tuyển / được mời */}
+      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+        {ORIGIN_TABS.map((o) => {
+          const isActive = activeOrigin === o.key;
+          const pendingCount = classApplicationOriginCounts?.[o.key] || 0;
+          return (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => handleOrigin(o.key)}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                isActive ? "bg-[#1e3a5f] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {o.label}
+              {/* Số đơn chờ duyệt của mục này — đồng bộ màu badge với mục Thùng rác */}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                  isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {pendingCount}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">

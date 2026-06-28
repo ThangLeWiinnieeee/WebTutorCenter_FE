@@ -182,14 +182,20 @@ const ConfirmStatusModal = ({ user, onClose, onConfirm, loading }) => {
   );
 };
 
-const EditUserModal = ({ user, onClose, onSubmit, loading }) => {
+const EditUserModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
   const form = useForm({
     resolver: zodResolver(adminUserSchema),
     defaultValues: getUserFormValues(user),
   });
 
+  // Vai trò quản lý ngoài react-hook-form (chỉ cho phép user ↔ admin; gia sư quản qua
+  // luồng duyệt nên không sửa ở đây, và không cho tự đổi vai trò của chính mình).
+  const [role, setRole] = useState(user?.role || "user");
+  const canEditRole = !isSelf && user?.role !== "tutor";
+
   useEffect(() => {
     form.reset(getUserFormValues(user));
+    setRole(user?.role || "user");
   }, [form, user]);
 
   const errors = form.formState.errors;
@@ -201,6 +207,7 @@ const EditUserModal = ({ user, onClose, onSubmit, loading }) => {
       gender: values.gender || null,
       dateOfBirth: values.dateOfBirth || null,
       isVerified: values.isVerified === "true",
+      ...(canEditRole ? { role } : {}),
     });
   }, scrollToFirstError);
 
@@ -276,16 +283,37 @@ const EditUserModal = ({ user, onClose, onSubmit, loading }) => {
 
           <label className="space-y-1.5">
             <span className="text-sm font-semibold text-slate-700">Vai trò</span>
-            <select
-              defaultValue={user.role || "user"}
-              disabled
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 disabled:bg-slate-100 disabled:text-slate-500"
-            >
-              <option value="user">Học viên</option>
-              <option value="tutor">Gia sư</option>
-              <option value="admin">Quản trị viên</option>
-            </select>
-            <span className="text-xs text-slate-500">Vai trò gia sư được cập nhật qua quy trình duyệt gia sư.</span>
+            {canEditRole ? (
+              <select
+                value={role}
+                onChange={(event) => setRole(event.target.value)}
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              >
+                <option value="user">Học viên</option>
+                <option value="admin">Quản trị viên</option>
+              </select>
+            ) : (
+              <select
+                value={user.role || "user"}
+                disabled
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition disabled:bg-slate-100 disabled:text-slate-500"
+              >
+                <option value="user">Học viên</option>
+                <option value="tutor">Gia sư</option>
+                <option value="admin">Quản trị viên</option>
+              </select>
+            )}
+            {canEditRole && role === "admin" && user.role !== "admin" ? (
+              <span className="text-xs text-amber-600">Tài khoản sẽ được cấp toàn quyền quản trị hệ thống.</span>
+            ) : (
+              <span className="text-xs text-slate-500">
+                {isSelf
+                  ? "Không thể thay đổi vai trò của chính bạn."
+                  : user.role === "tutor"
+                    ? "Vai trò gia sư được quản lý qua quy trình duyệt gia sư."
+                    : "Cấp hoặc thu quyền quản trị viên cho tài khoản này."}
+              </span>
+            )}
           </label>
 
           <label className="space-y-1.5 sm:col-span-2">
@@ -751,6 +779,7 @@ const AdminUsersPage = () => {
       {editUser && (
         <EditUserModal
           user={editUser}
+          isSelf={currentUser?.id === editUser.id}
           onClose={() => setEditUser(null)}
           onSubmit={handleUpdateUser}
           loading={userActionLoading === editUser.id}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, RotateCcw, UserCheck, XCircle } from "lucide-react";
+import { ArrowRight, Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, Handshake, RotateCcw, UserCheck, XCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AOS from "aos";
@@ -27,6 +27,7 @@ const NOTIFICATION_ICON_MAP = {
   TUTOR_APPROVED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
   TUTOR_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
   CLASS_APPLICATION_PENDING: { icon: Clock, className: "bg-amber-50 text-amber-600" },
+  CLASS_APPLICATION_SELECTED: { icon: Clock, className: "bg-amber-50 text-amber-600" },
   CLASS_APPLICATION_APPROVED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
   CLASS_APPLICATION_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
   PROFILE_CHANGE_PENDING: { icon: Clock, className: "bg-amber-50 text-amber-600" },
@@ -39,16 +40,27 @@ const NOTIFICATION_ICON_MAP = {
   CLASS_MATCHED: { icon: UserCheck, className: "bg-emerald-50 text-emerald-600" },
   CLASS_EXPIRED: { icon: CalendarX2, className: "bg-rose-50 text-rose-600" },
   CLASS_COMPLETED_REWARD: { icon: Gift, className: "bg-violet-50 text-violet-600" },
+  CLASS_INVITE_RECEIVED: { icon: Handshake, className: "bg-blue-50 text-[#1e3a5f]" },
+  CLASS_INVITE_ACCEPTED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
+  CLASS_INVITE_DECLINED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
 };
 
 const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-slate-500" };
 
 // Một số loại thông báo có thể bấm để đi tới trang liên quan.
+// CLASS_APPLICATION_PENDING (gửi cho người đăng khi có gia sư ứng tuyển) → mở "Bài đăng của tôi" để chọn gia sư.
 // CLASS_MATCHED (gửi cho người đăng khi admin duyệt gia sư) → mở "Bài đăng của tôi".
 // CLASS_COMPLETED_REWARD (tặng mã giảm giá khi hoàn thành lớp) → mở "Kho mã giảm giá".
 const NOTIFICATION_LINK = {
+  CLASS_APPLICATION_PENDING: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   CLASS_MATCHED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   CLASS_COMPLETED_REWARD: { to: "/my-vouchers", label: "Xem kho mã giảm giá" },
+  // Luồng mời gia sư trực tiếp
+  CLASS_INVITE_RECEIVED: { to: "/class-invitations", label: "Xem lời mời dạy lớp" },
+  CLASS_INVITE_ACCEPTED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
+  CLASS_INVITE_DECLINED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
+  // Gia sư được admin duyệt nhận lớp → mở danh sách nhận lớp
+  CLASS_APPLICATION_APPROVED: { to: "/my-classes", label: "Xem danh sách nhận lớp" },
 };
 
 // Tách phần "Lý do: ..." ra khỏi nội dung chính để hiển thị xuống dòng riêng.

@@ -1,11 +1,13 @@
 import { createElement, useEffect, useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen, Star, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen, Star, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getDashboardStatsThunk } from "@/admin/store/adminThunks";
+import { fetchAdminUnreadCountThunk } from "@/features/chat/store/chatThunks";
+import { selectAdminUnreadTotal } from "@/features/chat/store/chatSlice";
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
 import ScrollToTop from "@/components/shared/ScrollToTop";
@@ -16,8 +18,9 @@ const Badge = ({ count, collapsed }) => {
   if (!count) return null;
   const label = count > 99 ? "99+" : count;
   if (collapsed) {
+    // Đặt ở góc trên-phải của cả nút (không phải trên icon) để số lượng không đè lên icon.
     return (
-      <span className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white">
+      <span className="pointer-events-none absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white">
         {label}
       </span>
     );
@@ -40,9 +43,8 @@ const NavItem = ({ to, icon, label, active, badge = 0, collapsed }) => (
         : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
       }`}
   >
-    <span className="relative shrink-0">
+    <span className="shrink-0">
       {createElement(icon, { className: "h-4 w-4" })}
-      {collapsed && <Badge count={badge} collapsed />}
     </span>
     {!collapsed && (
       <>
@@ -50,6 +52,8 @@ const NavItem = ({ to, icon, label, active, badge = 0, collapsed }) => (
         <Badge count={badge} />
       </>
     )}
+    {/* Badge thu gọn: định vị theo cả nút (Link relative) ở góc trên-phải */}
+    {collapsed && <Badge count={badge} collapsed />}
   </Link>
 );
 
@@ -59,6 +63,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
   const { dashboardStats } = useSelector((state) => state.admin);
+  const chatUnread = useSelector(selectAdminUnreadTotal);
 
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true"
@@ -69,6 +74,11 @@ const AdminLayout = () => {
   // Lấy số lượng cần duyệt để hiển thị badge cạnh menu (chỉ khi là admin).
   useEffect(() => {
     if (isAdmin) dispatch(getDashboardStatsThunk());
+  }, [dispatch, isAdmin]);
+
+  // Số tin nhắn chưa đọc ban đầu cho badge menu "Tin nhắn"; socket tự cập nhật realtime.
+  useEffect(() => {
+    if (isAdmin) dispatch(fetchAdminUnreadCountThunk());
   }, [dispatch, isAdmin]);
 
   useEffect(() => {
@@ -151,6 +161,14 @@ const AdminLayout = () => {
             icon={UserCog}
             label="Người dùng"
             active={location.pathname === "/admin/users"}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/admin/messages"
+            icon={MessageSquare}
+            label="Tin nhắn"
+            active={location.pathname === "/admin/messages"}
+            badge={chatUnread}
             collapsed={collapsed}
           />
           <NavItem

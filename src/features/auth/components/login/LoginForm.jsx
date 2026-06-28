@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Check,
@@ -25,23 +25,6 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
   // Đọc email đã ghi nhớ (nếu có) để điền sẵn và bật checkbox.
   const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || "";
   const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail));
-
-  // Nút Google chỉ nhận width dạng px → đo bề rộng cột để không tràn ngang trên mobile.
-  const googleWrapRef = useRef(null);
-  const [googleWidth, setGoogleWidth] = useState(0);
-
-  useLayoutEffect(() => {
-    const el = googleWrapRef.current;
-    if (!el) return;
-    const update = () => {
-      const w = Math.round(el.getBoundingClientRect().width);
-      if (w > 0) setGoogleWidth(Math.max(200, Math.min(400, w)));
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   const {
     register,
@@ -197,19 +180,27 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* Google login — render sau khi đo bề rộng cột để không tràn/cắt trên mobile */}
-          <div ref={googleWrapRef} className="flex w-full justify-center overflow-hidden">
-            {googleWidth > 0 && (
-              <GoogleLogin
-                onSuccess={onGoogleSuccess}
-                onError={onGoogleError}
-                width={String(googleWidth)}
-                text="signin_with"
-                locale="vi"
-                shape="rectangular"
-                logo_alignment="left"
-              />
-            )}
+          {/* Google login — nút mặc định (Google Identity Services), giữ luồng credential
+              (ID token). Nút render trong <iframe> của Google nên KHÔNG style bằng CSS được;
+              chỉ tùy biến qua các prop GSI dưới đây:
+                theme:          outline | filled_blue | filled_black
+                shape:          rectangular | pill | circle | square
+                size:           large | medium | small  (cao tối đa ~40px — giới hạn Google)
+                text:           signin_with | signup_with | continue_with | signin
+                logo_alignment: left | center
+                width:          số px, tối đa 400 */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => onGoogleSuccess?.(credentialResponse.credential)}
+              onError={() => onGoogleError?.()}
+              theme="outline"
+              size="large"
+              shape="pill"
+              text="continue_with"
+              logo_alignment="center"
+              width="400"
+              locale="vi"
+            />
           </div>
         </form>
 

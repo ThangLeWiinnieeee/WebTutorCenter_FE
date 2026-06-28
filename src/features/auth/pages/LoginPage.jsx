@@ -20,8 +20,8 @@ const LoginPage = () => {
     }
   };
 
-  const onGoogleSuccess = async (credentialResponse) => {
-    const result = await dispatch(googleLoginThunk(credentialResponse.credential));
+  const onGoogleSuccess = async (credential) => {
+    const result = await dispatch(googleLoginThunk(credential));
     if (googleLoginThunk.fulfilled.match(result)) {
       const user = result.payload?.user;
       if (user?.role === "admin") {

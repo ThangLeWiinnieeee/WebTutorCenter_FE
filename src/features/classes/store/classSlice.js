@@ -11,6 +11,10 @@ import {
   fetchApplicantsThunk,
   selectApplicantThunk,
   cancelApplicationThunk,
+  createInvitedClassThunk,
+  fetchInvitationsThunk,
+  acceptInvitationThunk,
+  declineInvitationThunk,
 } from "./classThunks";
 
 const initialState = {
@@ -64,6 +68,18 @@ const initialState = {
     hasPrevPage: false,
   },
   loadingMyPosts: false,
+  // Gia sư xem & phản hồi lời mời dạy lớp
+  invitations: [],
+  invitationsPagination: {
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  loadingInvitations: false,
+  respondingInvitation: false,
   loadingQuote: false,
   creating: false,
   loadingList: false,
@@ -236,6 +252,58 @@ const classSlice = createSlice({
       })
       .addCase(cancelApplicationThunk.rejected, (state, action) => {
         state.cancellingApplication = false;
+        state.error = action.payload;
+      });
+
+    // ── Mời gia sư trực tiếp ──
+    builder
+      .addCase(createInvitedClassThunk.pending, (state) => {
+        state.creating = true;
+        state.error = null;
+      })
+      .addCase(createInvitedClassThunk.fulfilled, (state, action) => {
+        state.creating = false;
+        state.latestCreated = action.payload;
+      })
+      .addCase(createInvitedClassThunk.rejected, (state, action) => {
+        state.creating = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchInvitationsThunk.pending, (state) => {
+        state.loadingInvitations = true;
+        state.error = null;
+      })
+      .addCase(fetchInvitationsThunk.fulfilled, (state, action) => {
+        state.loadingInvitations = false;
+        state.invitations = action.payload.invitations || [];
+        if (action.payload.pagination) state.invitationsPagination = action.payload.pagination;
+      })
+      .addCase(fetchInvitationsThunk.rejected, (state, action) => {
+        state.loadingInvitations = false;
+        state.error = action.payload;
+      })
+      .addCase(acceptInvitationThunk.pending, (state) => {
+        state.respondingInvitation = true;
+      })
+      .addCase(acceptInvitationThunk.fulfilled, (state, action) => {
+        state.respondingInvitation = false;
+        state.invitations = state.invitations.filter((inv) => inv.id !== action.meta.arg);
+      })
+      .addCase(acceptInvitationThunk.rejected, (state, action) => {
+        state.respondingInvitation = false;
+        state.error = action.payload;
+      })
+      .addCase(declineInvitationThunk.pending, (state) => {
+        state.respondingInvitation = true;
+      })
+      .addCase(declineInvitationThunk.fulfilled, (state, action) => {
+        state.respondingInvitation = false;
+        state.invitations = state.invitations.filter(
+          (inv) => inv.id !== action.meta.arg.applicationId,
+        );
+      })
+      .addCase(declineInvitationThunk.rejected, (state, action) => {
+        state.respondingInvitation = false;
         state.error = action.payload;
       });
   },

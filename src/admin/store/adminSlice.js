@@ -10,6 +10,7 @@ import {
   softDeleteAdminUserThunk,
   getClassApplicationsThunk,
   getClassApplicationStatsThunk,
+  getClassApplicationOriginCountsThunk,
   approveClassApplicationThunk,
   rejectClassApplicationThunk,
   getPromosThunk,
@@ -80,6 +81,8 @@ const adminSlice = createSlice({
     classApplicationActionLoading: null,
     classApplicationStats: { pending: 0, selected: 0, approved: 0, rejected: 0 },
     classApplicationStatsLoading: false,
+    // Số đơn chờ duyệt theo từng mục origin (badge trên 2 tab tự ứng tuyển / được mời)
+    classApplicationOriginCounts: { apply: 0, invite: 0 },
     promos: [],
     promosPagination: {
       page: 1,
@@ -298,6 +301,10 @@ const adminSlice = createSlice({
       .addCase(getClassApplicationStatsThunk.rejected, (state) => {
         state.classApplicationStatsLoading = false;
       });
+
+    builder.addCase(getClassApplicationOriginCountsThunk.fulfilled, (state, action) => {
+      state.classApplicationOriginCounts = action.payload;
+    });
 
     builder
       .addCase(approveClassApplicationThunk.pending, (state, action) => {

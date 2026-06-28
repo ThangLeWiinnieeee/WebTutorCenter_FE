@@ -173,3 +173,57 @@ export const selectApplicantThunk = createAsyncThunk(
     }
   }
 );
+
+// ── Mời gia sư trực tiếp ──
+
+// Người đăng tạo lớp + mời một gia sư cụ thể
+export const createInvitedClassThunk = createAsyncThunk(
+  "classes/createInvite",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const res = await classService.createInvite(payload);
+      return res.data.data.classItem;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không gửi được lời mời tới gia sư");
+    }
+  }
+);
+
+// Gia sư lấy danh sách lời mời dạy lớp
+export const fetchInvitationsThunk = createAsyncThunk(
+  "classes/fetchInvitations",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await classService.getInvitations(params);
+      return res.data.data; // { invitations, pagination }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lời mời");
+    }
+  }
+);
+
+// Gia sư đồng ý lời mời
+export const acceptInvitationThunk = createAsyncThunk(
+  "classes/acceptInvitation",
+  async (applicationId, { rejectWithValue }) => {
+    try {
+      const res = await classService.acceptInvitation(applicationId);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không thể đồng ý lời mời");
+    }
+  }
+);
+
+// Gia sư từ chối lời mời (kèm lý do)
+export const declineInvitationThunk = createAsyncThunk(
+  "classes/declineInvitation",
+  async ({ applicationId, reason }, { rejectWithValue }) => {
+    try {
+      const res = await classService.declineInvitation(applicationId, reason);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không thể từ chối lời mời");
+    }
+  }
+);

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, Menu, Ticket, UserRound, X } from "lucide-react";
+import { ChevronDown, ClipboardList, FileText, GraduationCap, Handshake, LogOut, Menu, Star, Ticket, UserRound, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -143,6 +143,28 @@ const Header = () => {
                       >
                         <ClipboardList className="h-4 w-4 text-slate-400" />
                         Danh sách nhận lớp
+                      </Link>
+                    )}
+
+                    {isTutor && (
+                      <Link
+                        to="/class-invitations"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        <Handshake className="h-4 w-4 text-slate-400" />
+                        Lời mời dạy lớp
+                      </Link>
+                    )}
+
+                    {isTutor && (
+                      <Link
+                        to="/my-reviews"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        <Star className="h-4 w-4 text-slate-400" />
+                        Đánh giá của tôi
                       </Link>
                     )}
 

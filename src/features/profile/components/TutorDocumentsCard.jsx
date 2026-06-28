@@ -57,7 +57,20 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
   const isStudent = tutorProfile?.occupationStatus === "student";
   const complete = hasCompleteTutorDocuments(tutorProfile);
 
-  const [editing, setEditing] = useState(autoEdit && !pendingRequest);
+  // Phần đã có (đã chứng thực) → khóa, chỉ xem. Chỉ được bổ sung phần còn thiếu.
+  const hasCccd = Boolean(tutorProfile?.cccdFrontImage && tutorProfile?.cccdBackImage);
+  const hasStudentCard = Boolean(
+    tutorProfile?.studentCardFrontImage && tutorProfile?.studentCardBackImage
+  );
+  const hasCertificates = (tutorProfile?.certificateImages?.length ?? 0) >= 1;
+
+  // Danh sách phần còn thiếu để hiển thị cảnh báo động.
+  const missingItems = [];
+  if (!hasCccd) missingItems.push("ảnh CCCD");
+  if (isStudent && !hasStudentCard) missingItems.push("ảnh thẻ sinh viên");
+  if (!isStudent && !hasCertificates) missingItems.push("ảnh bằng cấp");
+
+  const [editing, setEditing] = useState(autoEdit && !pendingRequest && !complete);
   const [zoomSrc, setZoomSrc] = useState(null);
   const [cccdFront, setCccdFront] = useState(tutorProfile?.cccdFrontImage || "");
   const [cccdBack, setCccdBack] = useState(tutorProfile?.cccdBackImage || "");
@@ -68,10 +81,10 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
 
   // Cuộn tới khu vực này khi được điều hướng từ "Bổ sung hồ sơ" (chế độ sửa đã mở sẵn theo autoEdit)
   useEffect(() => {
-    if (autoEdit && !pendingRequest) {
+    if (autoEdit && !pendingRequest && !complete) {
       cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [autoEdit, pendingRequest]);
+  }, [autoEdit, pendingRequest, complete]);
 
   const resetFromProfile = () => {
     setCccdFront(tutorProfile?.cccdFrontImage || "");
@@ -81,25 +94,39 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
     setCerts(tutorProfile?.certificateImages || []);
   };
 
+  // Chỉ gửi phần còn THIẾU — giấy tờ đã chứng thực bị khóa, không sửa lại.
   const handleSubmit = () => {
-    if (!cccdFront || !cccdBack) {
-      toast.error("Vui lòng tải đủ ảnh CCCD mặt trước và mặt sau.");
-      return;
-    }
-    const changes = { cccdFrontImage: cccdFront, cccdBackImage: cccdBack };
-    if (isStudent) {
-      if (!scFront || !scBack) {
-        toast.error("Vui lòng tải đủ ảnh thẻ sinh viên mặt trước và mặt sau.");
+    const changes = {};
+
+    if (!hasCccd) {
+      if (!cccdFront || !cccdBack) {
+        toast.error("Vui lòng tải đủ ảnh CCCD mặt trước và mặt sau.");
         return;
       }
-      changes.studentCardFrontImage = scFront;
-      changes.studentCardBackImage = scBack;
-    } else {
+      changes.cccdFrontImage = cccdFront;
+      changes.cccdBackImage = cccdBack;
+    }
+
+    if (isStudent) {
+      if (!hasStudentCard) {
+        if (!scFront || !scBack) {
+          toast.error("Vui lòng tải đủ ảnh thẻ sinh viên mặt trước và mặt sau.");
+          return;
+        }
+        changes.studentCardFrontImage = scFront;
+        changes.studentCardBackImage = scBack;
+      }
+    } else if (!hasCertificates) {
       if (!certs || certs.length < 1) {
         toast.error("Vui lòng tải lên ít nhất 1 ảnh bằng cấp.");
         return;
       }
       changes.certificateImages = certs;
+    }
+
+    if (Object.keys(changes).length === 0) {
+      toast.info("Không có thay đổi để gửi.");
+      return;
     }
     onSubmit(changes, () => setEditing(false));
   };
@@ -111,7 +138,8 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
           <ShieldCheck className="h-5 w-5 text-[#1e3a5f]" />
           <h3 className="text-base font-semibold text-slate-700">Hồ sơ chứng thực</h3>
         </div>
-        {!editing && !pendingRequest && (
+        {/* Đã chứng thực đầy đủ → khóa, không cho sửa lại. Chỉ cho bổ sung khi còn thiếu. */}
+        {!editing && !pendingRequest && !complete && (
           <Button
             type="button"
             variant="outline"
@@ -122,7 +150,7 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
             }}
             className="h-8 text-xs"
           >
-            {complete ? "Cập nhật" : "Bổ sung ngay"}
+            Bổ sung ngay
           </Button>
         )}
       </div>
@@ -138,24 +166,45 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
           </div>
         )}
 
-        {/* Cảnh báo chưa đủ hồ sơ */}
+        {/* Cảnh báo chưa đủ hồ sơ (liệt kê đúng phần còn thiếu) */}
         {!complete && !pendingRequest && !editing && (
           <div className="mb-4 flex gap-3 rounded-lg border border-rose-100 bg-rose-50 p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
             <p className="text-sm text-rose-700">
-              Bạn cần bổ sung ảnh CCCD và {isStudent ? "thẻ sinh viên" : "bằng cấp"} để có thể nhận lớp. Nhấn
-              "Bổ sung ngay" để cập nhật và gửi admin duyệt.
+              {!isStudent && hasCccd && !hasCertificates ? (
+                <>
+                  Bạn đã chuyển sang trạng thái đã tốt nghiệp. Vui lòng cập nhật ảnh bằng cấp để có thể tiếp
+                  tục nhận lớp. Nhấn "Bổ sung ngay" để cập nhật và gửi admin duyệt.
+                </>
+              ) : (
+                <>
+                  Bạn cần bổ sung {missingItems.join(" và ")} để có thể nhận lớp. Nhấn "Bổ sung ngay" để cập
+                  nhật và gửi admin duyệt.
+                </>
+              )}
             </p>
           </div>
         )}
 
         {editing ? (
           <div className="space-y-5">
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+              Giấy tờ đã chứng thực không thể sửa lại — bạn chỉ cần bổ sung phần còn thiếu.
+            </p>
+
             <div>
               <p className="mb-3 text-sm font-medium text-slate-700">Ảnh CCCD/CMND</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <DocumentUploadField label="CCCD mặt trước" required value={cccdFront} onChange={setCccdFront} />
-                <DocumentUploadField label="CCCD mặt sau" required value={cccdBack} onChange={setCccdBack} />
+                {tutorProfile?.cccdFrontImage ? (
+                  <ViewThumb label="CCCD mặt trước" src={tutorProfile.cccdFrontImage} onZoom={setZoomSrc} />
+                ) : (
+                  <DocumentUploadField label="CCCD mặt trước" required value={cccdFront} onChange={setCccdFront} />
+                )}
+                {tutorProfile?.cccdBackImage ? (
+                  <ViewThumb label="CCCD mặt sau" src={tutorProfile.cccdBackImage} onZoom={setZoomSrc} />
+                ) : (
+                  <DocumentUploadField label="CCCD mặt sau" required value={cccdBack} onChange={setCccdBack} />
+                )}
               </div>
             </div>
 
@@ -163,8 +212,25 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
               <div>
                 <p className="mb-3 text-sm font-medium text-slate-700">Thẻ sinh viên</p>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DocumentUploadField label="Thẻ sinh viên mặt trước" required value={scFront} onChange={setScFront} />
-                  <DocumentUploadField label="Thẻ sinh viên mặt sau" required value={scBack} onChange={setScBack} />
+                  {tutorProfile?.studentCardFrontImage ? (
+                    <ViewThumb label="Thẻ sinh viên mặt trước" src={tutorProfile.studentCardFrontImage} onZoom={setZoomSrc} />
+                  ) : (
+                    <DocumentUploadField label="Thẻ sinh viên mặt trước" required value={scFront} onChange={setScFront} />
+                  )}
+                  {tutorProfile?.studentCardBackImage ? (
+                    <ViewThumb label="Thẻ sinh viên mặt sau" src={tutorProfile.studentCardBackImage} onZoom={setZoomSrc} />
+                  ) : (
+                    <DocumentUploadField label="Thẻ sinh viên mặt sau" required value={scBack} onChange={setScBack} />
+                  )}
+                </div>
+              </div>
+            ) : hasCertificates ? (
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-slate-500">Bằng cấp</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {tutorProfile.certificateImages.map((src) => (
+                    <ViewThumb key={src} label="" src={src} onZoom={setZoomSrc} />
+                  ))}
                 </div>
               </div>
             ) : (

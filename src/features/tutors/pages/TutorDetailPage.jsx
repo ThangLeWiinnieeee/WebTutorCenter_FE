@@ -5,6 +5,7 @@ import tutorService from "@/features/tutors/services/tutorService";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
 import { StarRating, TutorReviewsSection } from "@/features/reviews";
+import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 import {
   MapPin,
   BookOpen,
@@ -107,9 +108,12 @@ export default function TutorDetailPage() {
 
         {/* Name & quick info */}
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-1">
-            {tutor.fullName || "—"}
-          </h1>
+          <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+              {tutor.fullName || "—"}
+            </h1>
+            {tutor.isTrusted && <TrustedTutorBadge />}
+          </div>
 
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-600 mb-3">
             {occupationLabel && (
@@ -163,13 +167,13 @@ export default function TutorDetailPage() {
           </div>
         </div>
 
-        {/* CTA — kết nối qua việc đăng bài, không lộ liên hệ trực tiếp */}
+        {/* CTA — mời chính gia sư này dạy lớp của bạn (luồng mời trực tiếp) */}
         <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
           <Button
-            onClick={() => navigate("/find-tutor")}
-            className="bg-green-600 hover:bg-green-700 w-full sm:w-40"
+            onClick={() => navigate(`/find-tutor?tutor=${tutor.id}`)}
+            className="bg-[#1e3a5f] hover:bg-[#16304f] w-full sm:w-56"
           >
-            Đăng bài tìm gia sư
+            Chọn gia sư này dạy lớp của bạn
           </Button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { MapPin, Users } from "lucide-react";
 
 import { StarRating } from "@/features/reviews";
+import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 
 const getInitials = (name) =>
   (name || "")
@@ -37,6 +38,8 @@ export default function TopTutorCard({ tutor, rank }) {
         </div>
 
         <h3 className="mt-3 line-clamp-1 text-center text-sm font-bold text-slate-900">{tutor.fullName}</h3>
+
+        {tutor.isTrusted && <TrustedTutorBadge compact className="mt-1.5" />}
 
         {reviewCount > 0 && (
           <div className="mt-1 flex items-center justify-center gap-1">

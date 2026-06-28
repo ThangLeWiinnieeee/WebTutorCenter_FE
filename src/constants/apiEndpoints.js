@@ -102,10 +102,30 @@ const API_ENDPOINTS = {
     SELECT_APPLICANT: (id, applicationId) => `/classes/${id}/applicants/${applicationId}/select`,
     CANCEL_APPLICATION: (id) => `/classes/applications/${id}/cancel`,
     COMPLETE: (id) => `/classes/${id}/complete`,
+    // Mời gia sư trực tiếp
+    INVITE: "/classes/invite",
+    INVITATIONS: "/classes/invitations",
+    INVITATION_ACCEPT: (applicationId) => `/classes/invitations/${applicationId}/accept`,
+    INVITATION_DECLINE: (applicationId) => `/classes/invitations/${applicationId}/decline`,
   },
   REVIEWS: {
     CREATE: "/reviews",
     BY_TUTOR: (tutorId) => `/reviews/tutor/${tutorId}`,
+  },
+  CHAT: {
+    // Gia sư — cuộc trò chuyện duy nhất với admin
+    MY_CONVERSATION: "/chat/my-conversation",
+    MY_UNREAD_COUNT: "/chat/my-conversation/unread-count",
+    MY_SEND: "/chat/my-conversation/messages",
+    MY_SEND_IMAGE: "/chat/my-conversation/images",
+    MY_READ: "/chat/my-conversation/read",
+    // Admin
+    CONVERSATIONS: "/chat/conversations",
+    ADMIN_UNREAD_COUNT: "/chat/conversations/unread-count",
+    CONVERSATION_MESSAGES: (id) => `/chat/conversations/${id}/messages`,
+    CONVERSATION_SEND: (id) => `/chat/conversations/${id}/messages`,
+    CONVERSATION_SEND_IMAGE: (id) => `/chat/conversations/${id}/images`,
+    CONVERSATION_READ: (id) => `/chat/conversations/${id}/read`,
   },
 };
 

@@ -3,14 +3,17 @@ import {
   BookOpen,
   CalendarCheck,
   GraduationCap,
+  Handshake,
   MapPin,
   MapPinned,
   School,
   Sparkles,
   User2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { GENDER_LABEL, OCCUPATION_STATUS_LABEL, getAgeFromDate } from "@/features/tutors/constants";
 import { StarRating } from "@/features/reviews";
+import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 
 const getInitials = (name) =>
   (name || "")
@@ -30,6 +33,7 @@ const MetaRow = ({ icon, children }) => (
 );
 
 export default function TutorCard({ tutor }) {
+  const navigate = useNavigate();
   const occupationLabel = OCCUPATION_STATUS_LABEL[tutor.occupationStatus] || tutor.occupationStatus;
   const genderLabel = GENDER_LABEL[tutor.gender] || null;
   const age = getAgeFromDate(tutor.dateOfBirth);
@@ -68,6 +72,7 @@ export default function TutorCard({ tutor }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h3 className="text-xl font-bold leading-tight text-slate-900 group-hover:text-[#1e3a5f]">{tutor.fullName}</h3>
+          {tutor.isTrusted && <TrustedTutorBadge />}
           {reviewCount > 0 ? (
             <span className="inline-flex items-center gap-1">
               <StarRating value={averageRating} size={15} />
@@ -143,10 +148,24 @@ export default function TutorCard({ tutor }) {
               </span>
             )}
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-700 transition-all group-hover:gap-2.5 group-hover:bg-emerald-100">
-            Xem hồ sơ
-            <ArrowRight className="h-4 w-4" />
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(`/find-tutor?tutor=${tutor.id}`);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1e3a5f] px-3.5 py-2 text-sm font-semibold text-white transition-all hover:bg-[#16304f]"
+            >
+              <Handshake className="h-4 w-4" />
+              Chọn gia sư này dạy lớp của bạn
+            </button>
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-700 transition-all group-hover:gap-2.5 group-hover:bg-emerald-100">
+              Xem hồ sơ
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
         </div>
       </div>
     </div>

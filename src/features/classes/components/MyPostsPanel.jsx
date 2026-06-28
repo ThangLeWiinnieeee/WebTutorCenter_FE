@@ -11,6 +11,7 @@ import {
   FilePlus2,
   FileText,
   GraduationCap,
+  Handshake,
   Loader2,
   MapPin,
   Pencil,
@@ -321,6 +322,60 @@ export default function MyPostsPanel() {
                 </p>
               </div>
             )}
+
+            {item.invitedTutor &&
+              ["invited", "selected", "invite_declined"].includes(item.invitedTutor.status) && (
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  <div
+                    className={`rounded-xl border p-3 ${
+                      item.invitedTutor.status === "invite_declined"
+                        ? "border-rose-200 bg-rose-50/60"
+                        : item.invitedTutor.status === "selected"
+                          ? "border-sky-200 bg-sky-50/60"
+                          : "border-amber-200 bg-amber-50/60"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-[#1e3a5f]/20 bg-white px-2 py-0.5 text-xs font-semibold text-[#1e3a5f]">
+                        <Handshake className="h-3.5 w-3.5" />
+                        Gia sư được mời
+                      </span>
+                      <span className="font-semibold text-slate-900">
+                        {item.invitedTutor.tutor?.fullName || "Gia sư"}
+                      </span>
+                      {item.invitedTutor.tutor?.occupationStatus && (
+                        <span className="text-xs text-slate-500">
+                          {OCCUPATION_STATUS_LABEL[item.invitedTutor.tutor.occupationStatus] ||
+                            item.invitedTutor.tutor.occupationStatus}
+                        </span>
+                      )}
+                    </div>
+                    {item.invitedTutor.status === "invited" && (
+                      <p className="mt-2 text-sm font-medium text-amber-700">
+                        Đã gửi lời mời — đang chờ gia sư phản hồi.
+                      </p>
+                    )}
+                    {item.invitedTutor.status === "selected" && (
+                      <p className="mt-2 text-sm font-medium text-sky-700">
+                        Gia sư đã đồng ý nhận lớp — đang chờ admin xét duyệt.
+                      </p>
+                    )}
+                    {item.invitedTutor.status === "invite_declined" && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-rose-700">
+                          Gia sư đã từ chối dạy lớp này.
+                        </p>
+                        {item.invitedTutor.declineReason && (
+                          <p className="mt-1 rounded-lg bg-white/70 px-3 py-1.5 text-xs text-slate-600">
+                            <span className="font-medium text-slate-500">Lý do:</span>{" "}
+                            {item.invitedTutor.declineReason}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
             {item.status === "matched" && (
               <div className="mt-3 border-t border-slate-100 pt-3">

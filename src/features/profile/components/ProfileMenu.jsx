@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { ChevronRight, ClipboardList, FileText, LogOut, Ticket } from "lucide-react";
+import { ChevronRight, ClipboardList, FileText, Handshake, LogOut, Star, Ticket } from "lucide-react";
 
 import { logoutThunk } from "@/features/auth/store/authThunks";
 
@@ -16,6 +16,18 @@ const ProfileMenu = ({ isTutor }) => {
             label: "Danh sách nhận lớp",
             desc: "Các lớp bạn đã gửi yêu cầu nhận",
             icon: ClipboardList,
+          },
+          {
+            to: "/class-invitations",
+            label: "Lời mời dạy lớp",
+            desc: "Lời mời dạy lớp được gửi đích danh cho bạn",
+            icon: Handshake,
+          },
+          {
+            to: "/my-reviews",
+            label: "Đánh giá của tôi",
+            desc: "Đánh giá học viên dành cho bạn",
+            icon: Star,
           },
         ]
       : []),
