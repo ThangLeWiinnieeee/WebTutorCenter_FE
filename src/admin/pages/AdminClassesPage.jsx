@@ -234,13 +234,13 @@ const AdminClassesPage = () => {
   );
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
+  const [keywordInput, setKeywordInput] = useState(DEFAULT_FILTERS.keyword);
   const [page, setPage] = useState(1);
   const [subjects, setSubjects] = useState([]);
   const [detailClass, setDetailClass] = useState(null);
   const [deleteClass, setDeleteClass] = useState(null);
 
-  const params = useMemo(() => buildParams(appliedFilters, page), [appliedFilters, page]);
+  const params = useMemo(() => buildParams(filters, page), [filters, page]);
 
   const refetch = () => dispatch(getAdminClassesThunk(params));
 
@@ -261,15 +261,26 @@ const AdminClassesPage = () => {
     };
   }, []);
 
-  const handleFilterSubmit = (event) => {
-    event.preventDefault();
+  // Tự tìm sau khi ngừng gõ (debounce 400ms) — bỏ nút "Lọc", đồng bộ hành vi với bộ lọc client.
+  useEffect(() => {
+    const trimmed = keywordInput.trim();
+    if (trimmed === filters.keyword) return;
+    const timer = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, keyword: trimmed }));
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [keywordInput, filters.keyword]);
+
+  // Select lọc áp dụng ngay khi đổi và quay về trang 1.
+  const updateFilter = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
     setPage(1);
-    setAppliedFilters(filters);
   };
 
   const handleReset = () => {
     setFilters(DEFAULT_FILTERS);
-    setAppliedFilters(DEFAULT_FILTERS);
+    setKeywordInput(DEFAULT_FILTERS.keyword);
     setPage(1);
   };
 
@@ -319,24 +330,35 @@ const AdminClassesPage = () => {
         </div>
       </section>
 
-      <form onSubmit={handleFilterSubmit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
           <Filter className="h-4 w-4 text-slate-500" />
           Bộ lọc bài đăng
         </div>
-        <div className="grid gap-3 lg:grid-cols-[1.6fr_1fr_auto_auto]">
+        <div className="grid gap-3 lg:grid-cols-[1.6fr_1fr_auto]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
-              value={filters.keyword}
-              onChange={(event) => setFilters((prev) => ({ ...prev, keyword: event.target.value }))}
+              value={keywordInput}
+              onChange={(event) => setKeywordInput(event.target.value)}
               placeholder="Tìm theo mã lớp, tiêu đề, SĐT"
-              className={`${inputCls} pl-10`}
+              autoComplete="off"
+              className={`${inputCls} pl-10 pr-9`}
             />
+            {keywordInput && (
+              <button
+                type="button"
+                onClick={() => setKeywordInput("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Xóa từ khóa"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <select
             value={filters.subject}
-            onChange={(event) => setFilters((prev) => ({ ...prev, subject: event.target.value }))}
+            onChange={(event) => updateFilter("subject", event.target.value)}
             className={inputCls}
           >
             <option value="">Tất cả môn học</option>
@@ -344,9 +366,6 @@ const AdminClassesPage = () => {
               <option key={subject} value={subject}>{subject}</option>
             ))}
           </select>
-          <Button type="submit" className="h-10 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#16304f]">
-            Lọc
-          </Button>
           <Button
             type="button"
             variant="outline"
@@ -356,7 +375,7 @@ const AdminClassesPage = () => {
             Xóa
           </Button>
         </div>
-      </form>
+      </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">

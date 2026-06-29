@@ -114,11 +114,16 @@ const AdminReviewsPage = () => {
     }
   }, [dispatch, selectedTutor, reviewPage]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setTutorPage(1);
-    setKeyword(searchInput.trim());
-  };
+  // Tự tìm sau khi ngừng gõ (debounce 400ms) — bỏ nút "Tìm", đồng bộ hành vi với bộ lọc client.
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    if (trimmed === keyword) return;
+    const timer = setTimeout(() => {
+      setTutorPage(1);
+      setKeyword(trimmed);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput, keyword]);
 
   const openTutorReviews = (tutor) => {
     setSelectedTutor(tutor);
@@ -287,21 +292,27 @@ const AdminReviewsPage = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSearch} className="mt-5 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Tìm gia sư theo tên..."
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
-            />
-          </div>
-          <Button type="submit" className="h-10 rounded-lg bg-[#1e3a5f] px-5 font-semibold text-white hover:bg-[#16304f]">
-            Tìm
-          </Button>
-        </form>
+        <div className="relative mt-5">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Tìm gia sư theo tên..."
+            autoComplete="off"
+            className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              aria-label="Xóa từ khóa"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
