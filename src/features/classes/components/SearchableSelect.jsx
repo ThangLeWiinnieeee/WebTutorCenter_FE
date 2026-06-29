@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn, normalizeForSearch } from '@/lib/utils';
 
 /** Large lists: show subset until user types (cheaper than mounting hundreds of controls). */
 const OPEN_FULL_RENDER_MAX = 90;
@@ -102,9 +102,9 @@ function SearchableSelect({
   }, [value, allValue, allLabel, options, placeholder]);
 
   const filteredOptions = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase();
+    const keyword = normalizeForSearch(searchKeyword);
     if (!keyword) return options;
-    return options.filter((item) => item.label.toLowerCase().includes(keyword));
+    return options.filter((item) => normalizeForSearch(item.label).includes(keyword));
   }, [options, searchKeyword]);
 
   const { rowItems, listHint } = useMemo(() => {

@@ -27,12 +27,12 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
     : value?.province || 0;
 
   useEffect(() => {
-    if (!currentProvince) {
-      setDistricts([]);
-      return;
-    }
     let cancelled = false;
     const load = async () => {
+      if (!currentProvince) {
+        if (!cancelled) setDistricts([]);
+        return;
+      }
       setLoadingDistricts(true);
       try {
         const res = await locationService.getDistricts(currentProvince);

@@ -61,11 +61,12 @@ export default function MyReviewsPage() {
               </div>
             </div>
 
-            {/* Danh sách đánh giá chi tiết */}
+            {/* Danh sách đánh giá chi tiết — gia sư có thể phản hồi (1 lần/đánh giá) */}
             {profile?.id && (
               <TutorReviewsSection
                 tutorId={profile.id}
                 initialSummary={{ averageRating, reviewCount }}
+                editable
               />
             )}
           </>

@@ -9,8 +9,16 @@ import TutorFilters from "@/features/tutors/components/TutorFilters";
 import TutorCard from "@/features/tutors/components/TutorCard";
 import TopTutorCard from "@/features/tutors/components/TopTutorCard";
 import TutorPagination from "@/features/tutors/components/TutorPagination";
-import lookupService from "@/features/tutors/services/lookupService";
+import locationService from "@/features/tutors/services/locationService";
+import useSubjects from "@/hooks/useSubjects";
+import { OCCUPATION_STATUS_OPTIONS } from "@/features/tutors/constants";
+import { GENDER_LABEL } from "@/constants/enums";
 import { searchTutorsThunk, getTopTutorsThisMonthThunk } from "@/features/tutors/store/tutorThunks";
+
+// Giới tính & nghề nghiệp là enum cố định: value = mã lưu trong DB (male/teacher…),
+// label = nhãn tiếng Việt. KHÔNG lấy từ lookup vì lookup trả nhãn tiếng Việt làm value
+// nên không khớp mã trong DB → lọc ra rỗng.
+const GENDER_OPTIONS = Object.entries(GENDER_LABEL).map(([value, label]) => ({ value, label }));
 
 const LIMIT = 10;
 const FILTER_KEYS = ["name", "subject", "occupationStatus", "gender", "yearOfBirth", "province", "district"];
@@ -55,10 +63,30 @@ export default function TutorListingPage() {
   const page = Number(searchParams.get("page")) || 1;
   const searchKey = searchParams.toString();
 
-  // Lookup data (tập trung tại page để dùng cho cả filter và chip)
-  const [lookups, setLookups] = useState({ subjects: [], occupations: [], genders: [], provinces: [] });
+  // Nguồn dữ liệu lọc, chọn đúng theo cách dữ liệu được lưu trên hồ sơ gia sư:
+  //  - Môn học: danh mục Subject (admin quản lý) — khớp tutor.subjects
+  //  - Tỉnh/quận: locationService (mã số) — khớp tutor.teachingAreas (lưu mã dạng số)
+  //  - Giới tính/nghề nghiệp: enum cố định (mã male/teacher…) — khớp DB
+  const { subjects: subjectNames } = useSubjects();
+  const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [loadingLookups, setLoadingLookups] = useState(true);
+
+  const subjectOptions = useMemo(
+    () => (subjectNames || []).map((name) => ({ value: name, label: name })),
+    [subjectNames]
+  );
+
+  // Gộp tất cả nguồn để truyền cho bộ lọc và resolve nhãn chip.
+  const lookupsForUI = useMemo(
+    () => ({
+      subjects: subjectOptions,
+      occupations: OCCUPATION_STATUS_OPTIONS,
+      genders: GENDER_OPTIONS,
+      provinces,
+    }),
+    [subjectOptions, provinces]
+  );
 
   useEffect(() => {
     dispatch(getTopTutorsThisMonthThunk(10));
@@ -69,15 +97,14 @@ export default function TutorListingPage() {
     (async () => {
       try {
         setLoadingLookups(true);
-        const [subjects, occupations, genders, provinces] = await Promise.all([
-          lookupService.getSubjects(),
-          lookupService.getOccupationStatuses(),
-          lookupService.getGenders(),
-          lookupService.getProvinces(),
-        ]);
-        if (!cancelled) setLookups({ subjects, occupations, genders, provinces });
+        const res = await locationService.getProvinces();
+        const list = (res.data?.data?.provinces || []).map((p) => ({
+          value: String(p.code),
+          label: p.name,
+        }));
+        if (!cancelled) setProvinces(list);
       } catch {
-        if (!cancelled) setLookups({ subjects: [], occupations: [], genders: [], provinces: [] });
+        if (!cancelled) setProvinces([]);
       } finally {
         if (!cancelled) setLoadingLookups(false);
       }
@@ -87,16 +114,20 @@ export default function TutorListingPage() {
     };
   }, []);
 
-  // Load districts khi đổi tỉnh
+  // Load districts khi đổi tỉnh (cùng nguồn locationService → khớp mã quận/huyện trên hồ sơ gia sư)
   useEffect(() => {
     if (!filters.province) {
       setDistricts([]);
       return;
     }
     let cancelled = false;
-    lookupService
-      .getDistrictsByProvince(filters.province)
-      .then((data) => !cancelled && setDistricts(data))
+    locationService
+      .getDistricts(filters.province)
+      .then((res) => {
+        if (!cancelled) {
+          setDistricts((res.data?.data?.districts || []).map((d) => ({ value: String(d.code), label: d.name })));
+        }
+      })
       .catch(() => !cancelled && setDistricts([]));
     return () => {
       cancelled = true;
@@ -139,15 +170,15 @@ export default function TutorListingPage() {
   const activeChips = useMemo(() => {
     const chips = [];
     if (filters.name) chips.push({ key: "name", label: `Tên: ${filters.name}` });
-    if (filters.subject) chips.push({ key: "subject", label: `Môn: ${labelFor(lookups.subjects, filters.subject)}` });
+    if (filters.subject) chips.push({ key: "subject", label: `Môn: ${labelFor(lookupsForUI.subjects, filters.subject)}` });
     if (filters.occupationStatus)
-      chips.push({ key: "occupationStatus", label: `Chuyên môn: ${labelFor(lookups.occupations, filters.occupationStatus)}` });
-    if (filters.gender) chips.push({ key: "gender", label: `Giới tính: ${labelFor(lookups.genders, filters.gender)}` });
+      chips.push({ key: "occupationStatus", label: `Chuyên môn: ${labelFor(lookupsForUI.occupations, filters.occupationStatus)}` });
+    if (filters.gender) chips.push({ key: "gender", label: `Giới tính: ${labelFor(lookupsForUI.genders, filters.gender)}` });
     if (filters.yearOfBirth) chips.push({ key: "yearOfBirth", label: `Năm sinh: ${filters.yearOfBirth}` });
-    if (filters.province) chips.push({ key: "province", label: `Tỉnh/Thành: ${labelFor(lookups.provinces, filters.province)}` });
+    if (filters.province) chips.push({ key: "province", label: `Tỉnh/Thành: ${labelFor(lookupsForUI.provinces, filters.province)}` });
     if (filters.district) chips.push({ key: "district", label: `Quận/Huyện: ${labelFor(districts, filters.district)}` });
     return chips;
-  }, [filters, lookups, districts]);
+  }, [filters, lookupsForUI, districts]);
 
   const hasActiveFilters = activeChips.length > 0;
 
@@ -177,7 +208,7 @@ export default function TutorListingPage() {
         <TutorFilters
           filters={filters}
           onFilterChange={handleFilterChange}
-          lookups={lookups}
+          lookups={lookupsForUI}
           districts={districts}
           loading={loadingLookups}
         />

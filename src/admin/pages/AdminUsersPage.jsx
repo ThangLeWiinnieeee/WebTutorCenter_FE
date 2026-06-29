@@ -193,9 +193,15 @@ const EditUserModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
   const [role, setRole] = useState(user?.role || "user");
   const canEditRole = !isSelf && user?.role !== "tutor";
 
+  // Đồng bộ vai trò khi đổi user được chọn — điều chỉnh state trong render (không qua effect).
+  const [prevUserId, setPrevUserId] = useState(user?.id);
+  if (user?.id !== prevUserId) {
+    setPrevUserId(user?.id);
+    setRole(user?.role || "user");
+  }
+
   useEffect(() => {
     form.reset(getUserFormValues(user));
-    setRole(user?.role || "user");
   }, [form, user]);
 
   const errors = form.formState.errors;

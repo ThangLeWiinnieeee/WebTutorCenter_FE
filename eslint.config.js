@@ -23,7 +23,17 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Bỏ qua biến/tham số kiểu component (PascalCase) — vd `{ icon: Icon }` chỉ dùng làm
+      // tên phần tử JSX (<Icon/>), không được core no-unused-vars tính là "đã dùng".
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+  {
+    // File shadcn/ui cố tình export thêm biến thể/helper cạnh component (buttonVariants,
+    // useFormField…). Đây là quy ước chuẩn của shadcn → tắt cảnh báo fast-refresh ở đây.
+    files: ['src/components/ui/**/*.{js,jsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

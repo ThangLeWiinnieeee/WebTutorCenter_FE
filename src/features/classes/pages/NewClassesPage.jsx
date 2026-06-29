@@ -48,6 +48,7 @@ import useAuth from '@/features/auth/hooks/useAuth';
 import locationService from '@/features/tutors/services/locationService';
 import tutorService from '@/features/tutors/services/tutorService';
 import { hasCompleteTutorDocuments } from '@/features/tutors/utils/tutorDocuments';
+import { normalizeForSearch } from '@/lib/utils';
 
 const NewClassesPage = () => {
   const dispatch = useDispatch();
@@ -70,8 +71,9 @@ const NewClassesPage = () => {
   const ALL_DISTRICTS_VALUE = "__all_districts__";
   const normalizedSubjectFilter = useMemo(() => {
     if (!filters.subject) return "";
-    const currentSubject = filters.subject.trim().toLowerCase();
-    const matchedSubject = subjects.find((item) => item.toLowerCase() === currentSubject);
+    // So khớp không dấu + không phân biệt hoa/thường để "toan" cũng ra môn "Toán"
+    const target = normalizeForSearch(filters.subject);
+    const matchedSubject = subjects.find((item) => normalizeForSearch(item) === target);
     return matchedSubject || filters.subject;
   }, [filters.subject, subjects]);
 
@@ -477,8 +479,8 @@ const NewClassesPage = () => {
                 </div>
               </div>
 
-              {/* Mô tả: ẩn trên điện thoại cho gọn */}
-              <div className="mt-4 hidden rounded-xl border border-slate-100 bg-slate-50 p-4 sm:block">
+              {/* Mô tả: ẩn trên điện thoại cho gọn. Chừa lề phải cho ô phí nổi để không bị đè (sm:mr) */}
+              <div className="mt-4 hidden rounded-xl border border-slate-100 bg-slate-50 p-4 sm:mr-[244px] sm:block">
                 <p className="line-clamp-2 text-sm leading-relaxed text-slate-700">
                   {item.description || "Chưa có mô tả chi tiết cho lớp học này."}
                 </p>
