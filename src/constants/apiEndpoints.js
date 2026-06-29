@@ -111,6 +111,7 @@ const API_ENDPOINTS = {
   REVIEWS: {
     CREATE: "/reviews",
     BY_TUTOR: (tutorId) => `/reviews/tutor/${tutorId}`,
+    REPLY: (id) => `/reviews/${id}/reply`,
   },
   CHAT: {
     // Gia sư — cuộc trò chuyện duy nhất với admin

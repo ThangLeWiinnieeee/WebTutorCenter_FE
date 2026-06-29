@@ -13,3 +13,16 @@ export const createReviewThunk = createAsyncThunk(
     }
   }
 );
+
+// Gia sư phản hồi một đánh giá của chính mình (chỉ 1 lần)
+export const replyToReviewThunk = createAsyncThunk(
+  "reviews/reply",
+  async ({ reviewId, comment }, { rejectWithValue }) => {
+    try {
+      const res = await reviewService.replyToReview(reviewId, { comment });
+      return res.data.data; // { review }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Gửi phản hồi thất bại");
+    }
+  }
+);

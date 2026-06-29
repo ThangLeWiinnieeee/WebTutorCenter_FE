@@ -1,4 +1,5 @@
 import { createElement, useEffect, useMemo, useState } from "react";
+import { normalizeForSearch } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BookOpen,
@@ -588,13 +589,13 @@ const ClassApplicationsPage = () => {
   };
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = normalizeForSearch(searchQuery);
     if (!q) return classApplications;
     return classApplications.filter(
       (a) =>
-        a.classItem?.classCode?.toLowerCase().includes(q) ||
-        a.tutor?.fullName?.toLowerCase().includes(q) ||
-        a.classItem?.subject?.toLowerCase().includes(q)
+        normalizeForSearch(a.classItem?.classCode).includes(q) ||
+        normalizeForSearch(a.tutor?.fullName).includes(q) ||
+        normalizeForSearch(a.classItem?.subject).includes(q)
     );
   }, [classApplications, searchQuery]);
 

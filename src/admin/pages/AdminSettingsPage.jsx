@@ -13,11 +13,10 @@ const AdminSettingsPage = () => {
     facebookLink: "",
     zaloLink: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
     settingsService
       .getFooter()
       .then((res) => {

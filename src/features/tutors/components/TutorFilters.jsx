@@ -1,23 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Filter, Search, X } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 
-const SelectField = ({ label, value, onChange, disabled, placeholder, children }) => (
-  <div>
-    <label className="mb-1.5 block text-xs font-semibold text-slate-600">{label}</label>
-    <div className="relative">
-      <select
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-      >
-        <option value="">{placeholder}</option>
-        {children}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-    </div>
-  </div>
-);
+import SearchableSelect from "@/features/classes/components/SearchableSelect";
+
+// Giá trị nội bộ cho lựa chọn "Tất cả" (rỗng) trong SearchableSelect.
+const ALL = "__all__";
 
 export default function TutorFilters({
   filters = {},
@@ -30,7 +17,7 @@ export default function TutorFilters({
 
   const update = (key, value) => {
     const next = { ...filters };
-    if (value === undefined || value === "" || value === null) delete next[key];
+    if (value === undefined || value === "" || value === null || value === ALL) delete next[key];
     else next[key] = value;
     if (key === "province") delete next.district; // đổi tỉnh thì bỏ quận/huyện cũ
     onFilterChange(next);
@@ -74,6 +61,9 @@ export default function TutorFilters({
     );
   }
 
+  const triggerClass =
+    "h-11 rounded-lg border-slate-200 text-sm text-slate-700 focus-visible:ring-emerald-200";
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
@@ -107,50 +97,66 @@ export default function TutorFilters({
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             placeholder="Tìm theo tên gia sư..."
-            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+            autoComplete="off"
+            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
           />
+          {nameInput && (
+            <button
+              type="button"
+              onClick={() => setNameInput("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <SelectField
-          label="Môn học"
-          value={filters.subject || ""}
-          onChange={(e) => update("subject", e.target.value || undefined)}
-          placeholder="Tất cả môn học"
-        >
-          {subjects.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Môn học</label>
+          <SearchableSelect
+            value={filters.subject || ALL}
+            onValueChange={(v) => update("subject", v)}
+            placeholder="Tất cả môn học"
+            allValue={ALL}
+            allLabel="Tất cả môn học"
+            options={subjects}
+            searchPlaceholder="Tìm môn học..."
+            emptyText="Không có môn học"
+            triggerClassName={triggerClass}
+          />
+        </div>
 
-        <SelectField
-          label="Chuyên môn"
-          value={filters.occupationStatus || ""}
-          onChange={(e) => update("occupationStatus", e.target.value || undefined)}
-          placeholder="Tất cả"
-        >
-          {occupations.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Chuyên môn</label>
+          <SearchableSelect
+            value={filters.occupationStatus || ALL}
+            onValueChange={(v) => update("occupationStatus", v)}
+            placeholder="Tất cả"
+            allValue={ALL}
+            allLabel="Tất cả"
+            options={occupations}
+            searchPlaceholder="Tìm..."
+            emptyText="Không có dữ liệu"
+            triggerClassName={triggerClass}
+          />
+        </div>
 
-        <SelectField
-          label="Giới tính"
-          value={filters.gender || ""}
-          onChange={(e) => update("gender", e.target.value || undefined)}
-          placeholder="Tất cả"
-        >
-          {genders.map((g) => (
-            <option key={g.value} value={g.value}>
-              {g.label}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Giới tính</label>
+          <SearchableSelect
+            value={filters.gender || ALL}
+            onValueChange={(v) => update("gender", v)}
+            placeholder="Tất cả"
+            allValue={ALL}
+            allLabel="Tất cả"
+            options={genders}
+            searchPlaceholder="Tìm..."
+            emptyText="Không có dữ liệu"
+            triggerClassName={triggerClass}
+          />
+        </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-slate-600">Năm sinh</label>
@@ -165,32 +171,36 @@ export default function TutorFilters({
           />
         </div>
 
-        <SelectField
-          label="Tỉnh/Thành"
-          value={filters.province || ""}
-          onChange={(e) => update("province", e.target.value || undefined)}
-          placeholder="Chọn tỉnh/thành phố"
-        >
-          {provinces.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Tỉnh/Thành</label>
+          <SearchableSelect
+            value={filters.province || ALL}
+            onValueChange={(v) => update("province", v)}
+            placeholder="Chọn tỉnh/thành phố"
+            allValue={ALL}
+            allLabel="Tất cả tỉnh/thành"
+            options={provinces}
+            searchPlaceholder="Tìm tỉnh/thành..."
+            emptyText="Không tìm thấy khu vực"
+            triggerClassName={triggerClass}
+          />
+        </div>
 
-        <SelectField
-          label="Quận/Huyện"
-          value={filters.district || ""}
-          onChange={(e) => update("district", e.target.value || undefined)}
-          disabled={!filters.province}
-          placeholder={filters.province ? "Chọn quận/huyện" : "Chọn tỉnh trước"}
-        >
-          {districts.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Quận/Huyện</label>
+          <SearchableSelect
+            value={filters.district || ALL}
+            onValueChange={(v) => update("district", v)}
+            placeholder={filters.province ? "Chọn quận/huyện" : "Chọn tỉnh trước"}
+            allValue={ALL}
+            allLabel="Tất cả quận/huyện"
+            options={districts}
+            searchPlaceholder="Tìm quận/huyện..."
+            emptyText="Không tìm thấy quận/huyện"
+            disabled={!filters.province}
+            triggerClassName={triggerClass}
+          />
+        </div>
       </div>
     </div>
   );

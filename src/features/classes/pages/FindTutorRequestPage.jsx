@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   SunMedium,
   Sunset,
+  Ticket,
   Trash2,
   UserRound,
   Users,
@@ -73,6 +74,7 @@ import {
   saveClassRequestFormDraft,
 } from '@/features/classes/utils/classRequestFormDraftStorage';
 import locationService from '@/features/tutors/services/locationService';
+import { fetchMyVouchersThunk } from '@/features/vouchers/store/voucherThunks';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -585,7 +587,31 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoChecking, setPromoChecking] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const [showPromoList, setShowPromoList] = useState(false);
+  const promoBoxRef = useRef(null);
   const promoCodeValue = useWatch({ control: form.control, name: 'promoCode' });
+  const myVouchers = useSelector((state) => state.vouchers.items);
+  const activeVouchers = useMemo(
+    () => (myVouchers || []).filter((v) => v.status === 'active'),
+    [myVouchers],
+  );
+
+  // Lấy kho voucher cá nhân để gợi ý ngay khi ấn vào ô mã ưu đãi
+  useEffect(() => {
+    dispatch(fetchMyVouchersThunk({ page: 1, limit: 50 }));
+  }, [dispatch]);
+
+  // Đóng danh sách gợi ý khi bấm ra ngoài
+  useEffect(() => {
+    if (!showPromoList) return;
+    const onClickOutside = (e) => {
+      if (promoBoxRef.current && !promoBoxRef.current.contains(e.target)) {
+        setShowPromoList(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [showPromoList]);
 
   // Quay lại sửa (quote=null) hoặc đổi mã -> bỏ trạng thái đã áp dụng
   useEffect(() => {
@@ -601,8 +627,8 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     }
   }, [promoCodeValue, appliedPromo]);
 
-  const handleApplyPromo = async () => {
-    const code = (form.getValues('promoCode') || "").trim();
+  const handleApplyPromo = async (overrideCode) => {
+    const code = (overrideCode ?? form.getValues('promoCode') ?? "").trim();
     if (!code) {
       setPromoError("Vui lòng nhập mã ưu đãi");
       return;
@@ -618,6 +644,12 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     } finally {
       setPromoChecking(false);
     }
+  };
+
+  const handleSelectVoucher = (voucher) => {
+    setShowPromoList(false);
+    form.setValue('promoCode', voucher.code, { shouldValidate: true });
+    handleApplyPromo(voucher.code);
   };
 
   const handleRemovePromo = () => {
@@ -1303,13 +1335,41 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                 </div>
                 <div className="mt-4 rounded-2xl border border-emerald-100 bg-white p-5">
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Mã ưu đãi (nếu có)</label>
-                  <div className="flex gap-2">
+                  <div ref={promoBoxRef} className="relative flex gap-2">
                     <Input
                       className="h-11 flex-1 rounded-xl border-slate-200 uppercase focus-visible:ring-emerald-200 disabled:opacity-70"
                       placeholder="Nhập mã ưu đãi"
                       disabled={Boolean(appliedPromo)}
+                      autoComplete="off"
                       {...form.register("promoCode")}
+                      onFocus={() => setShowPromoList(true)}
                     />
+                    {showPromoList && !appliedPromo && activeVouchers.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
+                        <p className="px-2 py-1.5 text-xs font-medium text-slate-400">Mã giảm giá của bạn</p>
+                        {activeVouchers.map((voucher) => (
+                          <button
+                            key={voucher.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSelectVoucher(voucher)}
+                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-emerald-50"
+                          >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                              <Ticket className="h-4 w-4" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block font-mono text-sm font-bold tracking-wider text-slate-900">{voucher.code}</span>
+                              <span className="block text-xs font-medium text-emerald-700">
+                                {voucher.discountType === "percent"
+                                  ? `Giảm ${voucher.discountValue}%${voucher.maxDiscountAmount ? ` (tối đa ${formatPrice(voucher.maxDiscountAmount)})` : ""}`
+                                  : `Giảm ${formatPrice(voucher.discountValue)}`}
+                              </span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {appliedPromo ? (
                       <Button
                         type="button"
@@ -1323,7 +1383,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                       <Button
                         type="button"
                         className="h-11 rounded-xl bg-slate-800 px-5 font-semibold text-white hover:bg-slate-900"
-                        onClick={handleApplyPromo}
+                        onClick={() => handleApplyPromo()}
                         disabled={promoChecking}
                       >
                         {promoChecking ? "Đang kiểm tra..." : "Áp dụng"}

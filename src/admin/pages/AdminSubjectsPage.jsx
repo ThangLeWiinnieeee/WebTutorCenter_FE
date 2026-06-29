@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { normalizeForSearch } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -148,17 +149,16 @@ const AdminSubjectsPage = () => {
   }, [dispatch]);
 
   const filtered = useMemo(() => {
-    const kw = keyword.trim().toLowerCase();
+    const kw = normalizeForSearch(keyword);
     if (!kw) return subjects;
-    return subjects.filter((s) => s.name.toLowerCase().includes(kw));
+    return subjects.filter((s) => normalizeForSearch(s.name).includes(kw));
   }, [subjects, keyword]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
-  // Giữ trang hiện tại hợp lệ khi danh sách đã lọc thu nhỏ lại.
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+  // Giữ trang hiện tại hợp lệ khi danh sách đã lọc thu nhỏ lại — điều chỉnh ngay trong
+  // render (mẫu "adjust state during render" của React), không dùng effect.
+  if (page > totalPages) setPage(totalPages);
 
   const paged = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
