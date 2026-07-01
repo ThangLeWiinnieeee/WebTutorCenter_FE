@@ -52,8 +52,12 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message;
 
+    // Nếu chính request refresh bị 401 → phiên hết hạn thật sự, không thử refresh tiếp
+    // (tránh deadlock: refresh fail lại rơi vào hàng đợi và treo vô hạn → spinner quay mãi)
+    const isRefreshCall = originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
+
     // Tự động refresh token khi nhận 401 và người dùng đang đăng nhập
-    if (status === 401 && !originalRequest._retry && tokenStorage.get()) {
+    if (status === 401 && !originalRequest._retry && !isRefreshCall && tokenStorage.get()) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           pendingRequests.push({ resolve, reject });

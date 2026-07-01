@@ -7,9 +7,6 @@ export { default as ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 export { default as VerifyForgotPasswordOtpPage } from "./pages/VerifyForgotPasswordOtpPage";
 export { default as ResetPasswordPage } from "./pages/ResetPasswordPage";
 
-// Hooks
-export { default as useAuth } from "./hooks/useAuth";
-
 // Store
 export { default as authReducer } from "./store/authSlice";
 export * from "./store/authSlice";

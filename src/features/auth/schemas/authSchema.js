@@ -59,14 +59,6 @@ export const forgotPasswordSchema = z.object({
     .email("Thư điện tử không hợp lệ"),
 });
 
-export const verifyForgotPasswordOtpSchema = z.object({
-  otp: z
-    .string()
-    .min(1, "Mã OTP không được để trống")
-    .length(6, "Mã OTP phải có đúng 6 chữ số")
-    .regex(/^\d+$/, "Mã OTP chỉ gồm các chữ số"),
-});
-
 export const resetPasswordSchema = z
   .object({
     newPassword: z

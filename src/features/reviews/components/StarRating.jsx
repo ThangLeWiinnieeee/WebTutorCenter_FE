@@ -76,5 +76,3 @@ export function StarRatingInput({ value = 0, onChange, size = 36, disabled = fal
     </div>
   );
 }
-
-export default StarRating;

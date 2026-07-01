@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { tutorSchema } from "@/features/tutors/schemas/tutorSchema";
 import { scrollToFirstError } from "@/lib/formErrors";
 import { registerTutorThunk } from "@/features/tutors/store/tutorThunks";
+import { fetchNotificationsThunk } from "@/features/notifications/store/notificationThunks";
 import { OCCUPATION_STATUS_OPTIONS } from "@/features/tutors/constants";
 import useSubjects from "@/hooks/useSubjects";
 
@@ -86,7 +87,6 @@ const TutorRegistrationForm = ({ onSuccess }) => {
     }
     const result = await dispatch(registerTutorThunk(data));
     if (!result.error) {
-      const { fetchNotificationsThunk } = await import("@/features/notifications/store/notificationThunks");
       dispatch(fetchNotificationsThunk());
       toast.success("Đăng ký thành công! Vui lòng chờ admin xét duyệt.");
       onSuccess?.();

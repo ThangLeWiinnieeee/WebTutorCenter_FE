@@ -19,7 +19,6 @@ const adminService = {
   rejectClassApplication: (id, rejectionReason) =>
     axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_REJECT(id), { rejectionReason }),
   getAdminClasses: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASSES, { params }),
-  getAdminClassDetail: (id) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_DETAIL(id)),
   deleteAdminClass: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.CLASS_DELETE(id)),
   getTrashCounts: () => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_COUNTS),
   getTrashItems: (type, params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_LIST(type), { params }),

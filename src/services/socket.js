@@ -1,11 +1,13 @@
 import { io } from "socket.io-client";
 import tokenStorage from "@/utils/tokenStorage";
 
-// URL server socket = base API bỏ hậu tố "/api".
-const SOCKET_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5002/api").replace(
-  /\/api\/?$/,
-  ""
-);
+// URL server socket. Ưu tiên VITE_SOCKET_URL: khi FE gọi API qua proxy nội bộ ("/api" tương đối)
+// thì KHÔNG suy ra được host socket từ VITE_API_BASE_URL nữa, nên phải trỏ thẳng BE ở đây
+// (vd https://<app>.onrender.com). Fallback: suy từ VITE_API_BASE_URL bằng cách bỏ hậu tố "/api"
+// (dùng cho localhost hoặc khi FE gọi API trực tiếp cùng host với socket).
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  (import.meta.env.VITE_API_BASE_URL || "http://localhost:5002/api").replace(/\/api\/?$/, "");
 
 let socket = null;
 

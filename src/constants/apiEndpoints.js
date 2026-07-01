@@ -40,7 +40,6 @@ const API_ENDPOINTS = {
     CLASS_APPLICATION_APPROVE: (id) => `/admin/class-applications/${id}/approve`,
     CLASS_APPLICATION_REJECT: (id) => `/admin/class-applications/${id}/reject`,
     CLASSES: "/admin/classes",
-    CLASS_DETAIL: (id) => `/admin/classes/${id}`,
     CLASS_DELETE: (id) => `/admin/classes/${id}`,
     TRASH_COUNTS: "/admin/trash/counts",
     TRASH_LIST: (type) => `/admin/trash/${type}`,

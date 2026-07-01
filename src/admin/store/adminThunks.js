@@ -178,18 +178,6 @@ export const getAdminClassesThunk = createAsyncThunk(
   }
 );
 
-export const getAdminClassDetailThunk = createAsyncThunk(
-  "admin/getClassDetail",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getAdminClassDetail(id);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được chi tiết bài đăng");
-    }
-  }
-);
-
 export const deleteAdminClassThunk = createAsyncThunk(
   "admin/deleteClass",
   async (id, { rejectWithValue }) => {
