@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
-import VerifyOtpForm from "@/features/auth/components/register/VerifyOtpForm";
+import VerifyOtpForm from "@/features/auth/components/VerifyOtpForm";
 import {
   forgotPasswordThunk,
   verifyForgotPasswordOtpThunk,

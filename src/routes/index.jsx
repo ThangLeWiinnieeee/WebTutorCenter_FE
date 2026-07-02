@@ -14,6 +14,7 @@ import {
   MyClassesPage,
   MyPostsPage,
   ClassInvitationsPage,
+  ContractTemplatePage,
 } from "@/features/classes";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
       { path: "/find-tutor", element: <FindTutorRequestPage /> },
       { path: "/classes", element: <NewClassesPage /> },
       { path: "/classes/:id", element: <NewClassDetailPage /> },
+      { path: "/hop-dong-mau", element: <ContractTemplatePage /> },
     ],
   },
 

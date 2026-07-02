@@ -9,27 +9,15 @@ import {
 import {
   BookOpenCheck,
   CalendarCheck,
-  CalendarDays,
   Check,
   CheckCircle2,
-  ChevronDown,
   CircleAlert,
-  Clock3,
-  Copy,
-  GraduationCap,
-  Lightbulb,
   Loader2,
-  MapPinHouse,
   PhoneCall,
-  Plus,
   ShieldCheck,
-  SunMedium,
-  Sunset,
   Ticket,
-  Trash2,
   UserRound,
   Users,
-  Zap,
 } from 'lucide-react';
 import {
   Controller,
@@ -45,18 +33,22 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import BookingProgressHeader from '@/features/classes/components/findTutorRequest/BookingProgressHeader';
+import BookingSummaryAsideCard from '@/features/classes/components/findTutorRequest/BookingSummaryAsideCard';
+import CustomDateField from '@/features/classes/components/findTutorRequest/CustomDateField';
+import CustomMinutesField from '@/features/classes/components/findTutorRequest/CustomMinutesField';
+import DescriptionLengthCounter from '@/features/classes/components/findTutorRequest/DescriptionLengthCounter';
+import SchedulePreviewCard from '@/features/classes/components/findTutorRequest/SchedulePreviewCard';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import WeeklyHourGrid from '@/features/classes/components/WeeklyHourGrid';
 import tutorService from '@/features/tutors/services/tutorService';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   buildClassRequestSchema,
   getDefaultClassRequestValues,
-  getTodayIsoDateLocal,
 } from '@/features/classes/schemas/classRequestSchema';
 import { scrollToFirstError } from '@/lib/formErrors';
 import classService from '@/features/classes/services/classService';
+import { TUTOR_GENDER_PREF_LABEL, TUTOR_LEVEL_PREF_LABEL } from '@/features/classes/constants';
 import { clearClassFlow } from '@/features/classes/store/classSlice';
 import {
   createClassThunk,
@@ -64,10 +56,8 @@ import {
   quoteClassThunk,
   updateClassThunk,
 } from '@/features/classes/store/classThunks';
-import {
-  formatDate,
-  formatPrice,
-} from '@/features/classes/utils/classFormatters';
+import { formatPrice } from '@/features/classes/utils/classFormatters';
+import { mapClassToFormValues } from '@/features/classes/utils/classRequestDateUtils';
 import {
   clearClassRequestFormDraft,
   loadClassRequestFormDraft,
@@ -82,445 +72,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 // Map tình trạng nghề nghiệp gia sư → mức trình độ bài đăng yêu cầu (đồng bộ với BE).
 const OCCUPATION_TO_LEVEL_PREF = { student: 'student', graduated: 'teacher', teacher: 'teacher' };
-const TUTOR_GENDER_PREF_LABEL = { any: 'Không yêu cầu', male: 'Nam', female: 'Nữ' };
-const TUTOR_LEVEL_PREF_LABEL = { any: 'Không yêu cầu', student: 'Sinh viên', teacher: 'Giáo viên' };
-
-const BOOKING_PROGRESS_FIELD_NAMES = [
-  'contactPhone',
-  'subject',
-  'summary',
-  'provinceCode',
-  'districtCode',
-  'locationLabel',
-  'studentCount',
-  'startDate',
-  'minutesPerSession',
-  'sessionsPerWeek',
-  'studentGender',
-  'availabilitySlots',
-  'tutorGenderPref',
-  'tutorLevelPref',
-  'description',
-];
-
-const BookingProgressHeader = ({ control, isEdit = false }) => {
-  const watched = useWatch({ control, name: BOOKING_PROGRESS_FIELD_NAMES }) || [];
-  const [
-    contactPhone,
-    subject,
-    summary,
-    provinceCode,
-    districtCode,
-    locationLabel,
-    studentCount,
-    startDate,
-    minutesPerSession,
-    sessionsPerWeek,
-    studentGender,
-    availabilitySlots,
-    tutorGenderPref,
-    tutorLevelPref,
-    description,
-  ] = watched;
-
-  // Section 1: Thông tin lớp học (6 fields)
-  const s1Fields = [
-    !!contactPhone && /^(84|0)(3|5|7|8|9)[0-9]{8}$/.test(contactPhone),
-    !!subject,
-    !!summary && summary.trim().length >= 10,
-    !!provinceCode && Number(provinceCode) > 0,
-    !!districtCode && Number(districtCode) > 0,
-    !!locationLabel && locationLabel.trim().length >= 3,
-  ];
-  const s1Filled = s1Fields.filter(Boolean).length;
-  const s1Progress = Math.round((s1Filled / 6) * 100);
-
-  // Section 2: Lịch học (6 fields)
-  const s2Fields = [
-    !!studentCount && Number(studentCount) >= 1,
-    !!startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate),
-    !!minutesPerSession && Number(minutesPerSession) > 0,
-    !!sessionsPerWeek && Number(sessionsPerWeek) >= 1,
-    ['male', 'female', 'other'].includes(studentGender),
-    Array.isArray(availabilitySlots) && availabilitySlots.length >= 1,
-  ];
-  const s2Filled = s2Fields.filter(Boolean).length;
-  const s2Progress = Math.round((s2Filled / 6) * 100);
-
-  // Section 3: Yêu cầu gia sư (2 fields)
-  const s3Fields = [
-    ['male', 'female', 'other', 'any'].includes(tutorGenderPref),
-    ['student', 'teacher', 'any'].includes(tutorLevelPref),
-  ];
-  const s3Filled = s3Fields.filter(Boolean).length;
-  const s3Progress = Math.round((s3Filled / 2) * 100);
-
-  // Section 5: Mô tả chi tiết (1 field)
-  const s5Fields = [
-    !!description && description.trim().length >= 20,
-  ];
-  const s5Filled = s5Fields.filter(Boolean).length;
-  const s5Progress = Math.round((s5Filled / 1) * 100);
-
-  // Total Progress
-  const totalFilled = s1Filled + s2Filled + s3Filled + s5Filled;
-  const totalFields = 15;
-  const progress = Math.round((totalFilled / totalFields) * 100);
-
-  const sectionsInfo = [
-    { label: '1. Thông tin lớp', progress: s1Progress },
-    { label: '2. Lịch học', progress: s2Progress },
-    { label: '3. Yêu cầu gia sư', progress: s3Progress },
-    { label: '4. Mô tả chi tiết', progress: s5Progress },
-    { label: '5. Xác nhận', progress: progress === 100 ? 100 : 0 },
-  ];
-
-  return (
-    <section className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8">
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-            {isEdit ? "Chỉnh sửa bài đăng tìm gia sư" : "Tìm gia sư phù hợp cho con bạn"}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-500 md:text-base">
-            {isEdit
-              ? "Cập nhật thông tin lớp học. Học phí sẽ được tính lại tự động khi bạn lưu."
-              : "Cung cấp càng rõ thông tin lớp học, hệ thống càng ghép gia sư nhanh và chính xác."}
-          </p>
-        </div>
-        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 min-w-[150px] text-center md:text-left">
-          <p className="font-semibold text-xs uppercase tracking-wider text-slate-500">Tiến độ tổng thể</p>
-          <p className="text-3xl font-extrabold text-emerald-700 mt-1">{progress}%</p>
-        </div>
-      </div>
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
-        {sectionsInfo.map((item) => {
-          const isComplete = item.progress === 100;
-          const isStarted = item.progress > 0;
-          return (
-            <div
-              key={item.label}
-              className={cn(
-                "rounded-xl p-3 text-center border font-medium transition-all duration-300 flex flex-col justify-between gap-1 shadow-sm",
-                isComplete
-                  ? "bg-emerald-50/70 border-emerald-250 text-emerald-800"
-                  : isStarted
-                  ? "bg-amber-50/70 border-amber-250 text-amber-800"
-                  : "bg-slate-50/60 border-slate-200/50 text-slate-400"
-              )}
-            >
-              <span className="font-semibold text-slate-750">{item.label}</span>
-              <span className={cn(
-                "text-[10px] font-bold mt-1.5",
-                isComplete ? "text-emerald-600" : isStarted ? "text-amber-600" : "text-slate-450"
-              )}>
-                {isComplete ? "✓ Hoàn thành" : isStarted ? `Đang điền (${item.progress}%)` : "Chưa bắt đầu"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-};
-
-const SchedulePreviewCard = ({ control }) => {
-  const watched = useWatch({
-    control,
-    name: ['studentCount', 'sessionsPerWeek', 'minutesPerSession', 'startDate'],
-  }) || [];
-  const [studentCount, sessionsPerWeek, minutesPerSession, startDateVal] = watched;
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 p-5 shadow-inner">
-      <div className="relative z-[1]">
-        <p className="text-sm font-bold text-emerald-950">Lịch học dự kiến</p>
-        <ul className="mt-4 space-y-3 text-sm">
-          <li className="flex items-center gap-2.5 text-slate-700">
-            <Users className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>{studentCount || 1} học viên</span>
-          </li>
-          <li className="flex items-center gap-2.5 text-slate-700">
-            <CalendarDays className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>{sessionsPerWeek || 1} buổi / tuần</span>
-          </li>
-          <li className="flex items-center gap-2.5 text-slate-700">
-            <Clock3 className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>{minutesPerSession || 90} phút / buổi</span>
-          </li>
-          <li className="flex items-center gap-2.5 text-slate-700">
-            <SunMedium className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>
-              Bắt đầu:{' '}
-              {startDateVal && formatDdMmYyyyUi(startDateVal)
-                ? formatDdMmYyyyUi(startDateVal)
-                : '—'}
-            </span>
-          </li>
-        </ul>
-      </div>
-      <div className="pointer-events-none absolute -bottom-6 -right-4 flex opacity-70">
-        <CalendarDays className="h-24 w-24 text-emerald-200/90" strokeWidth={1} />
-        <Clock3 className="-ml-4 mt-4 h-20 w-20 text-teal-200/80" strokeWidth={1} />
-      </div>
-    </div>
-  );
-};
-
-const DescriptionLengthCounter = ({ control }) => {
-  const description = useWatch({ control, name: 'description' });
-  const len = description != null && description !== '' ? String(description).length : 0;
-  return <span>{len}/2000</span>;
-};
-
-const BookingSummaryAsideCard = ({ control, provinces, districts, quote }) => {
-  const watched =
-    useWatch({
-      control,
-      name: [
-        'subject',
-        'provinceCode',
-        'districtCode',
-        'availabilitySlots',
-        'studentCount',
-        'tutorLevelPref',
-        'startDate',
-      ],
-    }) || [];
-  const [subject, provinceCodeW, districtCodeW, availabilitySlots, studentCountW, tutorLevelPref, startDateW] = watched;
-
-  const selectedProvince = provinces.find((item) => item.code === provinceCodeW);
-  const selectedDistrict = districts.find((item) => item.code === districtCodeW);
-  const estimatedTutorMatches = Math.max(
-    3,
-    24 - (availabilitySlots?.length || 0) + (tutorLevelPref === 'any' ? 4 : 0),
-  );
-
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Tóm tắt yêu cầu trực tiếp</h3>
-      <div className="space-y-3 text-sm">
-        <p className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
-          <span className="flex items-center gap-2 text-slate-500"><BookOpenCheck className="h-4 w-4" /> Môn học</span>
-          <span className="text-right font-semibold text-slate-800">{subject || 'Chưa chọn'}</span>
-        </p>
-        <p className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
-          <span className="flex items-center gap-2 text-slate-500"><MapPinHouse className="h-4 w-4" /> Khu vực</span>
-          <span className="text-right font-semibold text-slate-800">
-            {selectedDistrict?.name && selectedProvince?.name
-              ? `${selectedDistrict.name}, ${selectedProvince.name}`
-              : 'Chưa chọn'}
-          </span>
-        </p>
-        <p className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
-          <span className="flex items-center gap-2 text-slate-500"><CalendarDays className="h-4 w-4" /> Lịch học</span>
-          <span className="text-right font-semibold text-slate-800">
-            {availabilitySlots?.length || 0} khung giờ/tuần
-          </span>
-        </p>
-        <p className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
-          <span className="flex items-center gap-2 text-slate-500"><Users className="h-4 w-4" /> Học viên</span>
-          <span className="text-right font-semibold text-slate-800">{studentCountW || 0} học viên</span>
-        </p>
-        <p className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
-          <span className="flex items-center gap-2 text-slate-500"><GraduationCap className="h-4 w-4" /> Yêu cầu gia sư</span>
-          <span className="text-right font-semibold text-slate-800">
-            {tutorLevelPref === 'teacher' ? 'Giáo viên' : tutorLevelPref === 'student' ? 'Sinh viên' : 'Không yêu cầu'}
-          </span>
-        </p>
-        <p className="flex items-start justify-between gap-3">
-          <span className="text-slate-500">Ngày bắt đầu</span>
-          <span className="text-right font-semibold text-slate-800">{formatDate(startDateW)}</span>
-        </p>
-      </div>
-      <div className="mt-4 rounded-2xl bg-emerald-50 p-4">
-        <p className="text-xs uppercase tracking-wide text-emerald-700">Ước tính kết nối</p>
-        <p className="mt-1 text-2xl font-bold text-emerald-900">{estimatedTutorMatches} gia sư phù hợp</p>
-      </div>
-      {quote && (
-        <div className="mt-3 rounded-2xl bg-slate-100 p-4 text-sm">
-          <p className="flex items-center justify-between">
-            <span className="text-slate-600">Học phí 1 buổi</span>
-            <span className="font-bold text-slate-900">{formatPrice(quote.feePerSession)}</span>
-          </p>
-          <p className="mt-1 flex items-center justify-between">
-            <span className="text-slate-600">Học phí 1 tháng</span>
-            <span className="font-bold text-slate-900">{formatPrice(quote.feePerMonth)}</span>
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const formatDdMmYyyyUi = (iso) => {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
-  const [year, month, day] = iso.split("-");
-  return `${day}/${month}/${year}`;
-};
-
-const toLocalIsoDate = (date) => {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-};
-
-// Map dữ liệu bài đăng (DTO) sang giá trị form khi chỉnh sửa
-const mapClassToFormValues = (cls) => ({
-  contactPhone: cls.contactPhone || "",
-  summary: cls.summary || "",
-  description: cls.description || "",
-  subject: cls.subject || "",
-  studentGender: cls.studentGender || "male",
-  studentCount: cls.studentCount || 1,
-  startDate: cls.startDate ? toLocalIsoDate(new Date(cls.startDate)) : getTodayIsoDateLocal(),
-  minutesPerSession: cls.minutesPerSession,
-  sessionsPerWeek: cls.sessionsPerWeek,
-  provinceCode: cls.provinceCode || 0,
-  districtCode: cls.districtCode || 0,
-  locationLabel: cls.locationLabel || "",
-  availabilitySlots: Array.isArray(cls.availabilitySlots)
-    ? cls.availabilitySlots.map((s) => ({ day: s.day, hour: s.hour }))
-    : [],
-  tutorGenderPref: cls.tutorGenderPref || "any",
-  tutorLevelPref: cls.tutorLevelPref || "any",
-  promoCode: "", // không sửa mã ưu đãi qua chức năng chỉnh sửa
-});
-
-const parseIsoToLocalMidnightDate = (iso) => {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-};
-
-const tomorrowIsoFromTodayLocal = () => {
-  const base = parseIsoToLocalMidnightDate(getTodayIsoDateLocal());
-  base.setDate(base.getDate() + 1);
-  return toLocalIsoDate(base);
-};
-
-const saturdayIsoThisOrNextFromTodayLocal = () => {
-  const base = parseIsoToLocalMidnightDate(getTodayIsoDateLocal());
-  const wd = base.getDay();
-  const daysUntilSaturday = wd === 6 ? 0 : (6 - wd + 7) % 7;
-  base.setDate(base.getDate() + daysUntilSaturday);
-  return toLocalIsoDate(base);
-};
-
-const CustomDateField = ({ value, onChange }) => {
-  const todayIso = getTodayIsoDateLocal();
-  const tomorrowIso = tomorrowIsoFromTodayLocal();
-  const weekendIso = saturdayIsoThisOrNextFromTodayLocal();
-
-  const isToday = value === todayIso;
-  const isTomorrow = value === tomorrowIso;
-  const isWeekend = value === weekendIso;
-
-  const [isOpen, setIsOpen] = useState(false);
-  const selectedDate = value ? parseIsoToLocalMidnightDate(value) : undefined;
-
-  return (
-    <div className="space-y-2">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "h-11 w-full justify-start text-left font-normal rounded-xl border border-slate-200 bg-white px-3.5 text-slate-800 hover:bg-slate-50 hover:text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100",
-              !value && "text-slate-500"
-            )}
-          >
-            <CalendarDays className="mr-2.5 h-4 w-4 text-emerald-600 shrink-0" />
-            {value ? formatDdMmYyyyUi(value) : <span>Chọn ngày bắt đầu</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              if (date) {
-                onChange(toLocalIsoDate(date));
-                setIsOpen(false);
-              }
-            }}
-            disabled={(date) => {
-              const today = parseIsoToLocalMidnightDate(todayIso);
-              return date < today;
-            }}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-
-      <div className="grid grid-cols-3 gap-2">
-        <button
-          type="button"
-          className={cn(
-            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
-            isToday
-              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
-          )}
-          onClick={() => onChange(todayIso)}
-        >
-          Hôm nay
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
-            isTomorrow
-              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
-          )}
-          onClick={() => onChange(tomorrowIso)}
-        >
-          Ngày mai
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
-            isWeekend
-              ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
-          )}
-          onClick={() => onChange(weekendIso)}
-        >
-          Cuối tuần
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const CustomMinutesField = ({ value, onChange, minuteOptions = [] }) => {
-  const normalizedValue = Number(value) || minuteOptions[0] || 90;
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {minuteOptions.map((minute) => (
-        <button
-          key={minute}
-          type="button"
-          className={cn(
-            'h-10 min-w-[4.5rem] flex-1 rounded-xl border px-2 text-xs font-semibold transition sm:text-sm',
-            normalizedValue === minute
-              ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-              : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50',
-          )}
-          onClick={() => onChange(minute)}
-        >
-          {minute} phút
-        </button>
-      ))}
-    </div>
-  );
-};
 
 const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedTutor = null }) => {
   const dispatch = useDispatch();

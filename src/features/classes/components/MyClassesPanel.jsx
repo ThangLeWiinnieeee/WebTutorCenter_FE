@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import MyClassDetailDialog from "@/features/classes/components/MyClassDetailDialog";
 import { fetchMyClassesThunk } from "@/features/classes/store/classThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
-import { STATUS_META, STATUS_TABS } from "@/features/classes/utils/applicationStatus";
+import { ORIGIN_META, STATUS_META, STATUS_TABS } from "@/features/classes/utils/applicationStatus";
 import Pagination from "@/components/shared/Pagination";
 
 const PAGE_SIZE = 5;
@@ -71,7 +71,7 @@ export default function MyClassesPanel() {
           <div>
             <h3 className="text-lg font-bold text-slate-900">Danh sách nhận lớp</h3>
             <p className="mt-0.5 text-sm text-slate-500">
-              Các lớp bạn đã gửi yêu cầu nhận và trạng thái xét duyệt.
+              Các lớp bạn tự nhận và lớp được người đăng mời dạy, kèm trạng thái xét duyệt.
             </p>
           </div>
         </div>
@@ -167,6 +167,8 @@ export default function MyClassesPanel() {
             const classItem = application.classItem || {};
             const status = STATUS_META[application.status] || STATUS_META.pending;
             const StatusIcon = status.icon;
+            const origin = ORIGIN_META[application.origin] || ORIGIN_META.apply;
+            const OriginIcon = origin.icon;
             const isUnlocked = application.isUnlocked || application.status === "approved";
 
             return (
@@ -183,6 +185,17 @@ export default function MyClassesPanel() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                         Mã lớp {classItem.classCode}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${origin.className}`}
+                        title={
+                          application.origin === "invite"
+                            ? "Người đăng đã gửi lời mời dạy lớp này cho bạn"
+                            : "Bạn chủ động ấn nhận lớp này"
+                        }
+                      >
+                        <OriginIcon className="h-3.5 w-3.5" />
+                        {origin.label}
                       </span>
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
@@ -202,7 +215,7 @@ export default function MyClassesPanel() {
                     </h4>
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
                       <Clock3 className="h-3.5 w-3.5" />
-                      <span>Gửi yêu cầu lúc {formatDateTime(application.createdAt)}</span>
+                      <span>{origin.timeLabel} {formatDateTime(application.createdAt)}</span>
                     </div>
                   </div>
 

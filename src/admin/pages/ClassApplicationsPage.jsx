@@ -17,6 +17,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/shared/Pagination";
+import { CLASS_STATUS_META } from "@/features/classes/utils/classStatus";
 import {
   approveClassApplicationThunk,
   getClassApplicationStatsThunk,
@@ -198,18 +199,11 @@ const SlotChips = ({ slots, tone = "slate" }) => {
   );
 };
 
-const CLASS_STATUS_LABEL = {
-  open: { text: "Đang mở nhận gia sư", cls: "bg-emerald-50 text-emerald-700" },
-  matched: { text: "Đã ghép gia sư", cls: "bg-blue-50 text-blue-700" },
-  expired: { text: "Đã hết hạn", cls: "bg-slate-100 text-slate-600" },
-  completed: { text: "Đã hoàn thành", cls: "bg-violet-50 text-violet-700" },
-};
-
 const ClassStatusBadge = ({ status }) => {
-  const s = CLASS_STATUS_LABEL[status] || CLASS_STATUS_LABEL.open;
+  const s = CLASS_STATUS_META[status] || CLASS_STATUS_META.open;
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ${s.cls}`}>
-      {s.text}
+    <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${s.className}`}>
+      {s.label}
     </span>
   );
 };

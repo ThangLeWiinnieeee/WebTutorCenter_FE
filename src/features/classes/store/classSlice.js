@@ -165,6 +165,8 @@ const classSlice = createSlice({
       .addCase(fetchClassDetailThunk.rejected, (state, action) => {
         state.loadingDetail = false;
         state.error = action.payload;
+        // Không giữ chi tiết lớp cũ khi tải thất bại (vd lớp bị khóa/không tồn tại) → hiện "không tìm thấy"
+        state.detail = null;
       })
       .addCase(fetchMyClassesThunk.pending, (state) => {
         state.loadingMyClasses = true;
