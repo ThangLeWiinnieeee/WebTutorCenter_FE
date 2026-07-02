@@ -11,6 +11,11 @@ export const OCCUPATION_STATUS_OPTIONS = [
   { value: "teacher", label: "Giáo viên" },
 ];
 
+// Suy ra bảng nhãn từ OPTIONS để không lặp dữ liệu (một nguồn sự thật).
+export const OCCUPATION_STATUS_LABEL = Object.fromEntries(
+  OCCUPATION_STATUS_OPTIONS.map((o) => [o.value, o.label]),
+);
+
 export const TUTOR_STATUS_CONFIG = {
   pending: {
     label: "Chờ xét duyệt",
@@ -26,20 +31,6 @@ export const TUTOR_STATUS_CONFIG = {
   },
 };
 
-export const OCCUPATION_STATUS_LABEL = {
-  student: "Sinh viên",
-  graduated: "Đã tốt nghiệp",
-  teacher: "Giáo viên",
-};
-
-// Tính tuổi từ ngày sinh (ISO string hoặc Date)
-export const getAgeFromDate = (value) => {
-  if (!value) return null;
-  const dob = new Date(value);
-  if (Number.isNaN(dob.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - dob.getFullYear();
-  const m = now.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
-  return age >= 0 && age < 120 ? age : null;
-};
+// Ràng buộc upload ảnh giấy tờ gia sư — dùng chung cho DocumentUploadField & DocumentMultiUpload.
+export const TUTOR_UPLOAD_MAX_SIZE = 8 * 1024 * 1024; // 8 MB
+export const TUTOR_UPLOAD_ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];

@@ -28,7 +28,7 @@ import {
   formatPrice,
   formatStudentGender,
 } from "@/features/classes/utils/classFormatters";
-import { STATUS_META } from "@/features/classes/utils/applicationStatus";
+import { ORIGIN_META, STATUS_META } from "@/features/classes/utils/applicationStatus";
 import { cancelApplicationThunk, completeClassThunk } from "@/features/classes/store/classThunks";
 
 const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onCompleted }) => {
@@ -44,6 +44,8 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
   const isUnlocked = application.isUnlocked || application.status === "approved";
   const status = STATUS_META[application.status] || STATUS_META.pending;
   const StatusIcon = status.icon;
+  const origin = ORIGIN_META[application.origin] || ORIGIN_META.apply;
+  const OriginIcon = origin.icon;
   const canCancel = application.status === "pending" || application.status === "approved";
   // Gia sư xác nhận hoàn thành (lớp đã ghép = matched)
   const canComplete = application.status === "approved" && classItem.status === "matched";
@@ -90,6 +92,12 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
                 Mã lớp {classItem.classCode}
               </span>
               <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${origin.className}`}
+              >
+                <OriginIcon className="h-3.5 w-3.5" />
+                {origin.label}
+              </span>
+              <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
               >
                 <StatusIcon className="h-3.5 w-3.5" />
@@ -101,7 +109,7 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
             </h2>
             <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
               <Clock3 className="h-3.5 w-3.5" />
-              <span>Gửi yêu cầu lúc {formatDateTime(application.createdAt)}</span>
+              <span>{origin.timeLabel} {formatDateTime(application.createdAt)}</span>
             </div>
           </div>
           <button

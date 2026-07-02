@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertCircle, Hourglass, Loader2, ShieldCheck, X, ZoomIn } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,24 +31,43 @@ const ViewThumb = ({ label, src, onZoom }) => (
   </div>
 );
 
-const Lightbox = ({ src, onClose }) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4" onClick={onClose}>
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label="Đóng ảnh phóng to"
-      className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-    >
-      <X className="h-5 w-5" />
-    </button>
-    <img
-      src={src}
-      alt="Ảnh phóng to"
-      className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-      onClick={(e) => e.stopPropagation()}
-    />
-  </div>
-);
+// Render qua portal vào document.body để position:fixed neo theo viewport,
+// tránh bị "kẹt" giữa card khi có ancestor dùng transform (vd AOS animation).
+const Lightbox = ({ src, onClose }) => {
+  // Khóa cuộn nền + đóng bằng phím Esc khi đang xem ảnh phóng to.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4" onClick={onClose}>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Đóng ảnh phóng to"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <img
+        src={src}
+        alt="Ảnh phóng to"
+        className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body
+  );
+};
 
 /**
  * Khu vực hồ sơ chứng thực trong trang hồ sơ gia sư: xem + bổ sung/cập nhật

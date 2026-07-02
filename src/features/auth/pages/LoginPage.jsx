@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { loginThunk, googleLoginThunk } from "@/features/auth/store/authThunks";
 import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
-import LoginForm from "@/features/auth/components/login/LoginForm";
+import LoginForm from "@/features/auth/components/LoginForm";
 
 const LoginPage = () => {
   const dispatch = useDispatch();

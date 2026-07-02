@@ -3,9 +3,10 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import tutorService from "@/features/tutors/services/tutorService";
-
-const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
-const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+import {
+  TUTOR_UPLOAD_MAX_SIZE as MAX_SIZE,
+  TUTOR_UPLOAD_ALLOWED_TYPES as ALLOWED,
+} from "@/features/tutors/constants";
 
 /**
  * Tải nhiều ảnh giấy tờ (thẻ sinh viên / bằng cấp). Lưu mảng URL trong form.
