@@ -32,6 +32,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
+import ContractTemplateDialog from '@/features/classes/components/ContractTemplateDialog';
 import classService from '@/features/classes/services/classService';
 import { applyForClassThunk, fetchClassDetailThunk } from '@/features/classes/store/classThunks';
 import {
@@ -60,6 +61,7 @@ const NewClassDetailPage = () => {
   const [sidebarSuggestedClasses, setSidebarSuggestedClasses] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "login", classItem: null });
+  const [contractOpen, setContractOpen] = useState(false);
   const returnTo = `${location.pathname}${location.search}`;
 
   useEffect(() => {
@@ -562,10 +564,14 @@ const NewClassDetailPage = () => {
                 </Link>
               </li>
               <li>
-                <Link to="#" className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
+                <button
+                  type="button"
+                  onClick={() => setContractOpen(true)}
+                  className="flex w-full items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-left text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
+                >
                   Hợp đồng mẫu
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -581,6 +587,11 @@ const NewClassDetailPage = () => {
         applying={applying}
         tutorSubjects={receiveDialog.tutorSubjects}
         mismatchReasons={receiveDialog.mismatchReasons}
+      />
+      <ContractTemplateDialog
+        open={contractOpen}
+        classCode={detail.classCode}
+        onClose={() => setContractOpen(false)}
       />
     </div>
   );

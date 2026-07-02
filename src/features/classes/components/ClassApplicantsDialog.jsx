@@ -18,15 +18,8 @@ import {
   selectApplicantThunk,
 } from "@/features/classes/store/classThunks";
 import { clearApplicants } from "@/features/classes/store/classSlice";
+import { APPLICANT_STATUS_META } from "@/features/classes/utils/applicationStatus";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
-
-// Nhãn trạng thái đơn ứng tuyển (góc nhìn người đăng)
-const APPLICANT_STATUS_META = {
-  pending: { label: "Chờ chọn", className: "bg-slate-100 text-slate-600 border-slate-200" },
-  selected: { label: "Đã chọn · chờ admin duyệt", className: "bg-amber-50 text-amber-700 border-amber-200" },
-  approved: { label: "Đã duyệt", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  rejected: { label: "Admin đã từ chối", className: "bg-rose-50 text-rose-700 border-rose-200" },
-};
 
 const StatusBadge = ({ status }) => {
   const meta = APPLICANT_STATUS_META[status];

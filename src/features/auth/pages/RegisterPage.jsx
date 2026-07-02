@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { registerThunk } from "@/features/auth/store/authThunks";
 import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
-import RegisterForm from "@/features/auth/components/register/RegisterForm";
+import RegisterForm from "@/features/auth/components/RegisterForm";
 
 const RegisterPage = () => {
   const dispatch = useDispatch();

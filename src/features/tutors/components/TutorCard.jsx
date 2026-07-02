@@ -11,7 +11,8 @@ import {
   User2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { GENDER_LABEL, OCCUPATION_STATUS_LABEL, getAgeFromDate } from "@/features/tutors/constants";
+import { GENDER_LABEL, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
+import { getAgeFromDate } from "@/features/tutors/utils/tutorAge";
 import { StarRating } from "@/features/reviews";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 

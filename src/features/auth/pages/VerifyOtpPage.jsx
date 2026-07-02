@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 
 import { verifyOtpThunk, resendOtpThunk } from "@/features/auth/store/authThunks";
 import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
-import VerifyOtpForm from "@/features/auth/components/register/VerifyOtpForm";
+import VerifyOtpForm from "@/features/auth/components/VerifyOtpForm";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 

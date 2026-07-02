@@ -32,6 +32,7 @@ import {
   fetchMyPostsThunk,
 } from "@/features/classes/store/classThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
+import { CLASS_STATUS_META } from "@/features/classes/utils/classStatus";
 import Pagination from "@/components/shared/Pagination";
 import ClassApplicantsDialog from "@/features/classes/components/ClassApplicantsDialog";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
@@ -39,16 +40,8 @@ import { ReviewDialog } from "@/features/reviews";
 
 const PAGE_SIZE = 5;
 
-// Nhãn trạng thái vòng đời bài đăng (đồng bộ với CLASS_STATUS ở backend)
-const STATUS_META = {
-  open: { label: "Đang mở", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  matched: { label: "Đã có gia sư", className: "bg-sky-50 text-sky-700 border-sky-200" },
-  completed: { label: "Đã hoàn thành", className: "bg-violet-50 text-violet-700 border-violet-200" },
-  expired: { label: "Hết hạn", className: "bg-slate-100 text-slate-500 border-slate-200" },
-};
-
 const StatusBadge = ({ status }) => {
-  const meta = STATUS_META[status] || STATUS_META.open;
+  const meta = CLASS_STATUS_META[status] || CLASS_STATUS_META.open;
   return (
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}>
       {meta.label}
