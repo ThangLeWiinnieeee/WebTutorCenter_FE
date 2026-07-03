@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useRef, memo } from "react";
-import { SunMedium, Sunset, Check, Trash2, Lightbulb, Zap } from "lucide-react";
+import { SunMedium, Sunset, Check, Trash2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { DAY_OPTIONS } from "@/constants/enums";
 
 const SCHEDULE_DAYS = DAY_OPTIONS;

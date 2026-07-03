@@ -9,8 +9,10 @@ const markAsRead = (id) => {
   return axiosInstance.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id));
 };
 
-const markAllAsRead = () => {
-  return axiosInstance.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ);
+const markAllAsRead = (audience) => {
+  return axiosInstance.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ, null, {
+    params: audience ? { audience } : undefined,
+  });
 };
 
 export default {

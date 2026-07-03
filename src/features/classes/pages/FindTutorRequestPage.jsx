@@ -8,19 +8,12 @@ import {
 
 import {
   BookOpenCheck,
-  CalendarCheck,
   Check,
   CheckCircle2,
   CircleAlert,
   Loader2,
-  PhoneCall,
-  ShieldCheck,
-  Ticket,
-  UserRound,
-  Users,
 } from 'lucide-react';
 import {
-  Controller,
   useForm,
   useWatch,
 } from 'react-hook-form';
@@ -32,15 +25,15 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import BookingProgressHeader from '@/features/classes/components/findTutorRequest/BookingProgressHeader';
 import BookingSummaryAsideCard from '@/features/classes/components/findTutorRequest/BookingSummaryAsideCard';
-import CustomDateField from '@/features/classes/components/findTutorRequest/CustomDateField';
-import CustomMinutesField from '@/features/classes/components/findTutorRequest/CustomMinutesField';
 import DescriptionLengthCounter from '@/features/classes/components/findTutorRequest/DescriptionLengthCounter';
-import SchedulePreviewCard from '@/features/classes/components/findTutorRequest/SchedulePreviewCard';
-import SearchableSelect from '@/features/classes/components/SearchableSelect';
-import WeeklyHourGrid from '@/features/classes/components/WeeklyHourGrid';
+import ClassRequestSuccessCard from '@/features/classes/components/findTutorRequest/ClassRequestSuccessCard';
+import InviteTutorBanner from '@/features/classes/components/findTutorRequest/InviteTutorBanner';
+import ClassInfoSection from '@/features/classes/components/findTutorRequest/ClassInfoSection';
+import ScheduleSection from '@/features/classes/components/findTutorRequest/ScheduleSection';
+import TutorRequirementSection from '@/features/classes/components/findTutorRequest/TutorRequirementSection';
+import QuoteConfirmationPanel from '@/features/classes/components/findTutorRequest/QuoteConfirmationPanel';
 import tutorService from '@/features/tutors/services/tutorService';
 import {
   buildClassRequestSchema,
@@ -48,7 +41,6 @@ import {
 } from '@/features/classes/schemas/classRequestSchema';
 import { scrollToFirstError } from '@/lib/formErrors';
 import classService from '@/features/classes/services/classService';
-import { TUTOR_GENDER_PREF_LABEL, TUTOR_LEVEL_PREF_LABEL } from '@/features/classes/constants';
 import { clearClassFlow } from '@/features/classes/store/classSlice';
 import {
   createClassThunk,
@@ -56,7 +48,6 @@ import {
   quoteClassThunk,
   updateClassThunk,
 } from '@/features/classes/store/classThunks';
-import { formatPrice } from '@/features/classes/utils/classFormatters';
 import { mapClassToFormValues } from '@/features/classes/utils/classRequestDateUtils';
 import {
   clearClassRequestFormDraft,
@@ -65,7 +56,6 @@ import {
 } from '@/features/classes/utils/classRequestFormDraftStorage';
 import locationService from '@/features/tutors/services/locationService';
 import { fetchMyVouchersThunk } from '@/features/vouchers/store/voucherThunks';
-import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 
@@ -345,31 +335,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
 
   if (!isEdit && !isInvite && latestCreated) {
     return (
-      <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-emerald-100 bg-white p-8 text-center shadow-lg shadow-emerald-100/50">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-          <CheckCircle2 className="h-7 w-7" />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900">Đăng lớp thành công</h1>
-        <p className="mt-2 text-slate-600">
-          Mã lớp của bạn: <span className="font-semibold">{latestCreated.classCode}</span>
-        </p>
-        <p className="mt-3 text-sm text-slate-500">
-          Bạn có thể tạo thêm yêu cầu khác bất cứ lúc nào — mỗi lớp là một tin đăng riêng.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button className="h-11 rounded-xl bg-emerald-600 px-6 text-white hover:bg-emerald-700" asChild>
-            <Link to="/classes">Xem danh sách lớp cần gia sư</Link>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 rounded-xl border-emerald-200 px-6 text-emerald-800 hover:bg-emerald-50"
-            onClick={startNewClassRequest}
-          >
-            Tạo yêu cầu mới
-          </Button>
-        </div>
-      </div>
+      <ClassRequestSuccessCard classCode={latestCreated.classCode} onCreateNew={startNewClassRequest} />
     );
   }
 
@@ -378,426 +344,33 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
       <div className="mx-auto max-w-[1360px] px-4 py-6 md:px-6 md:py-8">
         <BookingProgressHeader control={form.control} isEdit={isEdit} />
 
-        {isInvite && (
-          <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#1e3a5f]/20 bg-[#1e3a5f]/5 p-4">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#1e3a5f]" />
-            <div className="text-sm text-slate-700">
-              <p className="font-semibold text-[#1e3a5f]">
-                Bạn đang mời gia sư {invitedTutor.fullName}
-                {invitedTutor.dateOfBirth
-                  ? ` (sinh năm ${new Date(invitedTutor.dateOfBirth).getFullYear()}`
-                  : ''}
-                {invitedTutor.gender
-                  ? `${invitedTutor.dateOfBirth ? ', ' : ' ('}${TUTOR_GENDER_PREF_LABEL[invitedTutor.gender] || invitedTutor.gender})`
-                  : invitedTutor.dateOfBirth
-                    ? ')'
-                    : ''}
-              </p>
-              <p className="mt-1 text-slate-600">
-                Môn học, khu vực, khung giờ và yêu cầu gia sư đã được giới hạn theo hồ sơ của gia sư này.
-                Lớp sẽ chỉ được gửi riêng cho gia sư, không hiển thị công khai.
-              </p>
-            </div>
-          </div>
-        )}
+        {isInvite && <InviteTutorBanner invitedTutor={invitedTutor} />}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-5 lg:col-span-9">
             {!quote && (
               <form className="space-y-5" onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote, scrollToFirstError)}>
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    <PhoneCall className="h-4 w-4 text-emerald-600" />
-                    1. Thông tin lớp học
-                  </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Số điện thoại liên hệ <span className="text-rose-500">*</span></label>
-                      <Input
-                        className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
-                        placeholder="Ví dụ: 0912 345 678"
-                        {...form.register("contactPhone")}
-                      />
-                      {errors.contactPhone && <p className="mt-1 text-xs text-rose-600">{errors.contactPhone.message}</p>}
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Môn học <span className="text-rose-500">*</span></label>
-                      <Controller
-                        name="subject"
-                        control={form.control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            value={field.value || ""}
-                            onValueChange={field.onChange}
-                            placeholder="Chọn môn học"
-                            options={subjectSelectOptions}
-                            searchPlaceholder="Tìm môn học..."
-                            emptyText="Không tìm thấy môn học"
-                            triggerClassName="h-11 rounded-xl border-slate-200 text-sm focus-visible:ring-emerald-200"
-                            contentClassName="max-h-80"
-                          />
-                        )}
-                      />
-                      {errors.subject && <p className="mt-1 text-xs text-rose-600">{errors.subject.message}</p>}
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Tóm tắt yêu cầu <span className="text-rose-500">*</span></label>
-                      <Input
-                        className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
-                        placeholder="Ví dụ: Tìm gia sư Toán lớp 9 tại Quận 7"
-                        {...form.register("summary")}
-                      />
-                      {errors.summary && <p className="mt-1 text-xs text-rose-600">{errors.summary.message}</p>}
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa điểm dạy <span className="text-rose-500">*</span></label>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <Controller
-                          name="provinceCode"
-                          control={form.control}
-                          render={({ field }) => (
-                            <SearchableSelect
-                              value={field.value ? String(field.value) : ""}
-                              onValueChange={(selectedValue) => {
-                                const normalized = Number(selectedValue);
-                                field.onChange(normalized);
-                                form.setValue("districtCode", 0);
-                                setDistricts([]);
-                              }}
-                              placeholder="Chọn tỉnh/thành phố"
-                              options={provinceSelectOptions}
-                              searchPlaceholder="Tìm tỉnh/thành..."
-                              emptyText="Không tìm thấy khu vực"
-                              disabled={isInvite}
-                              triggerClassName="h-11 rounded-xl border-slate-200 text-sm focus-visible:ring-emerald-200"
-                              contentClassName="max-h-80"
-                            />
-                          )}
-                        />
-                        <Controller
-                          name="districtCode"
-                          control={form.control}
-                          render={({ field }) => (
-                            <SearchableSelect
-                              value={field.value ? String(field.value) : ""}
-                              onValueChange={(selectedValue) => field.onChange(Number(selectedValue))}
-                              placeholder="Chọn quận/huyện"
-                              options={districtSelectOptions}
-                              searchPlaceholder="Tìm quận/huyện..."
-                              emptyText="Không tìm thấy quận/huyện"
-                              disabled={!provinceCode}
-                              triggerClassName="h-11 rounded-xl border-slate-200 text-sm focus-visible:ring-emerald-200"
-                              contentClassName="max-h-80"
-                            />
-                          )}
-                        />
-                      </div>
-                      {(errors.provinceCode || errors.districtCode) && (
-                        <p className="mt-1 text-xs text-rose-600">
-                          {errors.provinceCode?.message || errors.districtCode?.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Nhập địa chỉ chi tiết <span className="text-rose-500">*</span></label>
-                    <Input
-                      className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
-                      placeholder="Ví dụ: Chung cư Sunrise City, đường Nguyễn Hữu Thọ"
-                      {...form.register("locationLabel")}
-                    />
-                    {errors.locationLabel && <p className="mt-1 text-xs text-rose-600">{errors.locationLabel.message}</p>}
-                  </div>
-                </section>
+                <ClassInfoSection
+                  form={form}
+                  errors={errors}
+                  subjectSelectOptions={subjectSelectOptions}
+                  provinceSelectOptions={provinceSelectOptions}
+                  districtSelectOptions={districtSelectOptions}
+                  provinceCode={provinceCode}
+                  isInvite={isInvite}
+                  setDistricts={setDistricts}
+                />
 
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
-                  <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                        <CalendarCheck className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-800">2. Lịch học</h2>
-                        <p className="mt-1 text-sm leading-relaxed text-slate-500">
-                          Thiết lập thông tin lịch học phù hợp với nhu cầu của bạn
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <ScheduleSection
+                  control={form.control}
+                  errors={errors}
+                  minuteOptions={minuteOptions}
+                  isSingleStudent={isSingleStudent}
+                  isInvite={isInvite}
+                  inviteAllowedSlots={inviteAllowedSlots}
+                />
 
-                  <div className="space-y-6">
-                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số học viên <span className="text-rose-500">*</span></label>
-                          <Controller
-                            name="studentCount"
-                            control={form.control}
-                            render={({ field }) => {
-                              const n = Number(field.value) || 1;
-                              return (
-                                <div className="flex h-11 items-center rounded-xl border border-slate-200 bg-white shadow-sm">
-                                  <button
-                                    type="button"
-                                    className="h-full w-11 rounded-l-xl text-lg text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
-                                    onClick={() => field.onChange(Math.max(1, n - 1))}
-                                  >
-                                    −
-                                  </button>
-                                  <div className="flex flex-1 items-center justify-center gap-1 text-sm font-semibold text-slate-800 tabular-nums">
-                                    <Input
-                                      type="text"
-                                      inputMode="numeric"
-                                      className="w-12 border-0 p-0 text-center font-semibold shadow-none focus-visible:ring-0"
-                                      value={n}
-                                      onChange={(event) => {
-                                        const nextValue = Number(event.target.value.replace(/\D/g, ""));
-                                        field.onChange(nextValue || 1);
-                                      }}
-                                    />
-                                    <span className="text-xs font-semibold text-slate-600">học viên</span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="h-full w-11 rounded-r-xl text-lg text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
-                                    onClick={() => field.onChange(n + 1)}
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              );
-                            }}
-                          />
-                          {errors.studentCount && <p className="mt-1 text-xs text-rose-600">{errors.studentCount.message}</p>}
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày bắt đầu <span className="text-rose-500">*</span></label>
-                          <Controller
-                            name="startDate"
-                            control={form.control}
-                            render={({ field }) => <CustomDateField value={field.value} onChange={field.onChange} />}
-                          />
-                          {errors.startDate && <p className="mt-1 text-xs text-rose-600">{errors.startDate.message}</p>}
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Thời lượng mỗi buổi <span className="text-rose-500">*</span></label>
-                          <p className="mb-1.5 text-xs text-slate-500">
-                            Chọn một mức: {minuteOptions.join(", ")} phút
-                          </p>
-                          <Controller
-                            name="minutesPerSession"
-                            control={form.control}
-                            render={({ field }) => (
-                              <CustomMinutesField
-                                value={field.value}
-                                onChange={field.onChange}
-                                minuteOptions={minuteOptions}
-                              />
-                            )}
-                          />
-                          {errors.minutesPerSession && <p className="mt-1 text-xs text-rose-600">{errors.minutesPerSession.message}</p>}
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium text-slate-700">Số buổi / tuần <span className="text-rose-500">*</span></label>
-                          <Controller
-                            name="sessionsPerWeek"
-                            control={form.control}
-                            render={({ field }) => {
-                              const s = Number(field.value) || 1;
-                              return (
-                                <div className="space-y-1.5">
-                                  <div className="flex h-11 items-center rounded-xl border border-slate-200 bg-white shadow-sm">
-                                    <button
-                                      type="button"
-                                      className="h-full w-11 rounded-l-xl text-lg text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
-                                      onClick={() => field.onChange(Math.max(1, s - 1))}
-                                    >
-                                      −
-                                    </button>
-                                    <div className="flex flex-1 items-center justify-center gap-1 text-sm font-semibold text-slate-800 tabular-nums">
-                                      <Input
-                                        type="text"
-                                        inputMode="numeric"
-                                        className="w-12 border-0 p-0 text-center font-semibold shadow-none focus-visible:ring-0"
-                                        value={s}
-                                        onChange={(event) => {
-                                          const nextValue = Number(event.target.value.replace(/\D/g, ""));
-                                          field.onChange(nextValue || 1);
-                                        }}
-                                      />
-                                      <span className="text-xs font-semibold text-slate-600">buổi/tuần</span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      className="h-full w-11 rounded-r-xl text-lg text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
-                                      onClick={() => field.onChange(s + 1)}
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                  <p className="text-xs text-slate-500">Có thể linh hoạt thêm nếu cần</p>
-                                </div>
-                              );
-                            }}
-                          />
-                          {errors.sessionsPerWeek && <p className="mt-1 text-xs text-rose-600">{errors.sessionsPerWeek.message}</p>}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-8 xl:grid-cols-12 xl:gap-8">
-                        <div className="min-w-0 xl:col-span-7">
-                          <label className="mb-3 block text-sm font-medium text-slate-700">Giới tính học viên</label>
-                          <Controller
-                            name="studentGender"
-                            control={form.control}
-                            render={({ field }) => (
-                              <div className={cn('grid grid-cols-1 gap-3', isSingleStudent ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
-                                {[
-                                  { value: 'male', label: 'Nam', desc: '', Icon: UserRound },
-                                  { value: 'female', label: 'Nữ', desc: '', Icon: UserRound },
-                                  { value: 'other', label: 'Nam & Nữ', desc: 'Ghép lớp hỗn hợp', Icon: Users },
-                                ]
-                                  .filter((item) => !(isSingleStudent && item.value === 'other'))
-                                  .map((item) => {
-                                  const selected = field.value === item.value;
-                                  const IconCmp = item.Icon;
-                                  return (
-                                    <button
-                                      key={item.value}
-                                      type="button"
-                                      onClick={() => field.onChange(item.value)}
-                                      className={cn(
-                                        'relative flex flex-col items-center gap-2 rounded-2xl border-2 px-4 py-5 transition',
-                                        selected
-                                          ? 'border-emerald-600 bg-emerald-50/70 shadow-md shadow-emerald-100'
-                                          : 'border-slate-100 bg-white hover:border-emerald-200 hover:bg-slate-50',
-                                      )}
-                                    >
-                                      {selected && (
-                                        <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-emerald-600 text-white shadow">
-                                          <Check className="h-3.5 w-3.5" />
-                                        </span>
-                                      )}
-                                      <IconCmp className={cn('h-7 w-7', selected ? 'text-emerald-700' : 'text-slate-400')} />
-                                      <span className={cn('text-sm font-semibold', selected ? 'text-emerald-900' : 'text-slate-800')}>{item.label}</span>
-                                      {item.desc ? <span className="text-center text-xs text-slate-500">{item.desc}</span> : null}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          />
-                        </div>
-
-                        <div className="min-w-0 xl:col-span-5">
-                          <SchedulePreviewCard control={form.control} />
-                        </div>
-                      </div>
-                  </div>
-
-                  <div className="mt-8 border-t border-slate-100 pt-6">
-                    <label className="mb-4 block text-sm font-semibold text-slate-800">Thời gian có thể học <span className="text-rose-500">*</span></label>
-                    {isInvite && (
-                      <p className="mb-3 text-xs font-medium text-[#1e3a5f]">
-                        Chỉ có thể chọn trong các khung giờ gia sư có thể dạy (ô mờ là giờ gia sư không dạy).
-                      </p>
-                    )}
-                    <Controller
-                      control={form.control}
-                      name="availabilitySlots"
-                      render={({ field }) => (
-                        <WeeklyHourGrid
-                          value={field.value}
-                          onChange={field.onChange}
-                          allowedSlots={inviteAllowedSlots}
-                        />
-                      )}
-                    />
-                    {errors.availabilitySlots && <p className="mt-2 text-xs text-rose-600">{errors.availabilitySlots.message}</p>}
-                  </div>
-                </section>
-
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    3. Yêu cầu gia sư
-                  </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">Giới tính gia sư</label>
-                      <Controller
-                        name="tutorGenderPref"
-                        control={form.control}
-                        render={({ field }) =>
-                          isInvite ? (
-                            <div className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700">
-                              <ShieldCheck className="h-4 w-4 text-[#1e3a5f]" />
-                              {TUTOR_GENDER_PREF_LABEL[field.value] || 'Không yêu cầu'}
-                              <span className="ml-auto text-xs font-normal text-slate-400">Theo hồ sơ gia sư</span>
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { value: 'any', label: 'Không yêu cầu' },
-                                { value: 'male', label: 'Nam' },
-                                { value: 'female', label: 'Nữ' },
-                              ].map((item) => (
-                                <button
-                                  key={item.value}
-                                  type="button"
-                                  className={`h-10 rounded-xl border px-2 text-xs font-semibold transition sm:text-sm ${
-                                    field.value === item.value
-                                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                                      : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
-                                  }`}
-                                  onClick={() => field.onChange(item.value)}
-                                >
-                                  {item.label}
-                                </button>
-                              ))}
-                            </div>
-                          )
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">Trình độ gia sư</label>
-                      <Controller
-                        name="tutorLevelPref"
-                        control={form.control}
-                        render={({ field }) =>
-                          isInvite ? (
-                            <div className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700">
-                              <ShieldCheck className="h-4 w-4 text-[#1e3a5f]" />
-                              {TUTOR_LEVEL_PREF_LABEL[field.value] || 'Không yêu cầu'}
-                              <span className="ml-auto text-xs font-normal text-slate-400">Theo hồ sơ gia sư</span>
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { value: 'any', label: 'Không yêu cầu' },
-                                { value: 'student', label: 'Sinh viên' },
-                                { value: 'teacher', label: 'Giáo viên' },
-                              ].map((item) => (
-                                <button
-                                  key={item.value}
-                                  type="button"
-                                  className={`h-10 rounded-xl border px-2 text-xs font-semibold transition sm:text-sm ${
-                                    field.value === item.value
-                                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                                      : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
-                                  }`}
-                                  onClick={() => field.onChange(item.value)}
-                                >
-                                  {item.label}
-                                </button>
-                              ))}
-                            </div>
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                </section>
+                <TutorRequirementSection control={form.control} isInvite={isInvite} />
 
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -846,124 +419,27 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
             )}
 
             {quote && (
-              <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-6 shadow-sm">
-                <h3 className="mb-4 text-xl font-semibold text-emerald-900">Xác nhận thông tin & Báo giá</h3>
-                <div className="rounded-2xl border border-emerald-100 bg-white p-5 text-sm">
-                  <p className="flex justify-between border-b border-slate-100 pb-2">
-                    <span className="text-slate-500">Môn học</span>
-                    <span className="font-semibold text-slate-800">{form.getValues('subject')}</span>
-                  </p>
-                  <p className="mt-3 flex justify-between border-b border-slate-100 pb-2">
-                    <span className="text-slate-500">Số học viên</span>
-                    <span className="font-semibold text-slate-800">{form.getValues('studentCount')}</span>
-                  </p>
-                  <p className="mt-3 flex justify-between border-b border-slate-100 pb-2">
-                    <span className="text-slate-500">Lịch học</span>
-                    <span className="font-semibold text-slate-800">{form.getValues('availabilitySlots')?.length || 0} khung giờ</span>
-                  </p>
-                  <p className="mt-3 flex justify-between text-base">
-                    <span className="text-slate-600">Phí 1 buổi</span>
-                    <span className="font-bold text-emerald-700">{formatPrice(quote.feePerSession)}</span>
-                  </p>
-                  <p className="mt-1 flex justify-between text-base">
-                    <span className="text-slate-600">Phí 1 tháng</span>
-                    <span className={cn("font-bold text-emerald-700", appliedPromo && "text-slate-400 line-through")}>
-                      {formatPrice(quote.feePerMonth)}
-                    </span>
-                  </p>
-                  {appliedPromo && (
-                    <>
-                      <p className="mt-2 flex justify-between text-sm">
-                        <span className="text-slate-600">Giảm giá ({appliedPromo.code})</span>
-                        <span className="font-semibold text-rose-600">− {formatPrice(appliedPromo.discountAmount)}</span>
-                      </p>
-                      <p className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-base">
-                        <span className="font-semibold text-slate-700">Phí 1 tháng sau giảm</span>
-                        <span className="font-bold text-emerald-700">{formatPrice(appliedPromo.finalAmount)}</span>
-                      </p>
-                    </>
-                  )}
-                </div>
-                <div className="mt-4 rounded-2xl border border-emerald-100 bg-white p-5">
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Mã ưu đãi (nếu có)</label>
-                  <div ref={promoBoxRef} className="relative flex gap-2">
-                    <Input
-                      className="h-11 flex-1 rounded-xl border-slate-200 uppercase focus-visible:ring-emerald-200 disabled:opacity-70"
-                      placeholder="Nhập mã ưu đãi"
-                      disabled={Boolean(appliedPromo)}
-                      autoComplete="off"
-                      {...form.register("promoCode")}
-                      onFocus={() => setShowPromoList(true)}
-                    />
-                    {showPromoList && !appliedPromo && activeVouchers.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
-                        <p className="px-2 py-1.5 text-xs font-medium text-slate-400">Mã giảm giá của bạn</p>
-                        {activeVouchers.map((voucher) => (
-                          <button
-                            key={voucher.id}
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => handleSelectVoucher(voucher)}
-                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-emerald-50"
-                          >
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                              <Ticket className="h-4 w-4" />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block font-mono text-sm font-bold tracking-wider text-slate-900">{voucher.code}</span>
-                              <span className="block text-xs font-medium text-emerald-700">
-                                {voucher.discountType === "percent"
-                                  ? `Giảm ${voucher.discountValue}%${voucher.maxDiscountAmount ? ` (tối đa ${formatPrice(voucher.maxDiscountAmount)})` : ""}`
-                                  : `Giảm ${formatPrice(voucher.discountValue)}`}
-                              </span>
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {appliedPromo ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-11 rounded-xl border-slate-300 px-5 text-slate-700 hover:bg-slate-100"
-                        onClick={handleRemovePromo}
-                      >
-                        Bỏ
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        className="h-11 rounded-xl bg-slate-800 px-5 font-semibold text-white hover:bg-slate-900"
-                        onClick={() => handleApplyPromo()}
-                        disabled={promoChecking}
-                      >
-                        {promoChecking ? "Đang kiểm tra..." : "Áp dụng"}
-                      </Button>
-                    )}
-                  </div>
-                  {appliedPromo && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Đã áp dụng mã {appliedPromo.code}
-                    </p>
-                  )}
-                  {promoError && <p className="mt-2 text-xs text-rose-600">{promoError}</p>}
-                  {errors.promoCode && <p className="mt-1 text-xs text-rose-600">{errors.promoCode.message}</p>}
-                </div>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Button variant="outline" className="h-11 flex-1 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => dispatch(clearClassFlow())}>
-                    Quay lại sửa
-                  </Button>
-                  <Button className="h-11 flex-1 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700" onClick={onCreate} disabled={creating}>
-                    {creating
-                      ? isInvite
-                        ? "Đang gửi lời mời..."
-                        : "Đang đăng..."
-                      : isInvite
-                        ? "Đồng ý & Gửi lời mời"
-                        : "Đồng ý & Đăng bài"}
-                  </Button>
-                </div>
-              </div>
+              <QuoteConfirmationPanel
+                form={form}
+                errors={errors}
+                quote={quote}
+                isInvite={isInvite}
+                creating={creating}
+                onBack={() => dispatch(clearClassFlow())}
+                onCreate={onCreate}
+                promo={{
+                  appliedPromo,
+                  promoError,
+                  promoChecking,
+                  showPromoList,
+                  setShowPromoList,
+                  activeVouchers,
+                  promoBoxRef,
+                  onApply: handleApplyPromo,
+                  onSelectVoucher: handleSelectVoucher,
+                  onRemove: handleRemovePromo,
+                }}
+              />
             )}
           </div>
 

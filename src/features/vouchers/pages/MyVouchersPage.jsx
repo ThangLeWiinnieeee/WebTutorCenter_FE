@@ -5,6 +5,7 @@ import { Check, Copy, Loader2, Ticket } from "lucide-react";
 import AOS from "aos";
 
 import Pagination from "@/components/shared/Pagination";
+import { formatPrice } from "@/features/classes/utils/classFormatters";
 import { fetchMyVouchersThunk } from "@/features/vouchers/store/voucherThunks";
 
 const PAGE_SIZE = 10;
@@ -15,7 +16,7 @@ const STATUS_META = {
   expired: { label: "Hết hạn", className: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
-const formatPrice = (value) => `${(value || 0).toLocaleString("vi-VN")}đ`;
+// Giữ fallback "—" (khác dấu "-" của formatDate dùng chung) để không đổi hiển thị.
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString("vi-VN") : "—");
 
 const discountLabel = (v) =>

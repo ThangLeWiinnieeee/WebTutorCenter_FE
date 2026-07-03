@@ -15,14 +15,7 @@ import { GENDER_LABEL, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constan
 import { getAgeFromDate } from "@/features/tutors/utils/tutorAge";
 import { StarRating } from "@/features/reviews";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
-
-const getInitials = (name) =>
-  (name || "")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
 
 const ROW_ICON = "mt-0.5 h-4 w-4 shrink-0 text-slate-400";
 
