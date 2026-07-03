@@ -2,14 +2,7 @@ import { MapPin, Users } from "lucide-react";
 
 import { StarRating } from "@/features/reviews";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
-
-const getInitials = (name) =>
-  (name || "")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
 
 export default function TopTutorCard({ tutor, rank }) {
   const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);

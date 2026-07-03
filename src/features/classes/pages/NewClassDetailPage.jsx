@@ -34,7 +34,8 @@ import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import ContractTemplateDialog from '@/features/classes/components/ContractTemplateDialog';
 import classService from '@/features/classes/services/classService';
-import { applyForClassThunk, fetchClassDetailThunk } from '@/features/classes/store/classThunks';
+import { fetchClassDetailThunk } from '@/features/classes/store/classThunks';
+import useReceiveClass from '@/features/classes/hooks/useReceiveClass';
 import {
   formatAvailabilitySlotsDetailed,
   formatClassTutorPrefsSummary,
@@ -44,10 +45,7 @@ import {
   formatStudentGender,
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
-import tutorService from '@/features/tutors/services/tutorService';
-import { hasCompleteTutorDocuments } from '@/features/tutors/utils/tutorDocuments';
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from '@/features/tutors/constants';
-import { toast } from 'sonner';
 import AOS from 'aos';
 
 const NewClassDetailPage = () => {
@@ -55,12 +53,12 @@ const NewClassDetailPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { isAuthenticated, user, loading } = useAuth();
-  const { detail, loadingDetail, applying } = useSelector((state) => state.classes);
+  const { detail, loadingDetail } = useSelector((state) => state.classes);
+  const { receiveDialog, applying, openReceive, confirmApply, closeDialog } = useReceiveClass();
   const [relatedClasses, setRelatedClasses] = useState([]);
   const [latestClasses, setLatestClasses] = useState([]);
   const [sidebarSuggestedClasses, setSidebarSuggestedClasses] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "login", classItem: null });
   const [contractOpen, setContractOpen] = useState(false);
   const returnTo = `${location.pathname}${location.search}`;
 
@@ -169,78 +167,6 @@ const NewClassDetailPage = () => {
 
   const isOwnPost = isAuthenticated && user?.id != null && detail.createdBy === user.id;
 
-  const handleReceiveClass = async () => {
-    if (isOwnPost) return;
-
-    if (!isAuthenticated) {
-      setReceiveDialog({ open: true, type: "login", classItem: detail });
-      return;
-    }
-
-    if (user?.role !== "tutor") {
-      setReceiveDialog({ open: true, type: "tutorRequired", classItem: detail });
-      return;
-    }
-
-    try {
-      const response = await tutorService.getProfile();
-      const tutorProfile = response.data?.data?.tutor;
-
-      // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
-      if (!hasCompleteTutorDocuments(tutorProfile)) {
-        setReceiveDialog({ open: true, type: "documentsRequired", classItem: detail });
-        return;
-      }
-
-      const registeredSubjects = tutorProfile?.subjects || [];
-      const mismatchReasons = [];
-
-      if (!registeredSubjects.includes(detail.subject)) {
-        mismatchReasons.push(`Môn học: Lớp yêu cầu môn "${detail.subject}" nhưng bạn chưa đăng ký dạy môn này.`);
-      }
-
-      if (detail.tutorGenderPref && detail.tutorGenderPref !== 'any' && user?.gender !== detail.tutorGenderPref) {
-        const requiredGender = detail.tutorGenderPref === 'male' ? 'Nam' : 'Nữ';
-        const currentGender = user?.gender === 'male' ? 'Nam' : user?.gender === 'female' ? 'Nữ' : 'Chưa cập nhật';
-        mismatchReasons.push(`Giới tính: Lớp yêu cầu gia sư giới tính "${requiredGender}" nhưng giới tính tài khoản của bạn là "${currentGender}".`);
-      }
-
-      if (detail.tutorLevelPref && detail.tutorLevelPref !== 'any') {
-        const requiredLevel = detail.tutorLevelPref === 'student' ? 'Sinh viên' : 'Giáo viên';
-        const currentOccupation = tutorProfile?.occupationStatus;
-        const currentLevel = currentOccupation === 'student' ? 'Sinh viên' : currentOccupation === 'teacher' ? 'Giáo viên' : 'Khác';
-        if (detail.tutorLevelPref !== currentOccupation) {
-          mismatchReasons.push(`Trình độ: Lớp yêu cầu gia sư là "${requiredLevel}" nhưng trình độ của bạn là "${currentLevel}".`);
-        }
-      }
-
-      if (mismatchReasons.length > 0) {
-        setReceiveDialog({
-          open: true,
-          type: "mismatch",
-          classItem: detail,
-          tutorSubjects: registeredSubjects,
-          mismatchReasons,
-        });
-        return;
-      }
-      setReceiveDialog({ open: true, type: "confirm", classItem: detail, tutorSubjects: registeredSubjects });
-    } catch (err) {
-      console.error("Failed to check tutor profile conditions", err);
-      setReceiveDialog({ open: true, type: "confirm", classItem: detail });
-    }
-  };
-
-  const handleConfirmApply = async () => {
-    const result = await dispatch(applyForClassThunk(detail.id || detail._id));
-    if (applyForClassThunk.fulfilled.match(result)) {
-      setReceiveDialog((prev) => ({ ...prev, type: "submitted" }));
-    } else {
-      setReceiveDialog((prev) => ({ ...prev, open: false }));
-      toast.error(result.payload || "Không thể gửi yêu cầu nhận lớp");
-    }
-  };
-
   // Ô phí nhận lớp + CTA dùng chung: desktop nổi góc phải bài, điện thoại đặt xuống cuối
   const priceCard = (extraClass) => (
     <div
@@ -260,7 +186,7 @@ const NewClassDetailPage = () => {
         <Button
           type="button"
           className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
-          onClick={handleReceiveClass}
+          onClick={() => openReceive(detail)}
         >
           Nhận lớp ngay
           <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -582,8 +508,8 @@ const NewClassDetailPage = () => {
         type={receiveDialog.type}
         classItem={receiveDialog.classItem}
         returnTo={returnTo}
-        onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
-        onConfirm={handleConfirmApply}
+        onClose={closeDialog}
+        onConfirm={confirmApply}
         applying={applying}
         tutorSubjects={receiveDialog.tutorSubjects}
         mismatchReasons={receiveDialog.mismatchReasons}

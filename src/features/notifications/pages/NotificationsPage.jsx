@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, Handshake, RotateCcw, UserCheck, XCircle } from "lucide-react";
+import { Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, Handshake, RotateCcw, UserCheck, XCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AOS from "aos";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import ClassFeedPanel from "@/features/classes/components/ClassFeedPanel";
+import NotificationItem from "@/features/notifications/components/NotificationItem";
 import Pagination from "@/components/shared/Pagination";
 import {
   selectNotifications,
@@ -61,17 +62,6 @@ const NOTIFICATION_LINK = {
   CLASS_INVITE_DECLINED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   // Gia sư được admin duyệt nhận lớp → mở danh sách nhận lớp
   CLASS_APPLICATION_APPROVED: { to: "/my-classes", label: "Xem danh sách nhận lớp" },
-};
-
-// Tách phần "Lý do: ..." ra khỏi nội dung chính để hiển thị xuống dòng riêng.
-const REASON_LABEL = "Lý do:";
-const splitReason = (message = "") => {
-  const idx = message.indexOf(REASON_LABEL);
-  if (idx === -1) return { main: message, reason: null };
-  return {
-    main: message.slice(0, idx).trim(),
-    reason: message.slice(idx + REASON_LABEL.length).trim(),
-  };
 };
 
 const NotificationsList = () => {
@@ -139,51 +129,21 @@ const NotificationsList = () => {
 
       {notifications.map((n, idx) => {
         const meta = NOTIFICATION_ICON_MAP[n.type] || DEFAULT_NOTIFICATION_ICON;
-        const Icon = meta.icon;
-        const { main, reason } = splitReason(n.message);
         const link = NOTIFICATION_LINK[n.type];
         return (
           // Lớp ngoài chỉ giữ hiệu ứng AOS với className tĩnh: khi bấm "đã đọc",
           // React chỉ ghi lại class ở lớp trong nên không xoá mất class `aos-animate`
           // mà AOS gắn trực tiếp lên DOM → thông báo không bị animate lại từ đầu.
           <div key={n.id} data-aos="fade-up" data-aos-delay={Math.min(idx, 6) * 40}>
-            <div
+            <NotificationItem
+              notification={n}
+              iconMeta={meta}
+              link={link}
               onClick={() => {
                 if (!n.read) dispatch(markAsReadThunk(n.id));
                 if (link) navigate(link.to);
               }}
-              className={`flex cursor-pointer gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-colors hover:bg-slate-50 ${
-                !n.read ? "border-blue-200 bg-blue-50/40" : "border-slate-200"
-              }`}
-            >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${meta.className}`}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-3">
-                  <p className={`text-sm leading-snug ${!n.read ? "font-medium text-slate-800" : "text-slate-600"}`}>
-                    {main}
-                  </p>
-                  <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                    <span className="whitespace-nowrap text-xs text-slate-400">
-                      {new Date(n.createdAt).toLocaleString("vi-VN")}
-                    </span>
-                    {!n.read && <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />}
-                  </div>
-                </div>
-                {reason && (
-                  <p className="mt-1.5 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
-                    <span className="font-medium text-slate-500">Lý do:</span> {reason}
-                  </p>
-                )}
-                {link && (
-                  <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#1e3a5f]">
-                    {link.label}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </p>
-                )}
-              </div>
-            </div>
+            />
           </div>
         );
       })}

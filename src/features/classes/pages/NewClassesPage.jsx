@@ -29,33 +29,35 @@ import {
   useSelector,
 } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
 import AOS from 'aos';
 
 import { Button } from '@/components/ui/button';
 import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import classService from '@/features/classes/services/classService';
-import { fetchClassesThunk, applyForClassThunk } from '@/features/classes/store/classThunks';
+import { fetchClassesThunk } from '@/features/classes/store/classThunks';
+import { CONTRACT_ROUTE } from '@/features/classes/constants';
 import { getTutorProfileThunk } from '@/features/tutors/store/tutorThunks';
+import useReceiveClass from '@/features/classes/hooks/useReceiveClass';
 import {
   formatAvailabilitySlotsOneLine,
+  formatDateTime,
+  formatPrice,
   formatStudentGender,
   formatTutorGenderPref,
   formatTutorLevelPref,
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
 import locationService from '@/features/tutors/services/locationService';
-import tutorService from '@/features/tutors/services/tutorService';
-import { hasCompleteTutorDocuments } from '@/features/tutors/utils/tutorDocuments';
 import { normalizeForSearch } from '@/lib/utils';
 
 const NewClassesPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
-  const { list, pagination, loadingList, applying } = useSelector((state) => state.classes);
+  const { list, pagination, loadingList } = useSelector((state) => state.classes);
   const tutorProfile = useSelector((state) => state.tutors.profile);
+  const { receiveDialog, applying, openReceive, confirmApply, closeDialog } = useReceiveClass();
   // Đã đăng ký làm gia sư (đang chờ duyệt hoặc đã duyệt) → ẩn lời mời "Trở thành gia sư đối tác"
   const isRegisteredTutor = user?.role === "tutor" || Boolean(tutorProfile);
   const [filters, setFilters] = useState({ subject: "", provinceCode: "", districtCode: "" });
@@ -64,7 +66,6 @@ const NewClassesPage = () => {
   const [subjects, setSubjects] = useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "login", classItem: null });
   const pageSize = 6;
   const ALL_SUBJECTS_VALUE = "__all_subjects__";
   const ALL_PROVINCES_VALUE = "__all_provinces__";
@@ -139,20 +140,6 @@ const NewClassesPage = () => {
     }
   }, [location.search]);
 
-  const formatPrice = (value) => `${(value || 0).toLocaleString("vi-VN")}`;
-  const formatDateTime = (value) => {
-    if (!value) return "-";
-    return new Date(value)
-      .toLocaleString("vi-VN", {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-      .replace(',', '');
-  };
-
   // Gợi ý nhanh: lấy thẳng từ danh sách môn của BE (đã sort theo order do admin định nghĩa),
   // tránh hardcode khiến tag không khớp tên môn trong DB → lọc ra rỗng.
   const popularTags = useMemo(() => subjects.slice(0, 10), [subjects]);
@@ -160,77 +147,6 @@ const NewClassesPage = () => {
   const totalPages = pagination?.totalPages || 1;
   const totalItems = pagination?.totalItems || 0;
   const returnTo = `${location.pathname}${location.search}`;
-
-  const handleReceiveClass = async (classItem) => {
-    if (!isAuthenticated) {
-      setReceiveDialog({ open: true, type: "login", classItem });
-      return;
-    }
-
-    if (user?.role !== "tutor") {
-      setReceiveDialog({ open: true, type: "tutorRequired", classItem });
-      return;
-    }
-
-    try {
-      const response = await tutorService.getProfile();
-      const tutorProfile = response.data?.data?.tutor;
-
-      // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
-      if (!hasCompleteTutorDocuments(tutorProfile)) {
-        setReceiveDialog({ open: true, type: "documentsRequired", classItem });
-        return;
-      }
-
-      const registeredSubjects = tutorProfile?.subjects || [];
-      const mismatchReasons = [];
-
-      if (!registeredSubjects.includes(classItem.subject)) {
-        mismatchReasons.push(`Môn học: Lớp yêu cầu môn "${classItem.subject}" nhưng bạn chưa đăng ký dạy môn này.`);
-      }
-
-      if (classItem.tutorGenderPref && classItem.tutorGenderPref !== 'any' && user?.gender !== classItem.tutorGenderPref) {
-        const requiredGender = classItem.tutorGenderPref === 'male' ? 'Nam' : 'Nữ';
-        const currentGender = user?.gender === 'male' ? 'Nam' : user?.gender === 'female' ? 'Nữ' : 'Chưa cập nhật';
-        mismatchReasons.push(`Giới tính: Lớp yêu cầu gia sư giới tính "${requiredGender}" nhưng giới tính tài khoản của bạn là "${currentGender}".`);
-      }
-
-      if (classItem.tutorLevelPref && classItem.tutorLevelPref !== 'any') {
-        const requiredLevel = classItem.tutorLevelPref === 'student' ? 'Sinh viên' : 'Giáo viên';
-        const currentOccupation = tutorProfile?.occupationStatus;
-        const currentLevel = currentOccupation === 'student' ? 'Sinh viên' : currentOccupation === 'teacher' ? 'Giáo viên' : 'Khác';
-        if (classItem.tutorLevelPref !== currentOccupation) {
-          mismatchReasons.push(`Trình độ: Lớp yêu cầu gia sư là "${requiredLevel}" nhưng trình độ của bạn là "${currentLevel}".`);
-        }
-      }
-
-      if (mismatchReasons.length > 0) {
-        setReceiveDialog({
-          open: true,
-          type: "mismatch",
-          classItem,
-          tutorSubjects: registeredSubjects,
-          mismatchReasons,
-        });
-        return;
-      }
-      setReceiveDialog({ open: true, type: "confirm", classItem, tutorSubjects: registeredSubjects });
-    } catch (err) {
-      console.error("Failed to check tutor profile conditions", err);
-      setReceiveDialog({ open: true, type: "confirm", classItem });
-    }
-  };
-
-  const handleConfirmApply = async () => {
-    const classItem = receiveDialog.classItem;
-    const result = await dispatch(applyForClassThunk(classItem?.id || classItem?._id));
-    if (applyForClassThunk.fulfilled.match(result)) {
-      setReceiveDialog((prev) => ({ ...prev, type: "submitted" }));
-    } else {
-      setReceiveDialog((prev) => ({ ...prev, open: false }));
-      toast.error(result.payload || "Không thể gửi yêu cầu nhận lớp");
-    }
-  };
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -473,7 +389,7 @@ const NewClassesPage = () => {
                     <BookOpenText className="h-4 w-4 text-emerald-600" />
                     <span className="text-sm text-slate-500">Học phí / buổi:</span>
                     <strong className="text-lg font-bold leading-none text-emerald-600">
-                      {formatPrice(item.feePerSession)}đ
+                      {formatPrice(item.feePerSession)}
                     </strong>
                   </div>
                 </div>
@@ -547,7 +463,7 @@ const NewClassesPage = () => {
               <div className="mt-4 w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[220px]">
                 <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                 <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
-                  {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ
+                  {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}
                 </p>
                 <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
                 {user?.id && item.createdBy === user.id ? (
@@ -558,7 +474,7 @@ const NewClassesPage = () => {
                   <Button
                     type="button"
                     className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
-                    onClick={() => handleReceiveClass(item)}
+                    onClick={() => openReceive(item)}
                   >
                     Nhận lớp ngay
                     <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -661,7 +577,7 @@ const NewClassesPage = () => {
                 </Link>
               </li>
               <li>
-                <Link to="#" className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
+                <Link to={CONTRACT_ROUTE} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
                   Hợp đồng mẫu
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -691,8 +607,8 @@ const NewClassesPage = () => {
         type={receiveDialog.type}
         classItem={receiveDialog.classItem}
         returnTo={returnTo}
-        onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
-        onConfirm={handleConfirmApply}
+        onClose={closeDialog}
+        onConfirm={confirmApply}
         applying={applying}
         tutorSubjects={receiveDialog.tutorSubjects}
         mismatchReasons={receiveDialog.mismatchReasons}

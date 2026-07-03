@@ -3,6 +3,7 @@ import { authReducer } from "@/features/auth";
 import { tutorReducer } from "@/features/tutors";
 import { adminReducer } from "@/admin";
 import notificationReducer from "@/features/notifications/store/notificationSlice";
+import adminNotificationReducer from "@/admin/store/adminNotificationSlice";
 import { classReducer } from "@/features/classes";
 import voucherReducer from "@/features/vouchers/store/voucherSlice";
 import { reviewReducer } from "@/features/reviews";
@@ -14,6 +15,7 @@ export const store = configureStore({
     tutors: tutorReducer,
     admin: adminReducer,
     notifications: notificationReducer,
+    adminNotifications: adminNotificationReducer,
     classes: classReducer,
     vouchers: voucherReducer,
     reviews: reviewReducer,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Check, Clock, Eye, Loader2, UserCheck, X, ZoomIn } from "lucide-react";
+import { Clock, Eye, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/shared/Pagination";
@@ -10,10 +10,11 @@ import {
   rejectProfileChangeThunk,
 } from "@/admin/store/adminThunks";
 import { OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
-import { formatAvailabilitySlotsOneLine, formatDateTime } from "@/features/classes/utils/classFormatters";
-import { getInitials } from "@/features/profile";
-
-const PAGE_SIZE = 10;
+import { formatDateTime } from "@/features/classes/utils/classFormatters";
+import { ADMIN_PAGE_SIZE as PAGE_SIZE } from "@/admin/constants";
+import { StatusBadge, AvatarBlock } from "@/admin/components/profileChanges/ProfileChangeBadges";
+import ImageLightbox from "@/admin/components/profileChanges/ImageLightbox";
+import ProfileChangeDetailModal from "@/admin/components/profileChanges/ProfileChangeDetailModal";
 
 const TABS = [
   { value: "pending", label: "Chờ duyệt" },
@@ -21,247 +22,6 @@ const TABS = [
   { value: "rejected", label: "Đã từ chối" },
   { value: "all", label: "Tất cả" },
 ];
-
-const FIELD_LABELS = {
-  phone: "Số điện thoại liên hệ",
-  occupationStatus: "Tình trạng nghề nghiệp",
-  teachingAreas: "Khu vực giảng dạy",
-  currentArea: "Khu vực hiện tại",
-  bio: "Giới thiệu bản thân",
-  availability: "Lịch giảng dạy",
-  subjects: "Môn học giảng dạy",
-  graduationYear: "Năm tốt nghiệp",
-  cccdFrontImage: "CCCD mặt trước",
-  cccdBackImage: "CCCD mặt sau",
-  studentCardFrontImage: "Thẻ sinh viên mặt trước",
-  studentCardBackImage: "Thẻ sinh viên mặt sau",
-  certificateImages: "Bằng cấp",
-};
-
-// Field ảnh đơn / ảnh nhiều — hiển thị ảnh thay vì text
-const SINGLE_IMAGE_FIELDS = new Set([
-  "cccdFrontImage",
-  "cccdBackImage",
-  "studentCardFrontImage",
-  "studentCardBackImage",
-]);
-const MULTI_IMAGE_FIELDS = new Set(["certificateImages"]);
-const isImageField = (key) => SINGLE_IMAGE_FIELDS.has(key) || MULTI_IMAGE_FIELDS.has(key);
-
-const ZoomThumb = ({ src, onZoom }) =>
-  src ? (
-    <button
-      type="button"
-      onClick={() => onZoom(src)}
-      className="group relative block aspect-[16/10] w-full overflow-hidden rounded-md border border-slate-200 bg-slate-50"
-    >
-      <img src={src} alt="Ảnh giấy tờ" className="h-full w-full object-contain" />
-      <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/40 group-hover:opacity-100">
-        <ZoomIn className="h-4 w-4 text-white" />
-      </span>
-    </button>
-  ) : (
-    <div className="flex aspect-[16/10] w-full items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-400">
-      —
-    </div>
-  );
-
-const ImageFieldValue = ({ fieldKey, value, onZoom }) => {
-  if (MULTI_IMAGE_FIELDS.has(fieldKey)) {
-    const list = Array.isArray(value) ? value : [];
-    if (list.length === 0) return <p className="text-sm text-slate-400">—</p>;
-    return (
-      <div className="grid grid-cols-2 gap-2">
-        {list.map((src) => (
-          <ZoomThumb key={src} src={src} onZoom={onZoom} />
-        ))}
-      </div>
-    );
-  }
-  return <ZoomThumb src={value} onZoom={onZoom} />;
-};
-
-const ImageLightbox = ({ src, onClose }) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4" onClick={onClose}>
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label="Đóng ảnh phóng to"
-      className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-    >
-      <X className="h-5 w-5" />
-    </button>
-    <img
-      src={src}
-      alt="Ảnh phóng to"
-      className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-      onClick={(e) => e.stopPropagation()}
-    />
-  </div>
-);
-
-const formatFieldValue = (key, value) => {
-  if (value == null) return "—";
-  switch (key) {
-    case "occupationStatus":
-      return OCCUPATION_STATUS_LABEL[value] || value;
-    case "teachingAreas": {
-      const districts = (value.districts || []).map((d) => d.name).filter(Boolean).join(", ");
-      return `${value.provinceName || "?"}${districts ? ` (${districts})` : ""}`;
-    }
-    case "currentArea":
-      return [value.districtName, value.provinceName].filter(Boolean).join(", ") || "—";
-    case "availability":
-      return formatAvailabilitySlotsOneLine(value);
-    case "subjects":
-      return Array.isArray(value) ? value.join(", ") : String(value);
-    default:
-      return String(value);
-  }
-};
-
-const StatusBadge = ({ status }) => {
-  const config = {
-    pending: { label: "Chờ duyệt", className: "bg-amber-50 text-amber-700 border-amber-200" },
-    approved: { label: "Đã duyệt", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    rejected: { label: "Đã từ chối", className: "bg-rose-50 text-rose-700 border-rose-200" },
-  }[status] || { label: status, className: "bg-slate-100 text-slate-600 border-slate-200" };
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.className}`}>
-      {config.label}
-    </span>
-  );
-};
-
-const AvatarBlock = ({ user, size = "md" }) => {
-  const cls = size === "lg" ? "h-11 w-11" : "h-10 w-10";
-  return user?.avatar ? (
-    <img
-      src={user.avatar}
-      alt={user.fullName}
-      referrerPolicy="no-referrer"
-      className={`${cls} rounded-full object-cover ring-2 ring-slate-100`}
-    />
-  ) : (
-    <div className={`flex ${cls} items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white`}>
-      {getInitials(user?.fullName)}
-    </div>
-  );
-};
-
-// Modal chi tiết các thay đổi của một yêu cầu đổi hồ sơ
-const DetailModal = ({ request, acting, onClose, onApprove, onReject, onZoom }) => {
-  const changeKeys = Object.keys(request.changes || {});
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 border-b border-slate-100 bg-slate-50 px-6 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <AvatarBlock user={request.user} size="lg" />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{request.user?.fullName || "—"}</p>
-              <p className="truncate text-xs text-slate-500">{request.user?.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <StatusBadge status={request.status} />
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Đóng"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Các thay đổi đề xuất
-          </p>
-          {changeKeys.length === 0 ? (
-            <p className="text-sm text-slate-500">Không có thay đổi.</p>
-          ) : (
-            <div className="space-y-3">
-              {changeKeys.map((key) => (
-                <div key={key} className="text-sm">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {FIELD_LABELS[key] || key}
-                  </p>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                      <p className="mb-0.5 text-[11px] text-slate-400">Hiện tại</p>
-                      {isImageField(key) ? (
-                        <ImageFieldValue fieldKey={key} value={request.current?.[key]} onZoom={onZoom} />
-                      ) : (
-                        <p className="whitespace-pre-wrap break-words text-slate-600">
-                          {formatFieldValue(key, request.current?.[key])}
-                        </p>
-                      )}
-                    </div>
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                      <p className="mb-0.5 text-[11px] text-emerald-600">Đề xuất mới</p>
-                      {isImageField(key) ? (
-                        <ImageFieldValue fieldKey={key} value={request.changes[key]} onZoom={onZoom} />
-                      ) : (
-                        <p className="whitespace-pre-wrap break-words text-emerald-800">
-                          {formatFieldValue(key, request.changes[key])}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {request.status === "rejected" && request.rejectionReason && (
-            <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              Lý do từ chối: {request.rejectionReason}
-            </p>
-          )}
-        </div>
-
-        {/* Footer actions */}
-        {request.status === "pending" && (
-          <div className="flex gap-3 border-t border-slate-100 px-6 py-4">
-            <Button
-              type="button"
-              onClick={() => onApprove(request)}
-              disabled={acting}
-              className="bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              {acting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-              Duyệt
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onReject(request)}
-              disabled={acting}
-              className="border-rose-200 text-rose-600 hover:bg-rose-50"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Từ chối
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 export default function AdminProfileChangesPage() {
   const dispatch = useDispatch();
@@ -435,7 +195,7 @@ export default function AdminProfileChangesPage() {
 
       {/* Detail modal */}
       {detailTarget && (
-        <DetailModal
+        <ProfileChangeDetailModal
           request={detailTarget}
           acting={profileChangeActionLoading === detailTarget.id}
           onClose={() => setDetailTarget(null)}
