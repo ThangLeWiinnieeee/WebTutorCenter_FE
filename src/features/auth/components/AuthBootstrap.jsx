@@ -8,6 +8,7 @@ import {
   refreshUnreadCountThunk,
 } from "@/features/notifications/store/notificationThunks";
 import { clearNotifications } from "@/features/notifications/store/notificationSlice";
+import { clearAdminNotifications } from "@/admin/store/adminNotificationSlice";
 import tokenStorage from "@/utils/tokenStorage";
 
 // Chu kỳ làm tươi số thông báo chưa đọc (ms) — để chuông cập nhật gần realtime, không cần reload.
@@ -35,6 +36,7 @@ const AuthBootstrap = ({ children }) => {
       dispatch(fetchNotificationsThunk());
     } else if (!isAuthenticated && prevUserIdRef.current) {
       dispatch(clearNotifications());
+      dispatch(clearAdminNotifications());
     }
     prevUserIdRef.current = userId || null;
   }, [dispatch, userId, isAuthenticated]);

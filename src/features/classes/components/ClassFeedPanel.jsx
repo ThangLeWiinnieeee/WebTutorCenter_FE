@@ -4,7 +4,6 @@ import {
   BookOpenText,
   CalendarClock,
   Clock3,
-  Eye,
   Inbox,
   MapPin,
   Sparkles,

@@ -11,4 +11,7 @@ export { default as AdminSettingsPage } from "./pages/AdminSettingsPage";
 export { default as AdminProfileChangesPage } from "./pages/AdminProfileChangesPage";
 export { default as AdminApplicationCancellationsPage } from "./pages/AdminApplicationCancellationsPage";
 export { default as AdminReviewsPage } from "./pages/AdminReviewsPage";
+export { default as AdminNotificationsPage } from "./pages/AdminNotificationsPage";
+export { default as AdminMessagesPage } from "./pages/AdminMessagesPage";
 export { default as adminReducer } from "./store/adminSlice";
+export { default as adminNotificationReducer } from "./store/adminNotificationSlice";

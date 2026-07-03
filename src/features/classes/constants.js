@@ -10,7 +10,7 @@ export const CONTRACT_CENTER = {
   hotline2: "0900 654 321",
 };
 
-export const CONTRACT_ROUTE = "/hop-dong-mau";
+export const CONTRACT_ROUTE = "/contract-template";
 
 // Nhãn rút gọn cho yêu cầu gia sư khi tạo/sửa lớp (dùng ở form FindTutorRequestPage).
 // Bản đầy đủ cho hiển thị công khai nằm ở classFormatters (formatTutorGenderPref/LevelPref).

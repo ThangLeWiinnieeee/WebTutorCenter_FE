@@ -1,7 +1,6 @@
 import {
   BookOpen,
   MapPin,
-  GraduationCap,
   Clock,
   User2,
   Briefcase,

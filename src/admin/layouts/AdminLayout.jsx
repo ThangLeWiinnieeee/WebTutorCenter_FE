@@ -8,11 +8,16 @@ import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getDashboardStatsThunk } from "@/admin/store/adminThunks";
 import { fetchAdminUnreadCountThunk } from "@/features/chat/store/chatThunks";
 import { selectAdminUnreadTotal } from "@/features/chat/store/chatSlice";
+import AdminNotificationBell from "@/admin/components/AdminNotificationBell";
+import { refreshAdminUnreadCountThunk } from "@/admin/store/adminNotificationThunks";
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
+
+// Chu kỳ làm tươi số thông báo quản trị chưa đọc (ms) — cho chuông cập nhật gần realtime.
+const ADMIN_NOTIFICATION_POLL_MS = 30000;
 
 const Badge = ({ count, collapsed }) => {
   if (!count) return null;
@@ -79,6 +84,26 @@ const AdminLayout = () => {
   // Số tin nhắn chưa đọc ban đầu cho badge menu "Tin nhắn"; socket tự cập nhật realtime.
   useEffect(() => {
     if (isAdmin) dispatch(fetchAdminUnreadCountThunk());
+  }, [dispatch, isAdmin]);
+
+  // Chuông thông báo quản trị: lấy số chưa đọc lúc vào + làm tươi định kỳ/khi focus lại.
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+
+    const refresh = () => {
+      if (document.visibilityState === "visible") dispatch(refreshAdminUnreadCountThunk());
+    };
+    refresh();
+
+    const intervalId = setInterval(refresh, ADMIN_NOTIFICATION_POLL_MS);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [dispatch, isAdmin]);
 
   useEffect(() => {
@@ -294,6 +319,10 @@ const AdminLayout = () => {
 
       {/* Main content */}
       <div className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}>
+        {/* Thanh trên cùng: chuông thông báo riêng cho quản trị viên */}
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-3 border-b border-slate-200 bg-white/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+          <AdminNotificationBell />
+        </header>
         <main className="flex-1 p-6">
           <Outlet />
         </main>

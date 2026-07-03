@@ -77,7 +77,7 @@ const Footer = () => {
                 <Link to="/register-tutor" className="hover:text-white transition-colors">Trở thành gia sư</Link>
               </li>
               <li>
-                <Link to="/hop-dong-mau" className="hover:text-white transition-colors">Hợp đồng mẫu</Link>
+                <Link to="/contract-template" className="hover:text-white transition-colors">Hợp đồng mẫu</Link>
               </li>
             </ul>
           </div>
