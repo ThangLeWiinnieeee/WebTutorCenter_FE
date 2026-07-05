@@ -69,6 +69,8 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   const isEdit = Boolean(editClass);
   const isInvite = Boolean(invitedTutor) && !isEdit;
   const { quote, loadingQuote, creating, latestCreated, error } = useSelector((state) => state.classes);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [subjectOptions, setSubjectOptions] = useState([]);
@@ -137,10 +139,12 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     [myVouchers],
   );
 
-  // Lấy kho voucher cá nhân để gợi ý ngay khi ấn vào ô mã ưu đãi
+  // Lấy kho voucher cá nhân để gợi ý ngay khi ấn vào ô mã ưu đãi (chỉ khi đã đăng nhập —
+  // endpoint /promos/mine yêu cầu token; gọi lúc chưa đăng nhập sẽ báo lỗi token ra UI)
   useEffect(() => {
+    if (!isAuthenticated) return;
     dispatch(fetchMyVouchersThunk({ page: 1, limit: 50 }));
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   // Đóng danh sách gợi ý khi bấm ra ngoài
   useEffect(() => {
@@ -277,12 +281,23 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     return list.map((item) => ({ value: String(item.code), label: item.name }));
   }, [districts, isInvite, inviteDistrictCodes]);
 
+  // Guest bấm "Xem báo giá & xác nhận": lưu lại nội dung đã nhập rồi yêu cầu đăng nhập/đăng ký,
+  // không gọi API (endpoint /quote cần token, nếu gọi sẽ lộ lỗi token ra UI).
+  const requireAuth = () => {
+    if (isAuthenticated) return true;
+    saveClassRequestFormDraft(form.getValues());
+    setAuthPromptOpen(true);
+    return false;
+  };
+
   const onQuote = async (values) => {
+    if (!requireAuth()) return;
     const result = await dispatch(quoteClassThunk(values));
     if (result.error) toast.error(result.payload || "Không thể tính học phí");
   };
 
   const onCreate = async () => {
+    if (!requireAuth()) return;
     // Luồng mời gia sư trực tiếp: tạo lớp + gửi lời mời tới gia sư được chọn
     if (isInvite) {
       const result = await dispatch(
@@ -473,6 +488,44 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
           </aside>
         </div>
       </div>
+
+      {/* Yêu cầu đăng nhập/đăng ký khi guest bấm xem báo giá — form đã được lưu (draft),
+          đăng nhập/đăng ký xong quay lại trang này sẽ tự khôi phục nội dung đã nhập */}
+      {authPromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900">Cần đăng nhập để tiếp tục</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Vui lòng đăng nhập hoặc đăng ký tài khoản để xem báo giá và gửi yêu cầu tìm gia sư.
+              Nội dung bạn đã nhập sẽ được giữ nguyên.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <Button
+                type="button"
+                onClick={() => navigate("/login", { state: { from: "/find-tutor" } })}
+                className="h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+              >
+                Đăng nhập
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/register", { state: { from: "/find-tutor" } })}
+                className="h-11 w-full rounded-xl font-semibold"
+              >
+                Đăng ký tài khoản
+              </Button>
+              <button
+                type="button"
+                onClick={() => setAuthPromptOpen(false)}
+                className="mt-1 text-sm font-medium text-slate-500 hover:text-slate-700"
+              >
+                Để sau
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
