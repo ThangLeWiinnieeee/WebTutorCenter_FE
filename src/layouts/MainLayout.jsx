@@ -13,7 +13,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
-      {/* Khung nhắn tin nổi cho gia sư (tự ẩn với vai trò khác) */}
+      {/* Khung nổi: tab Trợ lý ảo (cho cả khách) + tab nhắn Admin (khi đã đăng nhập). Ẩn với admin. */}
       <TutorChatWidget />
     </div>
   );
