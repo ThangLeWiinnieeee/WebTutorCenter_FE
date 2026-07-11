@@ -14,6 +14,7 @@ const VerifyOtpPage = () => {
   const location  = useLocation();
 
   const email = location.state?.email || "";
+  const from = location.state?.from; // giữ đích quay lại (vd /find-tutor) xuyên suốt luồng đăng ký
 
   const [serverError,     setServerError]     = useState("");
   const [resendCooldown,  setResendCooldown]   = useState(RESEND_COOLDOWN_SECONDS);
@@ -34,7 +35,7 @@ const VerifyOtpPage = () => {
     setServerError("");
     const result = await dispatch(verifyOtpThunk({ email, otp }));
     if (verifyOtpThunk.fulfilled.match(result)) {
-      navigate("/login", { state: { verified: true } });
+      navigate("/login", { state: { verified: true, from } });
     } else {
       setServerError(result.payload || "Mã OTP không đúng, vui lòng thử lại.");
     }

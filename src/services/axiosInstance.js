@@ -32,6 +32,8 @@ const SILENT_ENDPOINTS = [
   API_ENDPOINTS.AUTH.USER_INFO,
   // Nhắn tin: gửi/đọc tin diễn ra liên tục → không hiện toast thành công
   "/chat/",
+  // Trợ lý ảo: mỗi câu trả lời là 1 POST → không pop toast thành công
+  "/chatbot",
 ];
 
 axiosInstance.interceptors.response.use(

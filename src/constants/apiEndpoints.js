@@ -127,6 +127,10 @@ const API_ENDPOINTS = {
     CONVERSATION_SEND_IMAGE: (id) => `/chat/conversations/${id}/images`,
     CONVERSATION_READ: (id) => `/chat/conversations/${id}/read`,
   },
+  CHATBOT: {
+    // Trợ lý ảo — 1 endpoint hỏi/đáp, cho cả khách lẫn người đã đăng nhập.
+    ASK: "/chatbot",
+  },
 };
 
 export default API_ENDPOINTS;
