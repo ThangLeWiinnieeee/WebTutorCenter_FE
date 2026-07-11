@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AvailabilityPicker from "@/features/tutors/components/AvailabilityPicker";
 import AreaPicker from "@/features/tutors/components/AreaPicker";
 import MultiCheckbox from "@/features/tutors/components/MultiCheckbox";
+import DocumentMultiUpload from "@/features/tutors/components/DocumentMultiUpload";
 
 const SectionTitle = ({ icon, title }) => (
   <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -220,6 +221,25 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
                     <span className="ml-auto text-xs text-slate-400">{field.value?.length ?? 0}/2000</span>
                   </div>
                 </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Bằng cấp công khai — tùy chọn, hiển thị cho mọi người */}
+          <div>
+            <SectionTitle icon={GraduationCap} title="Bằng cấp công khai" />
+            <FormField
+              control={form.control}
+              name="publicCertificateImages"
+              render={({ field, fieldState }) => (
+                <DocumentMultiUpload
+                  label="Ảnh bằng cấp / chứng chỉ muốn hiển thị"
+                  hint="Không bắt buộc. Những ảnh này sẽ hiển thị công khai ở hồ sơ và trang chi tiết gia sư cho mọi người xem — bỏ trống nếu bạn không muốn chia sẻ."
+                  max={5}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                />
               )}
             />
           </div>
