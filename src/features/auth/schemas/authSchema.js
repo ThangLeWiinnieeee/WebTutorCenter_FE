@@ -2,6 +2,14 @@ import { z } from 'zod';
 
 const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
 
+// Mật khẩu: >=10 ký tự, có ít nhất 1 chữ in hoa và 1 ký tự đặc biệt (khớp BE auth.validation).
+const passwordField = z
+  .string()
+  .min(1, "Mật khẩu không được để trống")
+  .min(10, "Mật khẩu phải có ít nhất 10 ký tự")
+  .regex(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ in hoa")
+  .regex(/[^A-Za-z0-9]/, "Mật khẩu phải có ít nhất 1 ký tự đặc biệt");
+
 export const registerSchema = z
   .object({
     fullName: z
@@ -25,10 +33,7 @@ export const registerSchema = z
         (val) => new Date(val) <= new Date(),
         "Ngày sinh không được lớn hơn thời gian hiện tại"
       ),
-    password: z
-      .string()
-      .min(1, "Mật khẩu không được để trống")
-      .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    password: passwordField,
     confirmPassword: z.string().min(1, "Mật khẩu xác nhận không được để trống"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -61,10 +66,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(1, "Mật khẩu không được để trống")
-      .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    newPassword: passwordField,
     confirmPassword: z.string().min(1, "Mật khẩu xác nhận không được để trống"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
