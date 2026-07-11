@@ -30,6 +30,8 @@ export const tutorProfileEditSchema = z.object({
     .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
   availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
   subjects: z.array(z.string()).min(1, "Phải chọn ít nhất 1 môn học"),
+  // Bằng cấp công khai — tùy chọn; thêm/sửa qua duyệt admin.
+  publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
   graduationYear: z
     .union([
       z
@@ -68,6 +70,7 @@ export const tutorProfileToFormValues = (profile) => ({
   bio: profile?.bio ?? "",
   availability: (profile?.availability ?? []).map((s) => ({ day: s.day, hour: Number(s.hour) })),
   subjects: profile?.subjects ?? [],
+  publicCertificateImages: profile?.publicCertificateImages ?? [],
   graduationYear: profile?.graduationYear ?? null,
 });
 

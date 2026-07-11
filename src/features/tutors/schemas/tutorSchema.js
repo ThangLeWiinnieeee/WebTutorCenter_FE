@@ -62,6 +62,8 @@ export const tutorSchema = z.object({
   studentCardFrontImage: z.string().optional().default(""),
   studentCardBackImage: z.string().optional().default(""),
   certificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp").default([]),
+  // Bằng cấp công khai — tùy chọn, hiển thị cho mọi người ở hồ sơ/chi tiết gia sư.
+  publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
 }).superRefine((data, ctx) => {
   // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
   if (data.occupationStatus !== "student" && data.graduationYear == null) {

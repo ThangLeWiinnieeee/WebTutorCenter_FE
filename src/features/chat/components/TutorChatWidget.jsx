@@ -247,6 +247,17 @@ const TutorChatWidget = () => {
                   ))}
                 </div>
               )}
+              {/* Bot lọc câu dễ; câu khó → chuyển tab nhắn admin. Chỉ user đã đăng nhập mới có tab admin. */}
+              {!mine && isLast && canChat && (
+                <button
+                  type="button"
+                  onClick={() => switchTab("admin")}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-[#1e3a5f] transition hover:border-[#1e3a5f] hover:bg-[#1e3a5f]/5"
+                >
+                  <Headset className="h-3.5 w-3.5" />
+                  Không giải quyết được? → Nhắn admin
+                </button>
+              )}
             </div>
           );
         })}

@@ -8,6 +8,7 @@ import {
   Loader2,
   Pencil,
   Hourglass,
+  GraduationCap,
 } from "lucide-react";
 import {
   TUTOR_STATUS_CONFIG,
@@ -221,6 +222,25 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
             {tutorProfile.bio || "—"}
           </p>
         </Section>
+
+        {/* Bằng cấp công khai — chỉ hiện khi gia sư đã thêm */}
+        {tutorProfile.publicCertificateImages?.length > 0 && (
+          <Section icon={GraduationCap} title="Bằng cấp công khai">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {tutorProfile.publicCertificateImages.map((src) => (
+                <a
+                  key={src}
+                  href={src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block aspect-[16/10] overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+                >
+                  <img src={src} alt="Bằng cấp công khai" className="h-full w-full object-contain" />
+                </a>
+              ))}
+            </div>
+          </Section>
+        )}
 
         {/* Availability */}
         {tutorProfile.availability?.length > 0 && (

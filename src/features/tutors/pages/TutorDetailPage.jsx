@@ -246,6 +246,29 @@ export default function TutorDetailPage() {
             </section>
           )}
 
+          {/* Bằng cấp công khai — chỉ hiện khi gia sư đã chia sẻ */}
+          {tutor.publicCertificateImages?.length > 0 && (
+            <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-green-600" />
+                Bằng cấp
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {tutor.publicCertificateImages.map((src) => (
+                  <a
+                    key={src}
+                    href={src}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block aspect-[16/10] overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                  >
+                    <img src={src} alt="Bằng cấp gia sư" className="h-full w-full object-contain" />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Lịch giảng dạy */}
           {tutor.availability?.length > 0 && (
             <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">

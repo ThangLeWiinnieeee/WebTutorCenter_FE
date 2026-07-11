@@ -15,6 +15,7 @@ export const PROFILE_CHANGE_FIELD_LABELS = {
   studentCardFrontImage: "Thẻ sinh viên mặt trước",
   studentCardBackImage: "Thẻ sinh viên mặt sau",
   certificateImages: "Bằng cấp",
+  publicCertificateImages: "Bằng cấp công khai",
 };
 
 // Field còn được phép áp khi duyệt (khớp whitelist backend). Field ngoài danh sách
@@ -33,4 +34,5 @@ export const PROFILE_CHANGE_APPLICABLE_FIELDS = new Set([
   "studentCardFrontImage",
   "studentCardBackImage",
   "certificateImages",
+  "publicCertificateImages",
 ]);

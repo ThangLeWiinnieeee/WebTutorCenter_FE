@@ -16,7 +16,7 @@ const SINGLE_IMAGE_FIELDS = new Set([
   "studentCardFrontImage",
   "studentCardBackImage",
 ]);
-const MULTI_IMAGE_FIELDS = new Set(["certificateImages"]);
+const MULTI_IMAGE_FIELDS = new Set(["certificateImages", "publicCertificateImages"]);
 const isImageField = (key) => SINGLE_IMAGE_FIELDS.has(key) || MULTI_IMAGE_FIELDS.has(key);
 
 const ZoomThumb = ({ src, onZoom }) =>
