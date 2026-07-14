@@ -23,6 +23,9 @@ const chatService = {
     axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATION_SEND_IMAGE(id), formData, {
       headers: { "Content-Type": undefined },
     }),
+  // Đính kèm thẻ gia sư/bài đăng vào hội thoại (admin). payload: { kind, refId }.
+  sendConversationCard: (id, payload) =>
+    axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATION_SEND_CARD(id), payload),
   markConversationRead: (id) => axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATION_READ(id)),
   startConversation: (tutorUserId) =>
     axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATIONS, { tutorUserId }),
@@ -32,6 +35,16 @@ const chatService = {
   searchUsers: (keyword) =>
     axiosInstance.get(API_ENDPOINTS.ADMIN.USERS, {
       params: { keyword, limit: 100 },
+    }),
+
+  // Picker đính kèm thẻ: tái dùng tìm gia sư (public) và danh sách lớp của admin.
+  searchTutorsForCard: (keyword) =>
+    axiosInstance.get(API_ENDPOINTS.TUTORS.SEARCH, {
+      params: { name: keyword, page: 1, limit: 20 },
+    }),
+  searchClassesForCard: (keyword) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.CLASSES, {
+      params: { keyword, page: 1, limit: 20 },
     }),
 };
 

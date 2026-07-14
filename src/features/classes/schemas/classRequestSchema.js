@@ -24,22 +24,38 @@ export const getTodayIsoDateLocal = () => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
+// Ngày bắt đầu buổi học phải cách hôm nay tối thiểu 2 ngày (không nhận hôm nay/ngày mai),
+// để người đăng có thời gian tìm & chọn gia sư trước khi lớp bắt đầu.
+export const MIN_START_LEAD_DAYS = 2;
+
+/** yyyy-mm-dd (local) của ngày bắt đầu sớm nhất được phép = hôm nay + 2 ngày */
+export const getMinStartIsoDateLocal = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + MIN_START_LEAD_DAYS);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
 const startDateSchema = z
   .string()
-  .min(1, "Vui lòng chọn ngày bắt đầu")
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày bắt đầu không hợp lệ")
+  .min(1, "Vui lòng chọn ngày bắt đầu buổi học")
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày bắt đầu buổi học không hợp lệ")
   .refine(
     (val) => {
       const [year, month, day] = val.split("-").map(Number);
       const picked = new Date(year, month - 1, day);
       if (Number.isNaN(picked.getTime())) return false;
       if (picked.getDate() !== day || picked.getMonth() !== month - 1) return false;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const minStart = new Date();
+      minStart.setHours(0, 0, 0, 0);
+      minStart.setDate(minStart.getDate() + MIN_START_LEAD_DAYS);
       picked.setHours(0, 0, 0, 0);
-      return picked >= today;
+      return picked >= minStart;
     },
-    { message: "Ngày bắt đầu không được trước hôm nay" },
+    { message: "Ngày bắt đầu buổi học phải cách hôm nay ít nhất 2 ngày (không nhận hôm nay hoặc ngày mai)" },
   );
 
 export const buildClassRequestSchema = (pricingConfig) => {
@@ -114,7 +130,7 @@ export const getDefaultClassRequestValues = (pricingConfig) => {
     subject: "",
     studentGender: "male",
     studentCount: 1,
-    startDate: getTodayIsoDateLocal(),
+    startDate: getMinStartIsoDateLocal(),
     minutesPerSession: defaultMinutes,
     sessionsPerWeek: 3,
     provinceCode: 0,

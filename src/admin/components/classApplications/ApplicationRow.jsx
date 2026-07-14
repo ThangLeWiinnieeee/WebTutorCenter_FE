@@ -1,10 +1,10 @@
-import { BookOpen, CheckCircle2, Eye, Loader2, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, Eye, Loader2, MessageCircle, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TutorAvatar, SubjectMatchBadge, StatusBadge } from "./badges";
 import { formatDate } from "./formatters";
 
-const ApplicationRow = ({ application, activeTab, actionLoading, onApprove, onReject, onViewClass, onViewTutor }) => {
+const ApplicationRow = ({ application, activeTab, actionLoading, onApprove, onReject, onViewClass, onViewTutor, onChat }) => {
   const { classItem, tutor, status, rejectionReason } = application;
   const isLoading = actionLoading === application.id;
 
@@ -57,6 +57,19 @@ const ApplicationRow = ({ application, activeTab, actionLoading, onApprove, onRe
           <Eye className="h-4 w-4" />
           Xem gia sư
         </Button>
+        {/* Chỉ hiện với gia sư đang chờ duyệt — mở/tiếp tục hội thoại chat để trao đổi */}
+        {activeTab === "selected" && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onChat(application)}
+            className="rounded-lg border-[#1e3a5f]/30 text-[#1e3a5f] hover:bg-[#1e3a5f]/5"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Trò chuyện
+          </Button>
+        )}
       </div>
 
       {/* Hành động / trạng thái */}

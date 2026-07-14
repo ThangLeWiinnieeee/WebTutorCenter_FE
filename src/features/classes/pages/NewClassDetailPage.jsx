@@ -61,6 +61,8 @@ const NewClassDetailPage = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [contractOpen, setContractOpen] = useState(false);
   const returnTo = `${location.pathname}${location.search}`;
+  // API có thể trả id hoặc _id — gộp về 1 giá trị ổn định để dùng làm dependency cho effect.
+  const detailId = detail?.id || detail?._id;
 
   useEffect(() => {
     if (id) dispatch(fetchClassDetailThunk(id));
@@ -68,8 +70,8 @@ const NewClassDetailPage = () => {
 
   // Tính lại vị trí animation sau khi chi tiết lớp được tải
   useEffect(() => {
-    if (detail?.id || detail?._id) AOS.refresh();
-  }, [detail?.id]);
+    if (detailId) AOS.refresh();
+  }, [detailId]);
 
   const mapClassToListItem = (item) => ({
     id: item.id || item._id,
@@ -77,7 +79,6 @@ const NewClassDetailPage = () => {
   });
 
   useEffect(() => {
-    const detailId = detail?.id || detail?._id;
     if (!detailId) return;
 
     let isCancelled = false;
@@ -121,7 +122,7 @@ const NewClassDetailPage = () => {
     return () => {
       isCancelled = true;
     };
-  }, [detail?.id, detail?.provinceCode, detail?.subject]);
+  }, [detailId, detail?.provinceCode, detail?.subject]);
 
   if (loadingDetail || loading) {
     return (

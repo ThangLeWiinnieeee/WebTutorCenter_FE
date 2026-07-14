@@ -128,6 +128,18 @@ export const sendConversationImageThunk = createAsyncThunk(
   }
 );
 
+export const sendConversationCardThunk = createAsyncThunk(
+  "chat/sendConversationCard",
+  async ({ id, kind, refId }, { rejectWithValue }) => {
+    try {
+      const res = await chatService.sendConversationCard(id, { kind, refId });
+      return { id, message: res.data.data.message };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Gửi thông tin thất bại");
+    }
+  }
+);
+
 export const markConversationReadThunk = createAsyncThunk(
   "chat/markConversationRead",
   async (id, { rejectWithValue }) => {

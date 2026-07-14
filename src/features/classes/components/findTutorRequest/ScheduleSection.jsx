@@ -78,7 +78,7 @@ const ScheduleSection = ({
             {errors.studentCount && <p className="mt-1 text-xs text-rose-600">{errors.studentCount.message}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày bắt đầu <span className="text-rose-500">*</span></label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày bắt đầu buổi học <span className="text-rose-500">*</span></label>
             <Controller
               name="startDate"
               control={control}

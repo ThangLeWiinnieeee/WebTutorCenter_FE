@@ -10,6 +10,7 @@ import {
   fetchConversationMessagesThunk,
   sendConversationMessageThunk,
   sendConversationImageThunk,
+  sendConversationCardThunk,
   markConversationReadThunk,
   startConversationThunk,
 } from "./chatThunks";
@@ -52,8 +53,13 @@ const dedupPush = (arr, msg) => {
   if (msg && !arr.some((m) => m.id === msg.id)) arr.push(msg);
 };
 
-// Nội dung xem trước ở danh sách hội thoại (ảnh không có text → hiển thị nhãn).
-const previewOf = (message) => message.content || (message.imageUrl ? "[Hình ảnh]" : "");
+// Nội dung xem trước ở danh sách hội thoại (ảnh/thẻ không có text → hiển thị nhãn).
+const previewOf = (message) => {
+  if (message.content) return message.content;
+  if (message.card) return message.card.kind === "tutor" ? `[Gia sư] ${message.card.title}` : `[Bài đăng] ${message.card.title}`;
+  if (message.imageUrl) return "[Hình ảnh]";
+  return "";
+};
 
 // Áp tin nhắn admin vừa gửi vào state: thêm vào khung đang mở + cập nhật xem trước.
 const applyAdminSent = (admin, { id, message }) => {
@@ -231,6 +237,19 @@ const chatSlice = createSlice({
         applyAdminSent(state.admin, action.payload);
       })
       .addCase(sendConversationImageThunk.rejected, (state) => {
+        state.admin.sending = false;
+      });
+
+    // Admin gửi thẻ gia sư/bài đăng — dùng chung logic với gửi text.
+    builder
+      .addCase(sendConversationCardThunk.pending, (state) => {
+        state.admin.sending = true;
+      })
+      .addCase(sendConversationCardThunk.fulfilled, (state, action) => {
+        state.admin.sending = false;
+        applyAdminSent(state.admin, action.payload);
+      })
+      .addCase(sendConversationCardThunk.rejected, (state) => {
         state.admin.sending = false;
       });
 

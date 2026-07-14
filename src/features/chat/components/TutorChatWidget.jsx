@@ -12,6 +12,7 @@ import {
   markMyReadThunk,
 } from "@/features/chat/store/chatThunks";
 import chatbotService from "@/features/chat/services/chatbotService";
+import MessageCard from "@/features/chat/components/MessageCard";
 
 const formatTime = (iso) => {
   if (!iso) return "";
@@ -287,6 +288,14 @@ const TutorChatWidget = () => {
     }
     return messages.map((m) => {
       const mine = m.senderRole === "tutor";
+      // Thẻ gia sư/bài đăng do admin gửi — hiển thị dạng card riêng (không bọc bubble màu).
+      if (m.card) {
+        return (
+          <div key={m.id} className="flex justify-start">
+            <MessageCard card={m.card} />
+          </div>
+        );
+      }
       return (
         <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
           <div className={mine ? bubbleMine : bubbleBot}>
