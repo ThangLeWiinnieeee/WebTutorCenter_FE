@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Ticket, X } from "lucide-react";
 
@@ -51,7 +51,8 @@ const PromoFormModal = ({ promo, onClose, onSubmit, loading }) => {
     defaultValues: getPromoFormValues(promo),
   });
   const errors = form.formState.errors;
-  const discountType = form.watch("discountType");
+  // useWatch (thay form.watch) để React Compiler không bỏ qua memo hoá component.
+  const discountType = useWatch({ control: form.control, name: "discountType" });
 
   useEffect(() => {
     form.reset(getPromoFormValues(promo));

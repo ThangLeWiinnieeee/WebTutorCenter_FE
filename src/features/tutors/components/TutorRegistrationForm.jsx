@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, GraduationCap, BookOpen, MapPin, User2, CalendarClock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -58,7 +58,8 @@ const TutorRegistrationForm = ({ onSuccess }) => {
     },
   });
 
-  const occupationStatus = form.watch("occupationStatus");
+  // useWatch (thay form.watch) để React Compiler không bỏ qua memo hoá component.
+  const occupationStatus = useWatch({ control: form.control, name: "occupationStatus" });
 
   // Hiển thị theo tình trạng nghề nghiệp:
   // - sinh viên → chỉ thẻ sinh viên (bắt buộc)

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { normalizeForSearch } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader2, RefreshCw, Search, ShieldCheck } from "lucide-react";
@@ -44,6 +46,7 @@ const TAB_STYLE = {
 
 const ClassApplicationsPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     classApplications,
     classApplicationsPagination,
@@ -123,6 +126,16 @@ const ClassApplicationsPage = () => {
   };
 
   const handleRejectOpen = (id) => setRejectTarget(id);
+
+  // Mở mục Tin nhắn và chat với gia sư (tạo mới nếu chưa có hội thoại, ngược lại vào hội thoại cũ)
+  const handleChat = (application) => {
+    const userId = application.tutor?.userId;
+    if (!userId) {
+      toast.error("Không tìm thấy tài khoản gia sư để trò chuyện");
+      return;
+    }
+    navigate("/admin/messages", { state: { openUserId: userId } });
+  };
 
   const handleRejectConfirm = (rejectionReason) => {
     dispatch(rejectClassApplicationThunk({ id: rejectTarget, rejectionReason })).then((r) => {
@@ -303,6 +316,7 @@ const ClassApplicationsPage = () => {
                   onReject={handleRejectOpen}
                   onViewClass={(app) => setClassModal(app.classItem)}
                   onViewTutor={(app) => setTutorModal(app)}
+                  onChat={handleChat}
                 />
               ))}
             </div>

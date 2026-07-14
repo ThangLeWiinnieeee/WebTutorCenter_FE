@@ -68,7 +68,7 @@ const BookingSummaryAsideCard = ({ control, provinces, districts, quote }) => {
           </span>
         </p>
         <p className="flex items-start justify-between gap-3">
-          <span className="text-slate-500">Ngày bắt đầu</span>
+          <span className="text-slate-500">Ngày bắt đầu buổi học</span>
           <span className="text-right font-semibold text-slate-800">{formatDate(startDateW)}</span>
         </p>
       </div>

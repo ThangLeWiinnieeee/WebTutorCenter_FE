@@ -5,6 +5,7 @@ import {
   Award,
   BookOpenText,
   CheckCircle2,
+  Eye,
   GraduationCap,
   Loader2,
   Users,
@@ -20,6 +21,7 @@ import {
 import { clearApplicants } from "@/features/classes/store/classSlice";
 import { APPLICANT_STATUS_META } from "@/features/classes/utils/applicationStatus";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
+import TutorOverviewDialog from "@/features/classes/components/TutorOverviewDialog";
 
 const StatusBadge = ({ status }) => {
   const meta = APPLICANT_STATUS_META[status];
@@ -35,6 +37,7 @@ export default function ClassApplicantsDialog({ open, post, onClose, onSelected 
   const dispatch = useDispatch();
   const { applicants, loadingApplicants, selectingApplicant } = useSelector((state) => state.classes);
   const [picked, setPicked] = useState(null);
+  const [overviewTutorId, setOverviewTutorId] = useState(null);
 
   const classId = post?.id;
   const isClassOpen = !post?.status || post.status === "open";
@@ -85,6 +88,7 @@ export default function ClassApplicantsDialog({ open, post, onClose, onSelected 
   const isSelectable = (a) => isClassOpen && !hasLockedSelection && a.status === "pending";
 
   return (
+    <>
     <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
       <div
         role="dialog"
@@ -152,70 +156,84 @@ export default function ClassApplicantsDialog({ open, post, onClose, onSelected 
                 const isRejected = a.status === "rejected";
                 return (
                   <li key={a.id}>
-                    <label
+                    <div
                       className={`flex items-start gap-3 rounded-xl border p-4 transition ${
                         checked
                           ? "border-emerald-400 bg-emerald-50/60 ring-1 ring-emerald-200"
                           : isRejected
                             ? "border-rose-200 bg-rose-50/40"
-                            : "border-slate-200 hover:border-emerald-300"
-                      } ${selectable ? "cursor-pointer" : "cursor-not-allowed opacity-70"}`}
+                            : "border-slate-200"
+                      }`}
                     >
                       <input
                         type="radio"
                         name="applicant"
-                        className="mt-1.5 h-4 w-4 accent-emerald-600"
+                        aria-label={`Chọn gia sư ${t.fullName || ""}`}
+                        className={`mt-1.5 h-4 w-4 accent-emerald-600 ${selectable ? "cursor-pointer" : "cursor-not-allowed"}`}
                         disabled={!selectable}
                         checked={checked}
                         onChange={() => setPicked(a.id)}
                       />
-                      {/* Avatar */}
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100">
-                        {t.avatar ? (
-                          <img src={t.avatar} alt={t.fullName || "Gia sư"} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">
-                            {(t.fullName || "?").charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      {/* Info */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-slate-900">{t.fullName || "Gia sư"}</span>
-                          <StatusBadge status={a.status} />
-                        </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                            <Award className="h-3.5 w-3.5" />
-                            Đã dạy {t.totalClassesAccepted || 0} lớp
-                          </span>
-                          {t.occupationStatus && (
-                            <span className="inline-flex items-center gap-1">
-                              <GraduationCap className="h-3.5 w-3.5" />
-                              {OCCUPATION_STATUS_LABEL[t.occupationStatus] || t.occupationStatus}
-                            </span>
+                      {/* Bấm vào gia sư để xem thông tin tổng quát (popup) */}
+                      <button
+                        type="button"
+                        onClick={() => setOverviewTutorId(t.id)}
+                        className="group flex min-w-0 flex-1 items-start gap-3 text-left"
+                      >
+                        {/* Avatar */}
+                        <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100">
+                          {t.avatar ? (
+                            <img src={t.avatar} alt={t.fullName || "Gia sư"} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">
+                              {(t.fullName || "?").charAt(0)}
+                            </div>
                           )}
-                          {t.gender && <span>{GENDER_LABEL[t.gender] || ""}</span>}
                         </div>
-                        {t.schoolName && (
-                          <p className="mt-1 truncate text-xs text-slate-500">
-                            {t.schoolName}
-                            {t.graduationYear ? ` · TN ${t.graduationYear}` : ""}
-                          </p>
-                        )}
-                        {Array.isArray(t.subjects) && t.subjects.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                            <BookOpenText className="h-3.5 w-3.5 text-slate-400" />
-                            {t.subjects.slice(0, 6).map((s) => (
-                              <span key={s} className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
-                                {s}
-                              </span>
-                            ))}
+                        {/* Info */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold text-slate-900 group-hover:text-emerald-700">
+                              {t.fullName || "Gia sư"}
+                            </span>
+                            <StatusBadge status={a.status} />
+                            <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-emerald-600 group-hover:underline">
+                              <Eye className="h-3.5 w-3.5" />
+                              Xem chi tiết
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </label>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                              <Award className="h-3.5 w-3.5" />
+                              Đã dạy {t.totalClassesAccepted || 0} lớp
+                            </span>
+                            {t.occupationStatus && (
+                              <span className="inline-flex items-center gap-1">
+                                <GraduationCap className="h-3.5 w-3.5" />
+                                {OCCUPATION_STATUS_LABEL[t.occupationStatus] || t.occupationStatus}
+                              </span>
+                            )}
+                            {t.gender && <span>{GENDER_LABEL[t.gender] || ""}</span>}
+                          </div>
+                          {t.schoolName && (
+                            <p className="mt-1 truncate text-xs text-slate-500">
+                              {t.schoolName}
+                              {t.graduationYear ? ` · TN ${t.graduationYear}` : ""}
+                            </p>
+                          )}
+                          {Array.isArray(t.subjects) && t.subjects.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                              <BookOpenText className="h-3.5 w-3.5 text-slate-400" />
+                              {t.subjects.slice(0, 6).map((s) => (
+                                <span key={s} className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    </div>
                   </li>
                 );
               })}
@@ -260,5 +278,8 @@ export default function ClassApplicantsDialog({ open, post, onClose, onSelected 
         </div>
       </div>
     </div>
+
+    <TutorOverviewDialog tutorId={overviewTutorId} onClose={() => setOverviewTutorId(null)} />
+    </>
   );
 }

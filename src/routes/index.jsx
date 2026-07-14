@@ -1,35 +1,59 @@
+// File cấu hình route: cố tình khai báo nhiều component lazy cạnh export `router` (không phải
+// component) — không hot-reload theo component ở đây nên tắt luật Fast Refresh cho riêng file này.
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
+// Layout & guard giữ eager: chúng là khung dùng chung cho mọi route và cần có sẵn ngay.
 import AuthLayout from "@/layouts/AuthLayout";
 import MainLayout from "@/layouts/MainLayout";
+import AdminLayout from "@/admin/layouts/AdminLayout";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
-import HomePage from "@/pages/HomePage";
-import { ProfilePage, CompleteProfilePage } from "@/features/profile";
-import { RegisterTutorPage, TutorListingPage, TutorDetailPage } from "@/features/tutors";
-import {
-  FindTutorRequestPage,
-  NewClassesPage,
-  NewClassDetailPage,
-  MyClassesPage,
-  MyPostsPage,
-  ClassInvitationsPage,
-  ContractTemplatePage,
-} from "@/features/classes";
-import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
-import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
-import { MyReviewsPage } from "@/features/reviews";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminSubjectsPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage, AdminReviewsPage, AdminNotificationsPage, AdminMessagesPage } from "@/admin";
+import PageLoader from "@/components/shared/PageLoader";
 
-import {
-  LoginPage,
-  RegisterPage,
-  VerifyOtpPage,
-  ResendOtpPage,
-  ForgotPasswordPage,
-  VerifyForgotPasswordOtpPage,
-  ResetPasswordPage,
-} from "@/features/auth";
+// Trang tải theo nhu cầu (React.lazy) → mỗi route thành 1 chunk riêng, bundle chính nhẹ hẳn.
+// Import trực tiếp từ file trang (không qua barrel) để chunk tách sạch. Suspense boundary
+// đặt sẵn quanh <Outlet /> trong từng layout; riêng route không có layout thì bọc tại chỗ.
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
+const CompleteProfilePage = lazy(() => import("@/features/profile/pages/CompleteProfilePage"));
+const RegisterTutorPage = lazy(() => import("@/features/tutors/pages/RegisterTutorPage"));
+const TutorListingPage = lazy(() => import("@/features/tutors/pages/TutorListingPage"));
+const TutorDetailPage = lazy(() => import("@/features/tutors/pages/TutorDetailPage"));
+const FindTutorRequestPage = lazy(() => import("@/features/classes/pages/FindTutorRequestPage"));
+const NewClassesPage = lazy(() => import("@/features/classes/pages/NewClassesPage"));
+const NewClassDetailPage = lazy(() => import("@/features/classes/pages/NewClassDetailPage"));
+const MyClassesPage = lazy(() => import("@/features/classes/pages/MyClassesPage"));
+const MyPostsPage = lazy(() => import("@/features/classes/pages/MyPostsPage"));
+const ClassInvitationsPage = lazy(() => import("@/features/classes/pages/ClassInvitationsPage"));
+const ContractTemplatePage = lazy(() => import("@/features/classes/pages/ContractTemplatePage"));
+const NotificationsPage = lazy(() => import("@/features/notifications/pages/NotificationsPage"));
+const MyVouchersPage = lazy(() => import("@/features/vouchers/pages/MyVouchersPage"));
+const MyReviewsPage = lazy(() => import("@/features/reviews/pages/MyReviewsPage"));
+
+const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
+const VerifyOtpPage = lazy(() => import("@/features/auth/pages/VerifyOtpPage"));
+const ResendOtpPage = lazy(() => import("@/features/auth/pages/ResendOtpPage"));
+const ForgotPasswordPage = lazy(() => import("@/features/auth/pages/ForgotPasswordPage"));
+const VerifyForgotPasswordOtpPage = lazy(() => import("@/features/auth/pages/VerifyForgotPasswordOtpPage"));
+const ResetPasswordPage = lazy(() => import("@/features/auth/pages/ResetPasswordPage"));
+
+const TutorApprovalPage = lazy(() => import("@/admin/pages/TutorApprovalPage"));
+const AdminDashboardPage = lazy(() => import("@/admin/pages/AdminDashboardPage"));
+const AdminUsersPage = lazy(() => import("@/admin/pages/AdminUsersPage"));
+const ClassApplicationsPage = lazy(() => import("@/admin/pages/ClassApplicationsPage"));
+const AdminClassesPage = lazy(() => import("@/admin/pages/AdminClassesPage"));
+const AdminPromosPage = lazy(() => import("@/admin/pages/AdminPromosPage"));
+const AdminSubjectsPage = lazy(() => import("@/admin/pages/AdminSubjectsPage"));
+const AdminTrashPage = lazy(() => import("@/admin/pages/AdminTrashPage"));
+const AdminSettingsPage = lazy(() => import("@/admin/pages/AdminSettingsPage"));
+const AdminProfileChangesPage = lazy(() => import("@/admin/pages/AdminProfileChangesPage"));
+const AdminApplicationCancellationsPage = lazy(() => import("@/admin/pages/AdminApplicationCancellationsPage"));
+const AdminReviewsPage = lazy(() => import("@/admin/pages/AdminReviewsPage"));
+const AdminNotificationsPage = lazy(() => import("@/admin/pages/AdminNotificationsPage"));
+const AdminMessagesPage = lazy(() => import("@/admin/pages/AdminMessagesPage"));
 
 const router = createBrowserRouter([
   // Auth routes (chỉ dành cho khách, đã đăng nhập sẽ redirect về trang chủ)
@@ -67,10 +91,18 @@ const router = createBrowserRouter([
   },
 
   // Protected routes (cần đăng nhập, bỏ qua kiểm tra profile hoàn chỉnh)
+  // Route này không nằm trong layout nào nên bọc Suspense tại chỗ.
   {
     element: <ProtectedRoute skipProfileCheck />,
     children: [
-      { path: "/complete-profile", element: <CompleteProfilePage /> },
+      {
+        path: "/complete-profile",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CompleteProfilePage />
+          </Suspense>
+        ),
+      },
     ],
   },
 

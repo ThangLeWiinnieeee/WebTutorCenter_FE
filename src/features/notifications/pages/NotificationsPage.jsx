@@ -40,6 +40,8 @@ const NOTIFICATION_ICON_MAP = {
   CLASS_APPLICATION_CANCEL_REJECTED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
   CLASS_MATCHED: { icon: UserCheck, className: "bg-emerald-50 text-emerald-600" },
   CLASS_EXPIRED: { icon: CalendarX2, className: "bg-rose-50 text-rose-600" },
+  // Nhắc chọn gia sư gấp (lớp sắp bắt đầu, chưa chọn ai) — màu cam gợi sự khẩn
+  CLASS_SELECTION_REMINDER: { icon: Clock, className: "bg-orange-50 text-orange-600" },
   CLASS_COMPLETED_REWARD: { icon: Gift, className: "bg-violet-50 text-violet-600" },
   CLASS_INVITE_RECEIVED: { icon: Handshake, className: "bg-blue-50 text-[#1e3a5f]" },
   CLASS_INVITE_ACCEPTED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
@@ -54,6 +56,7 @@ const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-sl
 // CLASS_COMPLETED_REWARD (tặng mã giảm giá khi hoàn thành lớp) → mở "Kho mã giảm giá".
 const NOTIFICATION_LINK = {
   CLASS_APPLICATION_PENDING: { to: "/my-posts", label: "Xem bài đăng của tôi" },
+  CLASS_SELECTION_REMINDER: { to: "/my-posts", label: "Chọn gia sư ngay" },
   CLASS_MATCHED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   CLASS_COMPLETED_REWARD: { to: "/my-vouchers", label: "Xem kho mã giảm giá" },
   // Luồng mời gia sư trực tiếp

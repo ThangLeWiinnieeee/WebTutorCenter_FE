@@ -125,6 +125,7 @@ const API_ENDPOINTS = {
     CONVERSATION_MESSAGES: (id) => `/chat/conversations/${id}/messages`,
     CONVERSATION_SEND: (id) => `/chat/conversations/${id}/messages`,
     CONVERSATION_SEND_IMAGE: (id) => `/chat/conversations/${id}/images`,
+    CONVERSATION_SEND_CARD: (id) => `/chat/conversations/${id}/card`,
     CONVERSATION_READ: (id) => `/chat/conversations/${id}/read`,
   },
   CHATBOT: {

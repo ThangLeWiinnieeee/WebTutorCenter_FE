@@ -1,4 +1,8 @@
-import { getTodayIsoDateLocal } from '@/features/classes/schemas/classRequestSchema';
+import {
+  getMinStartIsoDateLocal,
+  getTodayIsoDateLocal,
+  MIN_START_LEAD_DAYS,
+} from '@/features/classes/schemas/classRequestSchema';
 
 export const formatDdMmYyyyUi = (iso) => {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
@@ -18,14 +22,16 @@ export const parseIsoToLocalMidnightDate = (iso) => {
   return new Date(y, m - 1, d);
 };
 
-export const tomorrowIsoFromTodayLocal = () => {
+// Ngày kế ngay sau ngày bắt đầu sớm nhất được phép (hôm nay + 3 ngày) — nút chọn nhanh
+export const dayAfterMinStartIsoFromTodayLocal = () => {
   const base = parseIsoToLocalMidnightDate(getTodayIsoDateLocal());
-  base.setDate(base.getDate() + 1);
+  base.setDate(base.getDate() + MIN_START_LEAD_DAYS + 1);
   return toLocalIsoDate(base);
 };
 
-export const saturdayIsoThisOrNextFromTodayLocal = () => {
-  const base = parseIsoToLocalMidnightDate(getTodayIsoDateLocal());
+// Thứ Bảy đầu tiên vào/sau ngày bắt đầu sớm nhất được phép (>= hôm nay + 2 ngày)
+export const saturdayIsoOnOrAfterMinLocal = () => {
+  const base = parseIsoToLocalMidnightDate(getMinStartIsoDateLocal());
   const wd = base.getDay();
   const daysUntilSaturday = wd === 6 ? 0 : (6 - wd + 7) % 7;
   base.setDate(base.getDate() + daysUntilSaturday);
@@ -40,7 +46,7 @@ export const mapClassToFormValues = (cls) => ({
   subject: cls.subject || "",
   studentGender: cls.studentGender || "male",
   studentCount: cls.studentCount || 1,
-  startDate: cls.startDate ? toLocalIsoDate(new Date(cls.startDate)) : getTodayIsoDateLocal(),
+  startDate: cls.startDate ? toLocalIsoDate(new Date(cls.startDate)) : getMinStartIsoDateLocal(),
   minutesPerSession: cls.minutesPerSession,
   sessionsPerWeek: cls.sessionsPerWeek,
   provinceCode: cls.provinceCode || 0,

@@ -16,6 +16,7 @@ import { getAgeFromDate } from "@/features/tutors/utils/tutorAge";
 import { StarRating } from "@/features/reviews";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
+import { cldThumb } from "@/lib/utils";
 
 const ROW_ICON = "mt-0.5 h-4 w-4 shrink-0 text-slate-400";
 
@@ -55,7 +56,7 @@ export default function TutorCard({ tutor }) {
       <div className="shrink-0">
         <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-2xl font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
-            <img src={tutor.avatar} alt={tutor.fullName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+            <img src={cldThumb(tutor.avatar, 192)} alt={tutor.fullName} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" />
           ) : (
             getInitials(tutor.fullName)
           )}

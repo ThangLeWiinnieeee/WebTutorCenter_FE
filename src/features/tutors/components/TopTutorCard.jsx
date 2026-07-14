@@ -3,6 +3,7 @@ import { MapPin, Users } from "lucide-react";
 import { StarRating } from "@/features/reviews";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
+import { cldThumb } from "@/lib/utils";
 
 export default function TopTutorCard({ tutor, rank }) {
   const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);
@@ -24,7 +25,7 @@ export default function TopTutorCard({ tutor, rank }) {
       <div className="flex h-full flex-col items-center px-4 pb-6 pt-6">
         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-lg font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
-            <img src={tutor.avatar} alt={tutor.fullName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+            <img src={cldThumb(tutor.avatar, 128)} alt={tutor.fullName} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" />
           ) : (
             getInitials(tutor.fullName)
           )}

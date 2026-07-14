@@ -1,4 +1,4 @@
-import { createElement, useEffect, useState } from "react";
+import { createElement, Suspense, useEffect, useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen, Star, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import { refreshAdminUnreadCountThunk } from "@/admin/store/adminNotificationThu
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import PageLoader from "@/components/shared/PageLoader";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
 
@@ -324,7 +325,9 @@ const AdminLayout = () => {
           <AdminNotificationBell />
         </header>
         <main className="flex-1 p-6">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

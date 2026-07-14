@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Loader2, MessageCircle, Plus, Search, Send, X, Headset, ImagePlus } from "lucide-react";
+import { Loader2, MessageCircle, Plus, Search, Send, X, Headset, ImagePlus, GraduationCap, BookOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import chatService from "@/features/chat/services/chatService";
+import MessageCard from "@/features/chat/components/MessageCard";
 import { selectAdminChat, setActiveConversation } from "@/features/chat/store/chatSlice";
 import {
   fetchConversationsThunk,
   fetchConversationMessagesThunk,
   sendConversationMessageThunk,
   sendConversationImageThunk,
+  sendConversationCardThunk,
   markConversationReadThunk,
   startConversationThunk,
 } from "@/features/chat/store/chatThunks";
@@ -114,8 +117,125 @@ const NewChatModal = ({ onClose, onPick }) => {
   );
 };
 
+// ──────────────────────────── Modal chọn gia sư/bài đăng để đính kèm ────────────────────────────
+const AttachCardModal = ({ onClose, onPick }) => {
+  const [kind, setKind] = useState("tutor"); // "tutor" | "class"
+  const [keyword, setKeyword] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const kw = keyword.trim();
+        if (kind === "tutor") {
+          const res = await chatService.searchTutorsForCard(kw);
+          setResults(res.data.data.tutors || []);
+        } else {
+          const res = await chatService.searchClassesForCard(kw);
+          setResults(res.data.data.classes || []);
+        }
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [kind, keyword]);
+
+  const isTutor = kind === "tutor";
+
+  return (
+    <div className="fixed inset-0 z-80 flex items-start justify-center bg-slate-950/50 px-4 pt-24 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <h2 className="text-base font-bold text-slate-900">Gửi thông tin</h2>
+          <button type="button" onClick={onClose} aria-label="Đóng" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {/* Chọn loại thẻ */}
+        <div className="flex gap-2 px-3 pt-3">
+          {[
+            { value: "tutor", label: "Gia sư", icon: <GraduationCap className="h-4 w-4" /> },
+            { value: "class", label: "Bài đăng", icon: <BookOpen className="h-4 w-4" /> },
+          ].map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => { setKind(t.value); setResults([]); }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium transition ${
+                kind === t.value ? "border-[#1e3a5f] bg-[#1e3a5f]/5 text-[#1e3a5f]" : "border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {t.icon}
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="p-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              autoFocus
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder={isTutor ? "Tìm gia sư theo tên..." : "Tìm bài đăng theo mã/tiêu đề..."}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none focus:border-[#1e3a5f] focus:bg-white"
+            />
+          </div>
+        </div>
+        <div className="max-h-80 overflow-y-auto px-3 pb-3">
+          {loading ? (
+            <div className="flex items-center justify-center py-8 text-slate-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : results.length === 0 ? (
+            <p className="py-8 text-center text-sm text-slate-400">Không có kết quả phù hợp.</p>
+          ) : (
+            results.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onPick(kind, item)}
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-slate-100"
+              >
+                {isTutor ? (
+                  item.avatar ? (
+                    <img src={item.avatar} alt={item.fullName} referrerPolicy="no-referrer" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-xs font-bold text-white">
+                      {getInitials(item.fullName)}
+                    </div>
+                  )
+                ) : (
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-800">
+                    {isTutor ? item.fullName : item.classCode}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {isTutor ? item.subjects?.join(", ") : item.subject || item.summary}
+                  </p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminMessagesPage = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { conversations, activeId, activeConversation, messages, loadingMessages, sending } =
     useSelector(selectAdminChat);
 
@@ -123,6 +243,7 @@ const AdminMessagesPage = () => {
   const [draft, setDraft] = useState("");
   const [image, setImage] = useState(null); // { file, preview }
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showAttach, setShowAttach] = useState(false);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -132,6 +253,16 @@ const AdminMessagesPage = () => {
     const t = setTimeout(fetchList, keyword ? 300 : 0);
     return () => clearTimeout(t);
   }, [keyword, dispatch]);
+
+  // Điều hướng từ nơi khác (vd trang duyệt nhận lớp) kèm openUserId → mở/tạo hội thoại với
+  // gia sư đó. startConversation dùng findOrCreate: có sẵn thì vào, chưa có thì tạo mới.
+  // Thunk tự set activeId + đưa hội thoại lên danh sách; effect activeId sẽ tải tin nhắn.
+  useEffect(() => {
+    const openUserId = location.state?.openUserId;
+    if (!openUserId) return;
+    navigate(location.pathname, { replace: true, state: null }); // dùng 1 lần, tránh mở lại khi re-render
+    dispatch(startConversationThunk(openUserId));
+  }, [location.state, location.pathname, navigate, dispatch]);
 
   // Khi chọn hội thoại: tải lịch sử tin nhắn một lần + đánh dấu đã đọc.
   useEffect(() => {
@@ -198,6 +329,12 @@ const AdminMessagesPage = () => {
     setShowNewChat(false);
     const res = await dispatch(startConversationThunk(user.id));
     if (res.payload?.id) handleSelect(res.payload.id);
+  };
+
+  const handleAttachCard = (kind, item) => {
+    setShowAttach(false);
+    if (!activeId) return;
+    dispatch(sendConversationCardThunk({ id: activeId, kind, refId: item.id }));
   };
 
   return (
@@ -313,6 +450,14 @@ const AdminMessagesPage = () => {
                 ) : (
                   messages.map((m) => {
                     const mine = m.senderRole === "admin";
+                    // Thẻ gia sư/bài đăng — hiển thị dạng card riêng (không bọc bubble màu).
+                    if (m.card) {
+                      return (
+                        <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                          <MessageCard card={m.card} />
+                        </div>
+                      );
+                    }
                     return (
                       <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                         <div
@@ -378,6 +523,16 @@ const AdminMessagesPage = () => {
                 >
                   <ImagePlus className="h-5 w-5" />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAttach(true)}
+                  disabled={sending}
+                  aria-label="Gửi thông tin gia sư / bài đăng"
+                  title="Gửi thông tin gia sư / bài đăng"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#1e3a5f] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <GraduationCap className="h-5 w-5" />
+                </button>
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -401,6 +556,7 @@ const AdminMessagesPage = () => {
       </div>
 
       {showNewChat && <NewChatModal onClose={() => setShowNewChat(false)} onPick={handlePickTutor} />}
+      {showAttach && <AttachCardModal onClose={() => setShowAttach(false)} onPick={handleAttachCard} />}
     </div>
   );
 };
