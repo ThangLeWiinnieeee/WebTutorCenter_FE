@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/Pagination";
+import useDebouncedValue from "@/hooks/useDebouncedValue";
 import {
   getAdminUsersThunk,
   softDeleteAdminUserThunk,
@@ -38,59 +40,52 @@ import {
   UserEditModal,
   UserDeleteModal,
 } from "@/admin/components/users";
+import { formatDate } from "@/lib/format";
 
-const formatDate = (value) => {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-const buildParams = (filters, page) => ({
+// Dựng tham số truy vấn danh sách người dùng từ bộ lọc và số trang.
+const buildParams = (filters, keyword, page) => ({
   page,
   limit: PAGE_SIZE,
-  ...(filters.keyword.trim() ? { keyword: filters.keyword.trim() } : {}),
+  ...(keyword ? { keyword } : {}),
   ...(filters.role ? { role: filters.role } : {}),
   ...(filters.isActive !== "" ? { isActive: filters.isActive } : {}),
   ...(filters.isVerified !== "" ? { isVerified: filters.isVerified } : {}),
 });
 
+// Trang admin quản lý người dùng: lọc, sửa, đổi trạng thái và xóa mềm.
 const AdminUsersPage = () => {
   const dispatch = useDispatch();
   const { user: currentUser } = useAuth();
-  const {
-    users,
-    usersPagination,
-    usersLoading,
-    usersError,
-    userActionLoading,
-  } = useSelector((state) => state.admin);
+  const { users, usersPagination, usersLoading, usersError, userActionLoading } = useSelector(
+    (state) => state.admin,
+  );
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [keywordInput, setKeywordInput] = useState(DEFAULT_FILTERS.keyword);
+  const [keywordInput, setKeywordInput] = useState("");
   const [page, setPage] = useState(1);
   const [editUser, setEditUser] = useState(null);
   const [confirmUser, setConfirmUser] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
 
-  const params = useMemo(() => buildParams(filters, page), [filters, page]);
+  const debouncedKeyword = useDebouncedValue(keywordInput.trim());
+
+  // Từ khóa vừa chốt sau debounce → quay về trang 1. Chỉnh state ngay trong lượt render
+  // (pattern "adjusting state when props change" của React) chứ không đặt trong onChange
+  // hay useEffect: hai cách kia đều bắn thêm một lượt fetch thừa với từ khóa cũ.
+  const [appliedKeyword, setAppliedKeyword] = useState(debouncedKeyword);
+  if (appliedKeyword !== debouncedKeyword) {
+    setAppliedKeyword(debouncedKeyword);
+    setPage(1);
+  }
+
+  const params = useMemo(
+    () => buildParams(filters, debouncedKeyword, page),
+    [filters, debouncedKeyword, page],
+  );
 
   useEffect(() => {
     dispatch(getAdminUsersThunk(params));
   }, [dispatch, params]);
-
-  // Tự tìm sau khi ngừng gõ (debounce 400ms) — bỏ nút "Lọc", đồng bộ hành vi với bộ lọc client.
-  useEffect(() => {
-    const trimmed = keywordInput.trim();
-    if (trimmed === filters.keyword) return;
-    const timer = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, keyword: trimmed }));
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [keywordInput, filters.keyword]);
 
   // Select lọc áp dụng ngay khi đổi và quay về trang 1.
   const updateFilter = (key, value) => {
@@ -98,16 +93,19 @@ const AdminUsersPage = () => {
     setPage(1);
   };
 
+  // Xóa toàn bộ bộ lọc về mặc định.
   const handleReset = () => {
     setFilters(DEFAULT_FILTERS);
-    setKeywordInput(DEFAULT_FILTERS.keyword);
+    setKeywordInput("");
     setPage(1);
   };
 
+  // Tải lại danh sách người dùng.
   const handleRefresh = () => {
     dispatch(getAdminUsersThunk(params));
   };
 
+  // Lưu thay đổi thông tin người dùng.
   const handleUpdateUser = async (payload) => {
     if (!editUser) return;
 
@@ -128,6 +126,7 @@ const AdminUsersPage = () => {
     toast.error(result.payload || "Cập nhật người dùng thất bại");
   };
 
+  // Xác nhận bật/tắt trạng thái hoạt động của người dùng.
   const handleConfirmStatus = async () => {
     if (!confirmUser) return;
 
@@ -148,6 +147,7 @@ const AdminUsersPage = () => {
     toast.error(result.payload || "Cập nhật trạng thái người dùng thất bại");
   };
 
+  // Xác nhận xóa mềm người dùng đang chọn.
   const handleConfirmDelete = async () => {
     if (!confirmDeleteUser) return;
 
@@ -179,7 +179,7 @@ const AdminUsersPage = () => {
       <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <UserCog className="h-4 w-4" />
               Quản lý hệ thống
             </div>
@@ -215,7 +215,7 @@ const AdminUsersPage = () => {
               onChange={(event) => setKeywordInput(event.target.value)}
               placeholder="Tìm theo tên, email, số điện thoại"
               autoComplete="off"
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
             {keywordInput && (
               <button
@@ -232,30 +232,36 @@ const AdminUsersPage = () => {
           <select
             value={filters.role}
             onChange={(event) => updateFilter("role", event.target.value)}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           >
             {ROLE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
 
           <select
             value={filters.isActive}
             onChange={(event) => updateFilter("isActive", event.target.value)}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           >
             {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
 
           <select
             value={filters.isVerified}
             onChange={(event) => updateFilter("isVerified", event.target.value)}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           >
             {VERIFY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
 
@@ -301,12 +307,24 @@ const AdminUsersPage = () => {
             <table className="min-w-full divide-y divide-slate-100">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Người dùng</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Vai trò</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Xác thực</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ngày tạo</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Người dùng
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Vai trò
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Trạng thái
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Xác thực
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Ngày tạo
+                  </th>
+                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -323,7 +341,9 @@ const AdminUsersPage = () => {
                         <UserAvatar user={item} />
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${roleConfig.className}`}>
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${roleConfig.className}`}
+                        >
                           {roleConfig.label}
                         </span>
                       </td>
@@ -331,11 +351,13 @@ const AdminUsersPage = () => {
                         <StatusBadge active={item.isActive} activeLabel="Hoạt động" inactiveLabel="Đã khóa" />
                       </td>
                       <td className="px-5 py-4">
-                        <StatusBadge active={item.isVerified} activeLabel="Đã xác thực" inactiveLabel="Chưa xác thực" />
+                        <StatusBadge
+                          active={item.isVerified}
+                          activeLabel="Đã xác thực"
+                          inactiveLabel="Chưa xác thực"
+                        />
                       </td>
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {formatDate(item.createdAt)}
-                      </td>
+                      <td className="px-5 py-4 text-sm text-slate-600">{formatDate(item.createdAt)}</td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -401,28 +423,7 @@ const AdminUsersPage = () => {
           <p className="text-slate-500">
             Trang {usersPagination?.page || page}/{totalPages}
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || usersLoading}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Trước
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || usersLoading}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Sau
-            </Button>
-          </div>
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       </section>
 

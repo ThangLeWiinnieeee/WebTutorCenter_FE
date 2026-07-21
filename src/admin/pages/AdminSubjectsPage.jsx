@@ -3,39 +3,30 @@ import { normalizeForSearch } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  BookOpen,
-  CheckCircle2,
-  Loader2,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Search,
-  X,
-  XCircle,
-} from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2, Pencil, Plus, RefreshCw, Search, X, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
 import Pagination from "@/components/shared/Pagination";
-import {
-  getSubjectsThunk,
-  createSubjectThunk,
-  updateSubjectThunk,
-} from "@/admin/store/adminThunks";
+import { getSubjectsThunk, createSubjectThunk, updateSubjectThunk } from "@/admin/store/adminThunks";
 import { subjectSchema } from "@/admin/schemas/subjectSchema";
 import { scrollToFirstError } from "@/lib/formErrors";
 
 const PAGE_SIZE = 10;
 
+// Dựng giá trị mặc định cho form từ môn học đang sửa.
 const getFormValues = (subject) => ({
   name: subject?.name || "",
   isActive: subject?.isActive === false ? "false" : "true",
 });
 
+// Nhãn trạng thái bật/tắt của môn học.
 const StatusBadge = ({ active }) => (
   <span
     className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${
-      active ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-600"
+      active
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : "border-slate-200 bg-slate-50 text-slate-600"
     }`}
   >
     {active ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
@@ -43,6 +34,7 @@ const StatusBadge = ({ active }) => (
   </span>
 );
 
+// Modal form tạo mới hoặc chỉnh sửa môn học.
 const SubjectFormModal = ({ subject, onClose, onSubmit, loading }) => {
   const isEdit = Boolean(subject);
   const form = useForm({
@@ -57,21 +49,18 @@ const SubjectFormModal = ({ subject, onClose, onSubmit, loading }) => {
 
   const handleSubmit = form.handleSubmit(
     (values) => onSubmit({ name: values.name.trim(), isActive: values.isActive === "true" }),
-    scrollToFirstError
+    scrollToFirstError,
   );
 
   const inputCls =
-    "h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10";
+    "h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl"
-      >
+    <Modal onClose={onClose}>
+      <form onSubmit={handleSubmit}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <BookOpen className="h-4 w-4" />
               {isEdit ? "Cập nhật môn học" : "Thêm môn học"}
             </div>
@@ -120,21 +109,22 @@ const SubjectFormModal = ({ subject, onClose, onSubmit, loading }) => {
           <Button
             type="submit"
             disabled={loading}
-            className="h-10 rounded-lg bg-[#1e3a5f] px-5 font-semibold text-white hover:bg-[#16304f]"
+            className="h-10 rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isEdit ? "Lưu thay đổi" : "Thêm môn"}
           </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 };
 
+// Trang admin quản lý danh mục môn học: tìm kiếm, tạo, sửa và bật/tắt.
 const AdminSubjectsPage = () => {
   const dispatch = useDispatch();
   const { subjects, subjectsLoading, subjectsError, subjectActionLoading } = useSelector(
-    (state) => state.admin
+    (state) => state.admin,
   );
 
   const [keyword, setKeyword] = useState("");
@@ -142,6 +132,7 @@ const AdminSubjectsPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formSubject, setFormSubject] = useState(null);
 
+  // Tải lại danh mục môn học.
   const refetch = () => dispatch(getSubjectsThunk());
 
   useEffect(() => {
@@ -160,31 +151,33 @@ const AdminSubjectsPage = () => {
   // render (mẫu "adjust state during render" của React), không dùng effect.
   if (page > totalPages) setPage(totalPages);
 
-  const paged = useMemo(
-    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [filtered, page]
-  );
+  const paged = useMemo(() => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [filtered, page]);
 
+  // Cập nhật từ khóa tìm kiếm và quay về trang đầu.
   const handleKeywordChange = (value) => {
     setKeyword(value);
     setPage(1);
   };
 
+  // Chuyển trang danh sách môn học.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Mở form tạo môn học mới.
   const openCreate = () => {
     setFormSubject(null);
     setFormOpen(true);
   };
 
+  // Mở form chỉnh sửa một môn học.
   const openEdit = (subject) => {
     setFormSubject(subject);
     setFormOpen(true);
   };
 
+  // Lưu form: tạo mới hoặc cập nhật tùy chế độ đang mở.
   const handleFormSubmit = async (payload) => {
     const action = formSubject
       ? updateSubjectThunk({ id: formSubject.id, payload })
@@ -198,6 +191,7 @@ const AdminSubjectsPage = () => {
     }
   };
 
+  // Bật/tắt trạng thái hoạt động của môn học.
   const handleToggleActive = (subject) => {
     dispatch(updateSubjectThunk({ id: subject.id, payload: { isActive: !subject.isActive } }));
   };
@@ -207,7 +201,7 @@ const AdminSubjectsPage = () => {
       <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <BookOpen className="h-4 w-4" />
               Môn học
             </div>
@@ -225,13 +219,17 @@ const AdminSubjectsPage = () => {
               disabled={subjectsLoading}
               className="h-10 rounded-lg border-slate-300 text-slate-700"
             >
-              {subjectsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {subjectsLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
               Làm mới
             </Button>
             <Button
               type="button"
               onClick={openCreate}
-              className="h-10 rounded-lg bg-[#1e3a5f] px-4 font-semibold text-white hover:bg-[#16304f]"
+              className="h-10 rounded-lg bg-brand px-4 font-semibold text-white hover:bg-brand-dark"
             >
               <Plus className="h-4 w-4" />
               Thêm môn
@@ -252,7 +250,7 @@ const AdminSubjectsPage = () => {
               value={keyword}
               onChange={(e) => handleKeywordChange(e.target.value)}
               placeholder="Tìm theo tên môn"
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
         </div>
@@ -277,9 +275,15 @@ const AdminSubjectsPage = () => {
             <table className="min-w-full divide-y divide-slate-100">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tên môn</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Tên môn
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Trạng thái
+                  </th>
+                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -348,7 +352,9 @@ const AdminSubjectsPage = () => {
             setFormSubject(null);
           }}
           onSubmit={handleFormSubmit}
-          loading={subjectActionLoading === "create" || (formSubject && subjectActionLoading === formSubject.id)}
+          loading={
+            subjectActionLoading === "create" || (formSubject && subjectActionLoading === formSubject.id)
+          }
         />
       )}
     </div>

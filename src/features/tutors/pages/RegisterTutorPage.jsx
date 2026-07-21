@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import TutorRegistrationForm from "@/features/tutors/components/TutorRegistrationForm";
 import { getTutorProfileThunk } from "@/features/tutors/store/tutorThunks";
 
+// Thông báo đã gửi hồ sơ đăng ký gia sư thành công.
 const SuccessBanner = () => (
   <div className="mx-auto max-w-xl text-center py-16 px-4">
     <div className="flex justify-center mb-6">
@@ -16,20 +17,18 @@ const SuccessBanner = () => (
       </div>
     </div>
     <h2 className="text-2xl font-bold text-slate-800 mb-3">Đăng ký thành công!</h2>
-    <p className="text-slate-600 mb-2">
-      Hồ sơ của bạn đã được gửi đi và đang chờ xét duyệt.
-    </p>
+    <p className="text-slate-600 mb-2">Hồ sơ của bạn đã được gửi đi và đang chờ xét duyệt.</p>
     <p className="text-slate-500 text-sm mb-8">
-      Chúng tôi sẽ thông báo kết quả qua{" "}
-      <span className="font-medium text-[#1e3a5f]">chuông thông báo</span> trên thanh điều hướng.
-      Thời gian xét duyệt thường từ 1–3 ngày làm việc.
+      Chúng tôi sẽ thông báo kết quả qua <span className="font-medium text-brand">chuông thông báo</span> trên
+      thanh điều hướng. Thời gian xét duyệt thường từ 1–3 ngày làm việc.
     </p>
-    <Button asChild className="bg-[#1e3a5f] hover:bg-[#2d5a9e]">
+    <Button asChild className="bg-brand hover:bg-brand-accent">
       <Link to="/">Về trang chủ</Link>
     </Button>
   </div>
 );
 
+// Thông báo hồ sơ gia sư đang chờ admin duyệt.
 const PendingBanner = () => (
   <div className="mx-auto max-w-xl text-center py-16 px-4">
     <div className="flex justify-center mb-6">
@@ -38,24 +37,23 @@ const PendingBanner = () => (
       </div>
     </div>
     <h2 className="text-2xl font-bold text-slate-800 mb-3">Hồ sơ đang chờ xét duyệt</h2>
-    <p className="text-slate-600 mb-2">
-      Bạn đã gửi hồ sơ đăng ký gia sư và đang đợi admin xét duyệt.
-    </p>
+    <p className="text-slate-600 mb-2">Bạn đã gửi hồ sơ đăng ký gia sư và đang đợi admin xét duyệt.</p>
     <p className="text-slate-500 text-sm mb-8">
       Thời gian xét duyệt thường từ 1–3 ngày làm việc. Chúng tôi sẽ thông báo kết quả qua{" "}
-      <span className="font-medium text-[#1e3a5f]">chuông thông báo</span> trên thanh điều hướng.
+      <span className="font-medium text-brand">chuông thông báo</span> trên thanh điều hướng.
     </p>
-    <Button asChild className="bg-[#1e3a5f] hover:bg-[#2d5a9e]">
+    <Button asChild className="bg-brand hover:bg-brand-accent">
       <Link to="/">Về trang chủ</Link>
     </Button>
   </div>
 );
 
+// Nhắc khách đăng nhập trước khi đăng ký làm gia sư.
 const LoginPrompt = () => (
   <div className="mx-auto max-w-md text-center py-16 px-4">
     <div className="flex justify-center mb-6">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#1e3a5f]/10">
-        <GraduationCap className="h-10 w-10 text-[#1e3a5f]" />
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand/10">
+        <GraduationCap className="h-10 w-10 text-brand" />
       </div>
     </div>
     <h2 className="text-xl font-bold text-slate-800 mb-3">Bạn cần đăng nhập</h2>
@@ -63,7 +61,7 @@ const LoginPrompt = () => (
       Vui lòng đăng nhập vào tài khoản của bạn trước khi đăng ký làm gia sư.
     </p>
     <div className="flex justify-center gap-3">
-      <Button asChild className="bg-[#1e3a5f] hover:bg-[#2d5a9e] gap-2">
+      <Button asChild className="bg-brand hover:bg-brand-accent gap-2">
         <Link to="/login">
           <LogIn className="h-4 w-4" />
           Đăng nhập
@@ -76,6 +74,7 @@ const LoginPrompt = () => (
   </div>
 );
 
+// Trang đăng ký làm gia sư, hiển thị form hoặc trạng thái hồ sơ tùy tình huống.
 const RegisterTutorPage = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useAuth();
@@ -129,7 +128,7 @@ const RegisterTutorPage = () => {
       {/* Header */}
       <div className="mb-8" data-aos="fade-down">
         <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand">
             <GraduationCap className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -142,7 +141,11 @@ const RegisterTutorPage = () => {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8" data-aos="fade-up" data-aos-delay="100">
+      <div
+        className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8"
+        data-aos="fade-up"
+        data-aos-delay="100"
+      >
         <TutorRegistrationForm onSuccess={() => setJustRegistered(true)} />
       </div>
     </div>

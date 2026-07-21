@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import {
-  BookOpen,
-  CalendarDays,
-  Check,
-  Clock3,
-  MailQuestion,
-  MapPin,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react";
+import { BookOpen, CalendarDays, Check, Clock3, MailQuestion, MapPin, Users, Wallet, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/shared/Pagination";
@@ -21,6 +11,8 @@ import {
   declineInvitationThunk,
 } from "@/features/classes/store/classThunks";
 import {
+  CLASS_FEE_LABEL,
+  classFee,
   formatPrice,
   formatDate,
   formatAvailabilitySlotsOneLine,
@@ -29,6 +21,7 @@ import {
 
 const PAGE_SIZE = 10;
 
+// Dòng thông tin có icon trong thẻ lời mời.
 const InfoRow = ({ icon, children }) => (
   <div className="flex items-start gap-2 text-sm text-slate-600">
     {icon}
@@ -36,21 +29,21 @@ const InfoRow = ({ icon, children }) => (
   </div>
 );
 
+// Thẻ một lời mời dạy lớp kèm nút nhận/từ chối.
 const InvitationCard = ({ invitation, onAccept, onDecline, responding }) => {
   const cls = invitation.classItem || {};
   const [declineOpen, setDeclineOpen] = useState(false);
   const [reason, setReason] = useState("");
 
   const area = [cls.districtName, cls.provinceName].filter(Boolean).join(", ");
-  // Phí nhận lớp = 5% học phí tháng đầu (đồng bộ với cách tính ở khu vực admin)
-  const receivingFee = Math.round((cls.feePerMonth || 0) * 0.05);
+  const receivingFee = classFee(cls);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded-md bg-[#1e3a5f]/10 px-2 py-0.5 text-xs font-semibold text-[#1e3a5f]">
+            <span className="rounded-md bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
               Mã lớp {cls.classCode}
             </span>
             <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
@@ -95,7 +88,7 @@ const InvitationCard = ({ invitation, onAccept, onDecline, responding }) => {
           </div>
         </div>
         <p className="mt-1.5 pl-6 text-xs text-slate-500">
-          Phí nhận lớp (5% học phí tháng đầu):{" "}
+          Phí nhận lớp ({CLASS_FEE_LABEL}):{" "}
           <span className="font-semibold text-slate-700">{formatPrice(receivingFee)}</span>
         </p>
       </div>
@@ -163,6 +156,7 @@ const InvitationCard = ({ invitation, onAccept, onDecline, responding }) => {
   );
 };
 
+// Bảng danh sách lời mời dạy lớp gửi đích danh cho gia sư.
 export default function ClassInvitationsPanel() {
   const dispatch = useDispatch();
   const invitations = useSelector((state) => state.classes.invitations);
@@ -175,6 +169,7 @@ export default function ClassInvitationsPanel() {
     dispatch(fetchInvitationsThunk({ page, limit: PAGE_SIZE }));
   }, [dispatch, page]);
 
+  // Nhận lời mời dạy lớp (đơn sẽ vào luồng chờ admin duyệt).
   const handleAccept = async (applicationId) => {
     const result = await dispatch(acceptInvitationThunk(applicationId));
     if (!result.error) {
@@ -184,6 +179,7 @@ export default function ClassInvitationsPanel() {
     }
   };
 
+  // Từ chối lời mời dạy lớp kèm lý do.
   const handleDecline = async (applicationId, reason) => {
     const result = await dispatch(declineInvitationThunk({ applicationId, reason }));
     if (!result.error) {

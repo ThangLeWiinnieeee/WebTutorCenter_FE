@@ -1,7 +1,7 @@
-import { Controller } from 'react-hook-form';
-import { ShieldCheck } from 'lucide-react';
+import { Controller } from "react-hook-form";
+import { ShieldCheck } from "lucide-react";
 
-import { TUTOR_GENDER_PREF_LABEL, TUTOR_LEVEL_PREF_LABEL } from '@/features/classes/constants';
+import { TUTOR_GENDER_PREF_LABEL, TUTOR_LEVEL_PREF_LABEL } from "@/features/classes/constants";
 
 // Mục 3: yêu cầu gia sư — giới tính & trình độ. Ở luồng mời gia sư, các giá trị bị khóa theo hồ sơ.
 const TutorRequirementSection = ({ control, isInvite }) => (
@@ -19,24 +19,24 @@ const TutorRequirementSection = ({ control, isInvite }) => (
           render={({ field }) =>
             isInvite ? (
               <div className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700">
-                <ShieldCheck className="h-4 w-4 text-[#1e3a5f]" />
-                {TUTOR_GENDER_PREF_LABEL[field.value] || 'Không yêu cầu'}
+                <ShieldCheck className="h-4 w-4 text-brand" />
+                {TUTOR_GENDER_PREF_LABEL[field.value] || "Không yêu cầu"}
                 <span className="ml-auto text-xs font-normal text-slate-400">Theo hồ sơ gia sư</span>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: 'any', label: 'Không yêu cầu' },
-                  { value: 'male', label: 'Nam' },
-                  { value: 'female', label: 'Nữ' },
+                  { value: "any", label: "Không yêu cầu" },
+                  { value: "male", label: "Nam" },
+                  { value: "female", label: "Nữ" },
                 ].map((item) => (
                   <button
                     key={item.value}
                     type="button"
                     className={`h-10 rounded-xl border px-2 text-xs font-semibold transition sm:text-sm ${
                       field.value === item.value
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                        ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50"
                     }`}
                     onClick={() => field.onChange(item.value)}
                   >
@@ -56,24 +56,24 @@ const TutorRequirementSection = ({ control, isInvite }) => (
           render={({ field }) =>
             isInvite ? (
               <div className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700">
-                <ShieldCheck className="h-4 w-4 text-[#1e3a5f]" />
-                {TUTOR_LEVEL_PREF_LABEL[field.value] || 'Không yêu cầu'}
+                <ShieldCheck className="h-4 w-4 text-brand" />
+                {TUTOR_LEVEL_PREF_LABEL[field.value] || "Không yêu cầu"}
                 <span className="ml-auto text-xs font-normal text-slate-400">Theo hồ sơ gia sư</span>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: 'any', label: 'Không yêu cầu' },
-                  { value: 'student', label: 'Sinh viên' },
-                  { value: 'teacher', label: 'Giáo viên' },
+                  { value: "any", label: "Không yêu cầu" },
+                  { value: "student", label: "Sinh viên" },
+                  { value: "teacher", label: "Giáo viên" },
                 ].map((item) => (
                   <button
                     key={item.value}
                     type="button"
                     className={`h-10 rounded-xl border px-2 text-xs font-semibold transition sm:text-sm ${
                       field.value === item.value
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                        ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50"
                     }`}
                     onClick={() => field.onChange(item.value)}
                   >

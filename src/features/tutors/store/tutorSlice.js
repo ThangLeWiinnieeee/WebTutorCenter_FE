@@ -23,7 +23,7 @@ const initialState = {
   searchResults: [],
   totalResults: 0,
   currentPage: 1,
-  
+
   // Filter & state
   filters: {},
   loading: false,

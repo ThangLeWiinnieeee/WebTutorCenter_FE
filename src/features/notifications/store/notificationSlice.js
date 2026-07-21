@@ -50,29 +50,30 @@ const notificationSlice = createSlice({
         state.unreadCount = action.payload ?? 0;
       });
 
-    builder
-      .addCase(markAsReadThunk.fulfilled, (state, action) => {
-        const item = state.items.find((n) => n.id === action.payload);
-        if (item && !item.read) {
-          item.read = true;
-          state.unreadCount = Math.max(0, state.unreadCount - 1);
-        }
-      });
+    builder.addCase(markAsReadThunk.fulfilled, (state, action) => {
+      const item = state.items.find((n) => n.id === action.payload);
+      if (item && !item.read) {
+        item.read = true;
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
+      }
+    });
 
-    builder
-      .addCase(markAllAsReadThunk.fulfilled, (state) => {
-        state.items.forEach((n) => {
-          n.read = true;
-        });
-        state.unreadCount = 0;
+    builder.addCase(markAllAsReadThunk.fulfilled, (state) => {
+      state.items.forEach((n) => {
+        n.read = true;
       });
+      state.unreadCount = 0;
+    });
   },
 });
 
 export const { clearNotifications } = notificationSlice.actions;
 
+// Selector: danh sách thông báo.
 export const selectNotifications = (state) => state.notifications.items;
+// Selector: thông tin phân trang của danh sách thông báo.
 export const selectNotificationsPagination = (state) => state.notifications.pagination;
+// Selector: số thông báo chưa đọc.
 export const selectUnreadCount = (state) => state.notifications.unreadCount;
 
 export default notificationSlice.reducer;

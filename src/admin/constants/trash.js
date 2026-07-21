@@ -9,4 +9,9 @@ export const TRASH_PURGE_COPY = {
   reviews: "Đánh giá sẽ bị xóa vĩnh viễn khỏi hệ thống.",
 };
 
-export const TRASH_SECONDARY_HEADER = { users: "Vai trò", classes: "Người đăng", promos: "Giảm giá", reviews: "Gia sư" };
+export const TRASH_SECONDARY_HEADER = {
+  users: "Vai trò",
+  classes: "Người đăng",
+  promos: "Giảm giá",
+  reviews: "Gia sư",
+};

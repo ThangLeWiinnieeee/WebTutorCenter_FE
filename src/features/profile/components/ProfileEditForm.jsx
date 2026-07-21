@@ -1,29 +1,12 @@
-import {
-  Loader2,
-  Lock,
-  Save,
-  X,
-} from 'lucide-react';
+import { Loader2, Lock, Save, X } from "lucide-react";
 
-import { scrollToFirstError } from '@/lib/formErrors';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { scrollToFirstError } from "@/lib/formErrors";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Form chỉnh sửa thông tin cá nhân cơ bản.
 const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
   <Form {...form}>
     <form onSubmit={form.handleSubmit(onSubmit, scrollToFirstError)} className="space-y-5">
@@ -103,11 +86,7 @@ const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
           <span className="text-sm font-medium text-slate-700">Thư điện tử</span>
           <Lock className="h-3.5 w-3.5 text-slate-400" />
         </div>
-        <Input
-          value={user.email}
-          disabled
-          className="cursor-not-allowed bg-slate-50 text-slate-500"
-        />
+        <Input value={user.email} disabled className="cursor-not-allowed bg-slate-50 text-slate-500" />
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 mt-6">
@@ -124,7 +103,7 @@ const ProfileEditForm = ({ form, user, loading, onSubmit, onCancel }) => (
         <Button
           type="submit"
           disabled={loading}
-          className="min-w-[140px] bg-[#1e3a5f] text-white hover:bg-[#2d5a9e]"
+          className="min-w-[140px] bg-brand text-white hover:bg-brand-accent"
         >
           {loading ? (
             <>

@@ -1,5 +1,5 @@
-import API_ENDPOINTS from '@/constants/apiEndpoints';
-import axiosInstance from '@/services/axiosInstance';
+import API_ENDPOINTS from "@/constants/apiEndpoints";
+import axiosInstance from "@/services/axiosInstance";
 
 const classService = {
   quote: (payload) => axiosInstance.post(API_ENDPOINTS.CLASSES.QUOTE, payload),
@@ -20,8 +20,7 @@ const classService = {
   cancelApplication: (id, reason) =>
     axiosInstance.post(API_ENDPOINTS.CLASSES.CANCEL_APPLICATION(id), { reason }),
   completeClass: (id) => axiosInstance.post(API_ENDPOINTS.CLASSES.COMPLETE(id)),
-  validatePromo: (code, amount) =>
-    axiosInstance.post(API_ENDPOINTS.PROMOS.VALIDATE, { code, amount }),
+  validatePromo: (code, amount) => axiosInstance.post(API_ENDPOINTS.PROMOS.VALIDATE, { code, amount }),
   // Mời gia sư trực tiếp
   createInvite: (payload) => axiosInstance.post(API_ENDPOINTS.CLASSES.INVITE, payload),
   getInvitations: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.INVITATIONS, { params }),

@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, BookOpen, ChevronRight } from "lucide-react";
 
-const getInitials = (name) =>
-  !name ? "?" : name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+import { getInitials } from "@/lib/format";
 
 // Thẻ thông tin gia sư/bài đăng do admin gửi. Chỉ hiển thị dữ liệu công khai
 // (họ tên/avatar gia sư, mã + môn bài đăng) + nút mở trang chi tiết.
@@ -23,12 +22,12 @@ const MessageCard = ({ card }) => {
               className="h-11 w-11 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
               {getInitials(card.title)}
             </div>
           )
         ) : (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
             <BookOpen className="h-5 w-5" />
           </div>
         )}
@@ -43,7 +42,7 @@ const MessageCard = ({ card }) => {
       </div>
       <Link
         to={to}
-        className="flex items-center justify-center gap-1 border-t border-slate-100 bg-slate-50 py-2 text-xs font-medium text-[#1e3a5f] transition hover:bg-[#1e3a5f]/5"
+        className="flex items-center justify-center gap-1 border-t border-slate-100 bg-slate-50 py-2 text-xs font-medium text-brand transition hover:bg-brand/5"
       >
         {isTutor ? "Xem hồ sơ gia sư" : "Xem chi tiết bài đăng"}
         <ChevronRight className="h-3.5 w-3.5" />

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Clock, Eye, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
 import Pagination from "@/components/shared/Pagination";
 import {
   getProfileChangesThunk,
@@ -13,7 +14,7 @@ import { OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
 import { formatDateTime } from "@/features/classes/utils/classFormatters";
 import { ADMIN_PAGE_SIZE as PAGE_SIZE } from "@/admin/constants";
 import { StatusBadge, AvatarBlock } from "@/admin/components/profileChanges/ProfileChangeBadges";
-import ImageLightbox from "@/admin/components/profileChanges/ImageLightbox";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import ProfileChangeDetailModal from "@/admin/components/profileChanges/ProfileChangeDetailModal";
 
 const TABS = [
@@ -23,6 +24,7 @@ const TABS = [
   { value: "all", label: "Tất cả" },
 ];
 
+// Trang admin duyệt/từ chối yêu cầu đổi hồ sơ của gia sư.
 export default function AdminProfileChangesPage() {
   const dispatch = useDispatch();
   const {
@@ -46,20 +48,23 @@ export default function AdminProfileChangesPage() {
 
   const totalPages = profileChangesPagination?.totalPages || 1;
 
+  // Đổi tab lọc theo trạng thái và quay về trang đầu.
   const handleTab = (tab) => {
     setActiveTab(tab);
     setPage(1);
   };
 
+  // Chuyển trang danh sách.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Gửi từ chối yêu cầu đổi hồ sơ kèm lý do.
   const submitReject = async () => {
     if (rejectReason.trim().length < 5) return;
     const result = await dispatch(
-      rejectProfileChangeThunk({ id: rejectTarget.id, rejectionReason: rejectReason.trim() })
+      rejectProfileChangeThunk({ id: rejectTarget.id, rejectionReason: rejectReason.trim() }),
     );
     if (!result.error) {
       setRejectTarget(null);
@@ -67,6 +72,7 @@ export default function AdminProfileChangesPage() {
     }
   };
 
+  // Duyệt một yêu cầu đổi hồ sơ.
   const handleApprove = async (req) => {
     const result = await dispatch(approveProfileChangeThunk(req.id));
     if (!result.error) setDetailTarget(null);
@@ -83,7 +89,7 @@ export default function AdminProfileChangesPage() {
     <div>
       {/* Heading */}
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
           <UserCheck className="h-6 w-6" />
         </div>
         <div>
@@ -104,7 +110,7 @@ export default function AdminProfileChangesPage() {
               onClick={() => handleTab(tab.value)}
               className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
                 isActive
-                  ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
+                  ? "border-brand bg-brand text-white"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -209,34 +215,36 @@ export default function AdminProfileChangesPage() {
 
       {/* Reject modal */}
       {rejectTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900">Từ chối yêu cầu</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Nhập lý do từ chối yêu cầu đổi hồ sơ của {rejectTarget.user?.fullName}.
-            </p>
-            <textarea
-              rows={4}
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Lý do từ chối (ít nhất 5 ký tự)..."
-              className="mt-3 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
-            />
-            <div className="mt-4 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setRejectTarget(null)}>
-                Hủy
-              </Button>
-              <Button
-                type="button"
-                onClick={submitReject}
-                disabled={rejectReason.trim().length < 5 || profileChangeActionLoading === rejectTarget.id}
-                className="bg-rose-600 text-white hover:bg-rose-700"
-              >
-                Xác nhận từ chối
-              </Button>
-            </div>
+        <Modal
+          onClose={() => setRejectTarget(null)}
+          overlayClassName="bg-black/40 backdrop-blur-none"
+          panelClassName="rounded-2xl border-0 shadow-xl"
+        >
+          <h3 className="text-base font-semibold text-slate-900">Từ chối yêu cầu</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Nhập lý do từ chối yêu cầu đổi hồ sơ của {rejectTarget.user?.fullName}.
+          </p>
+          <textarea
+            rows={4}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Lý do từ chối (ít nhất 5 ký tự)..."
+            className="mt-3 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
+          />
+          <div className="mt-4 flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => setRejectTarget(null)}>
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={submitReject}
+              disabled={rejectReason.trim().length < 5 || profileChangeActionLoading === rejectTarget.id}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              Xác nhận từ chối
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

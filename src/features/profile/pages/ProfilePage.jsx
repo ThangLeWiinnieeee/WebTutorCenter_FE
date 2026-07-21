@@ -21,6 +21,7 @@ import TutorProfileEditForm from "@/features/profile/components/TutorProfileEdit
 import TutorDocumentsCard from "@/features/profile/components/TutorDocumentsCard";
 import ProfileMenu from "@/features/profile/components/ProfileMenu";
 
+// Trang hồ sơ cá nhân: xem/sửa thông tin, đổi avatar và quản lý hồ sơ gia sư.
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const dispatch = useDispatch();
@@ -61,6 +62,7 @@ const ProfilePage = () => {
     }
   }, [isTutor, dispatch]);
 
+  // Gửi yêu cầu đổi hồ sơ gia sư để admin duyệt.
   const handleTutorProfileSubmit = async (changes) => {
     const result = await dispatch(requestProfileChangeThunk(changes));
     if (!result.error) {
@@ -90,6 +92,7 @@ const ProfilePage = () => {
 
   const displayAvatar = avatarPreview || user.avatar;
 
+  // Tải ảnh đại diện mới lên server.
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,6 +115,7 @@ const ProfilePage = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Bật chế độ chỉnh sửa và nạp dữ liệu hiện tại vào form.
   const handleEdit = () => {
     form.reset({
       fullName: user.fullName ?? "",
@@ -122,11 +126,13 @@ const ProfilePage = () => {
     setIsEditing(true);
   };
 
+  // Hủy chỉnh sửa và trả form về trạng thái ban đầu.
   const handleCancel = () => {
     form.reset();
     setIsEditing(false);
   };
 
+  // Lưu thay đổi thông tin cá nhân.
   const onSubmit = async (data) => {
     const result = await dispatch(updateProfileThunk(data));
     if (!result.error) {

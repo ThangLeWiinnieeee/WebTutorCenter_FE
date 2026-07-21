@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 import { DAYS_OF_WEEK } from "@/constants/enums";
 
 const availabilitySlotSchema = z.object({
@@ -6,13 +6,14 @@ const availabilitySlotSchema = z.object({
   hour: z.number().int().min(0).max(23),
 });
 
+// Tạo rule Zod ép chuỗi từ input thành số và kiểm tra giá trị tối thiểu.
 const numberFromInput = (min, message) =>
   z.preprocess(
     (value) => {
       if (value === "" || value === null || value === undefined) return undefined;
       return Number(value);
     },
-    z.number().int().min(min, message)
+    z.number().int().min(min, message),
   );
 
 /** yyyy-mm-dd, local timezone, start-of-day comparison */
@@ -58,6 +59,7 @@ const startDateSchema = z
     { message: "Ngày bắt đầu buổi học phải cách hôm nay ít nhất 2 ngày (không nhận hôm nay hoặc ngày mai)" },
   );
 
+// Dựng schema kiểm tra form đăng lớp theo cấu hình học phí lấy từ backend.
 export const buildClassRequestSchema = (pricingConfig) => {
   const minutesOptions = [...(pricingConfig?.minutesPerSessionOptions || [60, 90, 120, 150, 180])].sort(
     (a, b) => a - b,
@@ -117,11 +119,10 @@ export const buildClassRequestSchema = (pricingConfig) => {
   });
 };
 
+// Giá trị mặc định cho form đăng lớp theo cấu hình học phí.
 export const getDefaultClassRequestValues = (pricingConfig) => {
   const defaultMinutes =
-    pricingConfig?.defaultMinutesPerSession ??
-    pricingConfig?.minutesPerSessionOptions?.[0] ??
-    90;
+    pricingConfig?.defaultMinutesPerSession ?? pricingConfig?.minutesPerSessionOptions?.[0] ?? 90;
 
   return {
     contactPhone: "",

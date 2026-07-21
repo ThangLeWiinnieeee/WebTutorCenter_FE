@@ -1,18 +1,9 @@
-import {
-  Camera,
-  Loader2,
-} from 'lucide-react';
+import { Camera, Loader2 } from "lucide-react";
 
-import {
-  formatDate,
-  ROLE_CONFIG,
-} from '@/features/profile/constants';
-import { getInitials } from '@/features/profile/utils/profileUtils';
+import { formatDate, ROLE_CONFIG } from "@/features/profile/constants";
+import { getInitials } from "@/lib/format";
 
-import {
-  ProfileBadge,
-  StatusBadge,
-} from './ProfileBadges';
+import { ProfileBadge, StatusBadge } from "./ProfileBadges";
 
 const ProfileSidebar = ({
   user,
@@ -37,7 +28,7 @@ const ProfileSidebar = ({
                 className="h-28 w-28 rounded-full object-cover ring-4 ring-slate-100"
               />
             ) : (
-              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[#1e3a5f] text-3xl font-bold text-white ring-4 ring-slate-100 select-none">
+              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-brand text-3xl font-bold text-white ring-4 ring-slate-100 select-none">
                 {getInitials(user.fullName)}
               </div>
             )}
@@ -52,7 +43,7 @@ const ProfileSidebar = ({
               <button
                 type="button"
                 onClick={onPickAvatar}
-                className="absolute bottom-0.5 right-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f] text-white shadow-lg ring-2 ring-white transition-all hover:scale-110 hover:bg-[#2d5a9e] active:scale-95"
+                className="absolute bottom-0.5 right-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white shadow-lg ring-2 ring-white transition-all hover:scale-110 hover:bg-brand-accent active:scale-95"
                 title="Đổi ảnh đại diện"
               >
                 <Camera className="h-4 w-4" />

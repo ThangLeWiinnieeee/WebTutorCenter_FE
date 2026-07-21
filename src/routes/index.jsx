@@ -1,5 +1,4 @@
-// File cấu hình route: cố tình khai báo nhiều component lazy cạnh export `router` (không phải
-// component) — không hot-reload theo component ở đây nên tắt luật Fast Refresh cho riêng file này.
+// File cấu hình route: khai báo component lazy cạnh export `router` nên tắt luật Fast Refresh.
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
@@ -12,9 +11,7 @@ import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
 import PageLoader from "@/components/shared/PageLoader";
 
-// Trang tải theo nhu cầu (React.lazy) → mỗi route thành 1 chunk riêng, bundle chính nhẹ hẳn.
-// Import trực tiếp từ file trang (không qua barrel) để chunk tách sạch. Suspense boundary
-// đặt sẵn quanh <Outlet /> trong từng layout; riêng route không có layout thì bọc tại chỗ.
+// Các trang tải theo nhu cầu (React.lazy) để mỗi route thành một chunk riêng.
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
 const CompleteProfilePage = lazy(() => import("@/features/profile/pages/CompleteProfilePage"));
@@ -31,6 +28,7 @@ const ContractTemplatePage = lazy(() => import("@/features/classes/pages/Contrac
 const NotificationsPage = lazy(() => import("@/features/notifications/pages/NotificationsPage"));
 const MyVouchersPage = lazy(() => import("@/features/vouchers/pages/MyVouchersPage"));
 const MyReviewsPage = lazy(() => import("@/features/reviews/pages/MyReviewsPage"));
+const MyPaymentsPage = lazy(() => import("@/features/payments/pages/MyPaymentsPage"));
 
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
@@ -50,10 +48,14 @@ const AdminSubjectsPage = lazy(() => import("@/admin/pages/AdminSubjectsPage"));
 const AdminTrashPage = lazy(() => import("@/admin/pages/AdminTrashPage"));
 const AdminSettingsPage = lazy(() => import("@/admin/pages/AdminSettingsPage"));
 const AdminProfileChangesPage = lazy(() => import("@/admin/pages/AdminProfileChangesPage"));
-const AdminApplicationCancellationsPage = lazy(() => import("@/admin/pages/AdminApplicationCancellationsPage"));
+const AdminApplicationCancellationsPage = lazy(
+  () => import("@/admin/pages/AdminApplicationCancellationsPage"),
+);
 const AdminReviewsPage = lazy(() => import("@/admin/pages/AdminReviewsPage"));
 const AdminNotificationsPage = lazy(() => import("@/admin/pages/AdminNotificationsPage"));
 const AdminMessagesPage = lazy(() => import("@/admin/pages/AdminMessagesPage"));
+const AdminPaymentsPage = lazy(() => import("@/admin/pages/AdminPaymentsPage"));
+const AdminStatsPage = lazy(() => import("@/admin/pages/AdminStatsPage"));
 
 const router = createBrowserRouter([
   // Auth routes (chỉ dành cho khách, đã đăng nhập sẽ redirect về trang chủ)
@@ -133,6 +135,7 @@ const router = createBrowserRouter([
           { path: "/my-classes", element: <MyClassesPage /> },
           { path: "/class-invitations", element: <ClassInvitationsPage /> },
           { path: "/my-reviews", element: <MyReviewsPage /> },
+          { path: "/my-payments", element: <MyPaymentsPage /> },
         ],
       },
     ],
@@ -143,6 +146,8 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { path: "/admin", element: <AdminDashboardPage /> },
+      { path: "/admin/statistics", element: <AdminStatsPage /> },
+      { path: "/admin/payments", element: <AdminPaymentsPage /> },
       { path: "/admin/notifications", element: <AdminNotificationsPage /> },
       { path: "/admin/users", element: <AdminUsersPage /> },
       { path: "/admin/messages", element: <AdminMessagesPage /> },

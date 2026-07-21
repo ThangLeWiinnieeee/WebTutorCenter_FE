@@ -1,10 +1,6 @@
 import { BadgeCheck } from "lucide-react";
 
-/**
- * Huy hiệu "Gia sư uy tín" — dành cho top gia sư theo điểm đánh giá (Bayesian, cân bằng
- * giữa số lượng và điểm sao). Chỉ render khi `tutor.isTrusted === true` (caller tự kiểm tra).
- * - compact: bản gọn (chữ "Uy tín") cho thẻ nhỏ như TopTutorCard.
- */
+// Huy hiệu "Gia sư uy tín"; `compact` cho bản gọn dùng ở thẻ nhỏ.
 export default function TrustedTutorBadge({ compact = false, className = "" }) {
   if (compact) {
     return (

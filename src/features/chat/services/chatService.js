@@ -27,8 +27,7 @@ const chatService = {
   sendConversationCard: (id, payload) =>
     axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATION_SEND_CARD(id), payload),
   markConversationRead: (id) => axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATION_READ(id)),
-  startConversation: (tutorUserId) =>
-    axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATIONS, { tutorUserId }),
+  startConversation: (tutorUserId) => axiosInstance.post(API_ENDPOINTS.CHAT.CONVERSATIONS, { tutorUserId }),
 
   // Picker chọn người dùng để admin chủ động nhắn (tái dùng danh sách user của admin).
   // Gồm cả gia sư lẫn học viên. Để trống từ khóa → trả về danh sách user (giới hạn của endpoint).

@@ -52,29 +52,30 @@ const adminNotificationSlice = createSlice({
         state.unreadCount = action.payload ?? 0;
       });
 
-    builder
-      .addCase(markAdminNotificationReadThunk.fulfilled, (state, action) => {
-        const item = state.items.find((n) => n.id === action.payload);
-        if (item && !item.read) {
-          item.read = true;
-          state.unreadCount = Math.max(0, state.unreadCount - 1);
-        }
-      });
+    builder.addCase(markAdminNotificationReadThunk.fulfilled, (state, action) => {
+      const item = state.items.find((n) => n.id === action.payload);
+      if (item && !item.read) {
+        item.read = true;
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
+      }
+    });
 
-    builder
-      .addCase(markAllAdminNotificationsReadThunk.fulfilled, (state) => {
-        state.items.forEach((n) => {
-          n.read = true;
-        });
-        state.unreadCount = 0;
+    builder.addCase(markAllAdminNotificationsReadThunk.fulfilled, (state) => {
+      state.items.forEach((n) => {
+        n.read = true;
       });
+      state.unreadCount = 0;
+    });
   },
 });
 
 export const { clearAdminNotifications } = adminNotificationSlice.actions;
 
+// Selector: danh sách thông báo admin.
 export const selectAdminNotifications = (state) => state.adminNotifications.items;
+// Selector: thông tin phân trang của danh sách thông báo admin.
 export const selectAdminNotificationsPagination = (state) => state.adminNotifications.pagination;
+// Selector: số thông báo admin chưa đọc.
 export const selectAdminUnreadCount = (state) => state.adminNotifications.unreadCount;
 
 export default adminNotificationSlice.reducer;

@@ -8,14 +8,12 @@ import {
   TUTOR_UPLOAD_ALLOWED_TYPES as ALLOWED,
 } from "@/features/tutors/constants";
 
-/**
- * Ô tải một ảnh giấy tờ (CCCD/bằng cấp). Upload ngay khi chọn file,
- * lưu URL Cloudinary trả về vào form qua onChange.
- */
+// Ô tải một ảnh giấy tờ, upload ngay khi chọn và lưu URL trả về vào form.
 const DocumentUploadField = ({ value, onChange, label, hint, error, required }) => {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
+  // Tải ảnh giấy tờ vừa chọn lên server.
   const handleSelect = async (e) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // cho phép chọn lại cùng file
@@ -57,7 +55,7 @@ const DocumentUploadField = ({ value, onChange, label, hint, error, required }) 
         className={`relative flex aspect-[16/10] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
           error
             ? "border-rose-300 bg-rose-50/40"
-            : "border-slate-200 bg-slate-50 hover:border-[#1e3a5f]/40 hover:bg-slate-100"
+            : "border-slate-200 bg-slate-50 hover:border-brand/40 hover:bg-slate-100"
         }`}
       >
         {value ? (
@@ -89,7 +87,7 @@ const DocumentUploadField = ({ value, onChange, label, hint, error, required }) 
 
         {uploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70">
-            <Loader2 className="h-6 w-6 animate-spin text-[#1e3a5f]" />
+            <Loader2 className="h-6 w-6 animate-spin text-brand" />
           </div>
         )}
       </div>

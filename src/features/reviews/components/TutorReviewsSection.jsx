@@ -10,25 +10,12 @@ import { replyToReviewThunk } from "@/features/reviews/store/reviewThunks";
 import { StarRating } from "@/features/reviews/components/StarRating";
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/shared/Pagination";
+import { formatDate as formatDateBase, getInitials } from "@/lib/format";
 
 const PAGE_SIZE = 5;
 
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function formatDate(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (isNaN(d)) return "";
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
+// Ngày trống để trống hẳn thay vì hiện dấu gạch, cho gọn dòng meta của mỗi đánh giá.
+const formatDate = (value) => formatDateBase(value, "");
 
 // Khối hiển thị phản hồi của gia sư cho một đánh giá (hiển thị cho mọi người xem)
 function ReviewReplyBlock({ reply }) {
@@ -66,10 +53,9 @@ function ReviewReplyForm({ review, onReplied }) {
   // useWatch (thay cho watch()) để tương thích React Compiler memoization
   const comment = useWatch({ control, name: "comment" }) || "";
 
+  // Gửi câu trả lời của gia sư cho một đánh giá (chỉ được trả lời một lần).
   const onSubmit = async (values) => {
-    const result = await dispatch(
-      replyToReviewThunk({ reviewId: review.id, comment: values.comment })
-    );
+    const result = await dispatch(replyToReviewThunk({ reviewId: review.id, comment: values.comment }));
     if (replyToReviewThunk.fulfilled.match(result)) {
       onReplied?.(result.payload.review);
       reset({ comment: "" });
@@ -102,8 +88,8 @@ function ReviewReplyForm({ review, onReplied }) {
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <span>
           <span className="font-semibold">Lưu ý:</span> Mỗi đánh giá chỉ được phản hồi{" "}
-          <span className="font-semibold">MỘT lần duy nhất</span> và không thể chỉnh sửa sau khi gửi.
-          Hãy cân nhắc kỹ nội dung (vd: lịch sự giải thích nếu bị đánh giá chưa đúng).
+          <span className="font-semibold">MỘT lần duy nhất</span> và không thể chỉnh sửa sau khi gửi. Hãy cân
+          nhắc kỹ nội dung (vd: lịch sự giải thích nếu bị đánh giá chưa đúng).
         </span>
       </div>
 
@@ -149,11 +135,10 @@ function ReviewReplyForm({ review, onReplied }) {
   );
 }
 
+// Khối hiển thị danh sách đánh giá của một gia sư, cho phép gia sư trả lời khi editable.
 export default function TutorReviewsSection({ tutorId, initialSummary, editable = false }) {
   const [reviews, setReviews] = useState([]);
-  const [summary, setSummary] = useState(
-    initialSummary || { averageRating: 0, reviewCount: 0 }
-  );
+  const [summary, setSummary] = useState(initialSummary || { averageRating: 0, reviewCount: 0 });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -241,7 +226,9 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
                     <span className="text-xs text-gray-400">{formatDate(review.createdAt)}</span>
                   </div>
                   <StarRating value={review.rating} size={14} className="mt-1" />
-                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">{review.comment}</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                    {review.comment}
+                  </p>
                 </div>
               </div>
 

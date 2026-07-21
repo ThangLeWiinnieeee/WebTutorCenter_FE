@@ -4,103 +4,103 @@ const availabilitySlotSchema = z.object({
   day: z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], {
     message: "Ngày không hợp lệ",
   }),
-  hour: z
-    .number()
-    .int()
-    .min(0, "Khung giờ phải từ 0 đến 23")
-    .max(23, "Khung giờ phải từ 0 đến 23"),
+  hour: z.number().int().min(0, "Khung giờ phải từ 0 đến 23").max(23, "Khung giờ phải từ 0 đến 23"),
 });
 
-export const tutorSchema = z.object({
-  phone: z
-    .string()
-    .min(1, "Số điện thoại là bắt buộc")
-    .regex(/^(84|0)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ (VD: 0912345678)"),
+export const tutorSchema = z
+  .object({
+    phone: z
+      .string()
+      .min(1, "Số điện thoại là bắt buộc")
+      .regex(/^(84|0)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ (VD: 0912345678)"),
 
-  subjects: z
-    .array(z.string())
-    .min(1, "Phải chọn ít nhất 1 môn học"),
+    subjects: z.array(z.string()).min(1, "Phải chọn ít nhất 1 môn học"),
 
-  occupationStatus: z.enum(["student", "graduated", "teacher"], {
-    message: "Vui lòng chọn tình trạng nghề nghiệp",
-  }),
+    occupationStatus: z.enum(["student", "graduated", "teacher"], {
+      message: "Vui lòng chọn tình trạng nghề nghiệp",
+    }),
 
-  teachingAreas: z.object({
-    province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
-    districts: z.array(z.number().int()).min(1, "Phải chọn ít nhất 1 quận/huyện"),
-  }),
+    teachingAreas: z.object({
+      province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
+      districts: z.array(z.number().int()).min(1, "Phải chọn ít nhất 1 quận/huyện"),
+    }),
 
-  currentArea: z.object({
-    province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
-    district: z.number().int().min(1, "Vui lòng chọn quận/huyện"),
-  }),
+    currentArea: z.object({
+      province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
+      district: z.number().int().min(1, "Vui lòng chọn quận/huyện"),
+    }),
 
-  schoolName: z
-    .string()
-    .min(2, "Tên trường phải có ít nhất 2 ký tự")
-    .max(200, "Tên trường không được vượt quá 200 ký tự"),
+    schoolName: z
+      .string()
+      .min(2, "Tên trường phải có ít nhất 2 ký tự")
+      .max(200, "Tên trường không được vượt quá 200 ký tự"),
 
-  graduationYear: z
-    .union([
-      z.number().int().min(1950, "Năm tốt nghiệp phải từ 1950 trở lên").max(new Date().getFullYear(), `Năm tốt nghiệp không được lớn hơn ${new Date().getFullYear()}`),
-      z.null(),
-      z.literal(""),
-    ])
-    .optional()
-    .transform((v) => (v === "" ? null : v)),
+    graduationYear: z
+      .union([
+        z
+          .number()
+          .int()
+          .min(1950, "Năm tốt nghiệp phải từ 1950 trở lên")
+          .max(new Date().getFullYear(), `Năm tốt nghiệp không được lớn hơn ${new Date().getFullYear()}`),
+        z.null(),
+        z.literal(""),
+      ])
+      .optional()
+      .transform((v) => (v === "" ? null : v)),
 
-  bio: z
-    .string()
-    .min(10, "Giới thiệu bản thân phải có ít nhất 10 ký tự")
-    .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
+    bio: z
+      .string()
+      .min(10, "Giới thiệu bản thân phải có ít nhất 10 ký tự")
+      .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
 
-  availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
+    availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
 
-  // Ảnh giấy tờ xác thực — đã upload trước, lưu URL trong form
-  cccdFrontImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt trước"),
-  cccdBackImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt sau"),
-  studentCardFrontImage: z.string().optional().default(""),
-  studentCardBackImage: z.string().optional().default(""),
-  certificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp").default([]),
-  // Bằng cấp công khai — tùy chọn, hiển thị cho mọi người ở hồ sơ/chi tiết gia sư.
-  publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
-}).superRefine((data, ctx) => {
-  // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
-  if (data.occupationStatus !== "student" && data.graduationYear == null) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["graduationYear"],
-      message: "Vui lòng nhập năm tốt nghiệp",
-    });
-  }
-
-  // Sinh viên → thẻ sinh viên mặt trước & mặt sau đều bắt buộc
-  if (data.occupationStatus === "student") {
-    if (!data.studentCardFrontImage) {
+    // Ảnh giấy tờ xác thực — đã upload trước, lưu URL trong form
+    cccdFrontImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt trước"),
+    cccdBackImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt sau"),
+    studentCardFrontImage: z.string().optional().default(""),
+    studentCardBackImage: z.string().optional().default(""),
+    certificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp").default([]),
+    // Bằng cấp công khai — tùy chọn, hiển thị cho mọi người ở hồ sơ/chi tiết gia sư.
+    publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
+  })
+  .superRefine((data, ctx) => {
+    // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
+    if (data.occupationStatus !== "student" && data.graduationYear == null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["studentCardFrontImage"],
-        message: "Vui lòng tải ảnh thẻ sinh viên mặt trước",
+        path: ["graduationYear"],
+        message: "Vui lòng nhập năm tốt nghiệp",
       });
     }
-    if (!data.studentCardBackImage) {
+
+    // Sinh viên → thẻ sinh viên mặt trước & mặt sau đều bắt buộc
+    if (data.occupationStatus === "student") {
+      if (!data.studentCardFrontImage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["studentCardFrontImage"],
+          message: "Vui lòng tải ảnh thẻ sinh viên mặt trước",
+        });
+      }
+      if (!data.studentCardBackImage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["studentCardBackImage"],
+          message: "Vui lòng tải ảnh thẻ sinh viên mặt sau",
+        });
+      }
+    }
+
+    // Đã tốt nghiệp / giáo viên → ít nhất 1 ảnh bằng cấp
+    if (
+      (data.occupationStatus === "graduated" || data.occupationStatus === "teacher") &&
+      (data.certificateImages?.length ?? 0) < 1
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["studentCardBackImage"],
-        message: "Vui lòng tải ảnh thẻ sinh viên mặt sau",
+        path: ["certificateImages"],
+        message: "Vui lòng tải lên ít nhất 1 ảnh bằng cấp",
       });
     }
-  }
-
-  // Đã tốt nghiệp / giáo viên → ít nhất 1 ảnh bằng cấp
-  if (
-    (data.occupationStatus === "graduated" || data.occupationStatus === "teacher") &&
-    (data.certificateImages?.length ?? 0) < 1
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["certificateImages"],
-      message: "Vui lòng tải lên ít nhất 1 ảnh bằng cấp",
-    });
-  }
-});
+  });

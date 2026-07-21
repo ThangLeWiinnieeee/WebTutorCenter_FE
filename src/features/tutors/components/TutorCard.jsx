@@ -13,13 +13,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import { GENDER_LABEL, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
 import { getAgeFromDate } from "@/features/tutors/utils/tutorAge";
-import { StarRating } from "@/features/reviews";
+import { StarRating } from "@/features/reviews/components/StarRating";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
-import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
+import { getInitials } from "@/lib/format";
 import { cldThumb } from "@/lib/utils";
 
 const ROW_ICON = "mt-0.5 h-4 w-4 shrink-0 text-slate-400";
 
+// Dòng thông tin phụ có icon trong thẻ gia sư.
 const MetaRow = ({ icon, children }) => (
   <div className="flex items-start gap-2 text-sm text-slate-600">
     {icon}
@@ -27,6 +28,7 @@ const MetaRow = ({ icon, children }) => (
   </div>
 );
 
+// Thẻ gia sư trong danh sách: thông tin chính, môn dạy và các nút hành động.
 export default function TutorCard({ tutor }) {
   const navigate = useNavigate();
   const occupationLabel = OCCUPATION_STATUS_LABEL[tutor.occupationStatus] || tutor.occupationStatus;
@@ -46,7 +48,9 @@ export default function TutorCard({ tutor }) {
   const teachDistricts = (tutor.teachingAreas?.districts || []).map((d) => d.name).filter(Boolean);
   const teachingLabel = tutor.teachingAreas?.provinceName
     ? `${tutor.teachingAreas.provinceName}${
-        teachDistricts.length ? ` · ${teachDistricts.slice(0, 3).join(", ")}${teachDistricts.length > 3 ? "…" : ""}` : ""
+        teachDistricts.length
+          ? ` · ${teachDistricts.slice(0, 3).join(", ")}${teachDistricts.length > 3 ? "…" : ""}`
+          : ""
       }`
     : null;
 
@@ -54,9 +58,15 @@ export default function TutorCard({ tutor }) {
     <div className="group relative flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-[box-shadow,border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md sm:flex-row">
       {/* Avatar */}
       <div className="shrink-0">
-        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-2xl font-bold text-white ring-4 ring-slate-100">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-emerald-400 to-brand text-2xl font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
-            <img src={cldThumb(tutor.avatar, 192)} alt={tutor.fullName} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={cldThumb(tutor.avatar, 192)}
+              alt={tutor.fullName}
+              referrerPolicy="no-referrer"
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
           ) : (
             getInitials(tutor.fullName)
           )}
@@ -66,7 +76,9 @@ export default function TutorCard({ tutor }) {
       {/* Main info */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <h3 className="text-xl font-bold leading-tight text-slate-900 group-hover:text-[#1e3a5f]">{tutor.fullName}</h3>
+          <h3 className="text-xl font-bold leading-tight text-slate-900 group-hover:text-brand">
+            {tutor.fullName}
+          </h3>
           {tutor.isTrusted && <TrustedTutorBadge />}
           {reviewCount > 0 ? (
             <span className="inline-flex items-center gap-1">
@@ -86,7 +98,7 @@ export default function TutorCard({ tutor }) {
         <div className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
           {occupationLabel && (
             <MetaRow icon={<GraduationCap className={ROW_ICON} />}>
-              <span className="font-medium text-[#1e3a5f]">{occupationLabel}</span>
+              <span className="font-medium text-brand">{occupationLabel}</span>
             </MetaRow>
           )}
           {(genderLabel || age != null) && (
@@ -94,7 +106,9 @@ export default function TutorCard({ tutor }) {
               {[genderLabel, age != null ? `${age} tuổi` : null].filter(Boolean).join(" · ")}
             </MetaRow>
           )}
-          {locationParts.length > 0 && <MetaRow icon={<MapPin className={ROW_ICON} />}>{locationParts.join(", ")}</MetaRow>}
+          {locationParts.length > 0 && (
+            <MetaRow icon={<MapPin className={ROW_ICON} />}>{locationParts.join(", ")}</MetaRow>
+          )}
           {schoolLabel && <MetaRow icon={<School className={ROW_ICON} />}>{schoolLabel}</MetaRow>}
           {teachingLabel && (
             <MetaRow icon={<MapPinned className={ROW_ICON} />}>
@@ -123,7 +137,9 @@ export default function TutorCard({ tutor }) {
                 </span>
               ))}
               {tutor.subjects.length > 8 && (
-                <span className="px-1 py-0.5 text-xs text-slate-400">+{tutor.subjects.length - 8} môn khác</span>
+                <span className="px-1 py-0.5 text-xs text-slate-400">
+                  +{tutor.subjects.length - 8} môn khác
+                </span>
               )}
             </div>
           </div>
@@ -151,7 +167,7 @@ export default function TutorCard({ tutor }) {
                 e.stopPropagation();
                 navigate(`/find-tutor?tutor=${tutor.id}`);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1e3a5f] px-3.5 py-2 text-sm font-semibold text-white transition-all hover:bg-[#16304f]"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition-all hover:bg-brand-dark"
             >
               <Handshake className="h-4 w-4" />
               Chọn gia sư này dạy lớp của bạn

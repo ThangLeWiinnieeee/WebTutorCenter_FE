@@ -1,443 +1,372 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiThunk } from "@/app/createApiThunk";
 import adminService from "@/admin/services/adminService";
 
-export const getDashboardStatsThunk = createAsyncThunk(
+// Lấy số liệu tổng quan cho trang dashboard admin.
+export const getDashboardStatsThunk = createApiThunk(
   "admin/getDashboardStats",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getDashboardStats();
-      return res.data.data.stats;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được thống kê");
-    }
-  }
+  async () => {
+    const res = await adminService.getDashboardStats();
+    return res.data.data.stats;
+  },
+  "Không lấy được thống kê",
 );
 
-export const getPendingTutorsThunk = createAsyncThunk(
+// Lấy danh sách hồ sơ gia sư đang chờ duyệt.
+export const getPendingTutorsThunk = createApiThunk(
   "admin/getPendingTutors",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getPendingTutors(params);
-      return res.data.data; // { tutors, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getPendingTutors(params);
+    return res.data.data; // { tutors, pagination }
+  },
+  "Không lấy được danh sách",
 );
 
-export const approveTutorThunk = createAsyncThunk(
+// Duyệt hồ sơ gia sư.
+export const approveTutorThunk = createApiThunk(
   "admin/approveTutor",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.approveTutor(id);
-      return res.data.data.tutor;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Phê duyệt thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.approveTutor(id);
+    return res.data.data.tutor;
+  },
+  "Phê duyệt thất bại",
 );
 
-export const rejectTutorThunk = createAsyncThunk(
+// Từ chối hồ sơ gia sư kèm lý do.
+export const rejectTutorThunk = createApiThunk(
   "admin/rejectTutor",
-  async ({ id, rejectionReason }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.rejectTutor(id, rejectionReason);
-      return res.data.data.tutor;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Từ chối thất bại");
-    }
-  }
+  async ({ id, rejectionReason }) => {
+    const res = await adminService.rejectTutor(id, rejectionReason);
+    return res.data.data.tutor;
+  },
+  "Từ chối thất bại",
 );
 
-export const getAdminUsersThunk = createAsyncThunk(
+// Lấy danh sách người dùng có phân trang/lọc.
+export const getAdminUsersThunk = createApiThunk(
   "admin/getUsers",
-  async (params, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getUsers(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách người dùng");
-    }
-  }
+  async (params) => {
+    const res = await adminService.getUsers(params);
+    return res.data.data;
+  },
+  "Không lấy được danh sách người dùng",
 );
 
-export const updateAdminUserThunk = createAsyncThunk(
+// Cập nhật thông tin một người dùng.
+export const updateAdminUserThunk = createApiThunk(
   "admin/updateUser",
-  async ({ id, payload }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.updateUser(id, payload);
-      return res.data.data.user;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Cập nhật người dùng thất bại");
-    }
-  }
+  async ({ id, payload }) => {
+    const res = await adminService.updateUser(id, payload);
+    return res.data.data.user;
+  },
+  "Cập nhật người dùng thất bại",
 );
 
-export const updateAdminUserStatusThunk = createAsyncThunk(
+// Bật/tắt trạng thái hoạt động của người dùng.
+export const updateAdminUserStatusThunk = createApiThunk(
   "admin/updateUserStatus",
-  async ({ id, isActive }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.updateUserStatus(id, isActive);
-      return res.data.data.user;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Cập nhật trạng thái người dùng thất bại");
-    }
-  }
+  async ({ id, isActive }) => {
+    const res = await adminService.updateUserStatus(id, isActive);
+    return res.data.data.user;
+  },
+  "Cập nhật trạng thái người dùng thất bại",
 );
 
-export const softDeleteAdminUserThunk = createAsyncThunk(
+// Xóa mềm người dùng (đưa vào thùng rác).
+export const softDeleteAdminUserThunk = createApiThunk(
   "admin/deleteUser",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.deleteUser(id);
-      return res.data.data.user;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa người dùng thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.deleteUser(id);
+    return res.data.data.user;
+  },
+  "Xóa người dùng thất bại",
 );
 
-export const getClassApplicationsThunk = createAsyncThunk(
+// Lấy danh sách đơn nhận lớp / lời mời dạy.
+export const getClassApplicationsThunk = createApiThunk(
   "admin/getClassApplications",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getClassApplications(params);
-      return res.data.data; // { applications, pagination, counts }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đơn đăng ký");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getClassApplications(params);
+    return res.data.data; // { applications, pagination, counts }
+  },
+  "Không lấy được danh sách đơn đăng ký",
 );
 
-export const getClassApplicationStatsThunk = createAsyncThunk(
+// Lấy số lượng đơn nhận lớp theo từng trạng thái.
+export const getClassApplicationStatsThunk = createApiThunk(
   "admin/getClassApplicationStats",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getClassApplicationStats(params);
-      return res.data.data.stats;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được thống kê đơn đăng ký");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getClassApplicationStats(params);
+    return res.data.data.stats;
+  },
+  "Không lấy được thống kê đơn đăng ký",
 );
 
 // Số đơn "chờ duyệt" (status selected) cho CẢ 2 mục origin để hiện badge trên 2 tab.
-export const getClassApplicationOriginCountsThunk = createAsyncThunk(
+export const getClassApplicationOriginCountsThunk = createApiThunk(
   "admin/getClassApplicationOriginCounts",
-  async (_, { rejectWithValue }) => {
-    try {
-      const [applyRes, inviteRes] = await Promise.all([
-        adminService.getClassApplicationStats({ origin: "apply" }),
-        adminService.getClassApplicationStats({ origin: "invite" }),
-      ]);
-      return {
-        apply: applyRes.data.data.stats.selected ?? 0,
-        invite: inviteRes.data.data.stats.selected ?? 0,
-      };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được số đơn chờ duyệt");
-    }
-  }
+  async () => {
+    const [applyRes, inviteRes] = await Promise.all([
+      adminService.getClassApplicationStats({ origin: "apply" }),
+      adminService.getClassApplicationStats({ origin: "invite" }),
+    ]);
+    return {
+      apply: applyRes.data.data.stats.selected ?? 0,
+      invite: inviteRes.data.data.stats.selected ?? 0,
+    };
+  },
+  "Không lấy được số đơn chờ duyệt",
 );
 
-export const approveClassApplicationThunk = createAsyncThunk(
+// Duyệt đơn nhận lớp.
+export const approveClassApplicationThunk = createApiThunk(
   "admin/approveClassApplication",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.approveClassApplication(id);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Duyệt đơn thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.approveClassApplication(id);
+    return res.data.data.application;
+  },
+  "Duyệt đơn thất bại",
 );
 
-export const rejectClassApplicationThunk = createAsyncThunk(
+// Từ chối đơn nhận lớp kèm lý do.
+export const rejectClassApplicationThunk = createApiThunk(
   "admin/rejectClassApplication",
-  async ({ id, rejectionReason }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.rejectClassApplication(id, rejectionReason);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Từ chối đơn thất bại");
-    }
-  }
+  async ({ id, rejectionReason }) => {
+    const res = await adminService.rejectClassApplication(id, rejectionReason);
+    return res.data.data.application;
+  },
+  "Từ chối đơn thất bại",
 );
 
 // ──────────────────────────── Class (bài đăng tìm gia sư) ────────────────────────────
 
-export const getAdminClassesThunk = createAsyncThunk(
+// Lấy danh sách bài đăng lớp cho khu vực admin.
+export const getAdminClassesThunk = createApiThunk(
   "admin/getClasses",
-  async (params, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getAdminClasses(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách bài đăng");
-    }
-  }
+  async (params) => {
+    const res = await adminService.getAdminClasses(params);
+    return res.data.data;
+  },
+  "Không lấy được danh sách bài đăng",
 );
 
-export const deleteAdminClassThunk = createAsyncThunk(
+// Xóa mềm một bài đăng lớp.
+export const deleteAdminClassThunk = createApiThunk(
   "admin/deleteClass",
-  async (id, { rejectWithValue }) => {
-    try {
-      await adminService.deleteAdminClass(id);
-      return { id };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa bài đăng thất bại");
-    }
-  }
+  async (id) => {
+    await adminService.deleteAdminClass(id);
+    return { id };
+  },
+  "Xóa bài đăng thất bại",
 );
 
 // ──────────────────────────── Trash (thùng rác) ────────────────────────────
 
-export const getTrashCountsThunk = createAsyncThunk(
+// Đếm số mục đã xóa mềm theo từng loại.
+export const getTrashCountsThunk = createApiThunk(
   "admin/getTrashCounts",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getTrashCounts();
-      return res.data.data.counts;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được số lượng thùng rác");
-    }
-  }
+  async () => {
+    const res = await adminService.getTrashCounts();
+    return res.data.data.counts;
+  },
+  "Không lấy được số lượng thùng rác",
 );
 
-export const getTrashItemsThunk = createAsyncThunk(
+// Lấy danh sách mục trong thùng rác theo loại.
+export const getTrashItemsThunk = createApiThunk(
   "admin/getTrashItems",
-  async ({ type, params }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getTrashItems(type, params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách thùng rác");
-    }
-  }
+  async ({ type, params }) => {
+    const res = await adminService.getTrashItems(type, params);
+    return res.data.data;
+  },
+  "Không lấy được danh sách thùng rác",
 );
 
-export const restoreTrashItemThunk = createAsyncThunk(
+// Khôi phục một mục từ thùng rác.
+export const restoreTrashItemThunk = createApiThunk(
   "admin/restoreTrashItem",
-  async ({ type, id }, { rejectWithValue }) => {
-    try {
-      await adminService.restoreTrashItem(type, id);
-      return { id };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Khôi phục thất bại");
-    }
-  }
+  async ({ type, id }) => {
+    await adminService.restoreTrashItem(type, id);
+    return { id };
+  },
+  "Khôi phục thất bại",
 );
 
-export const purgeTrashItemThunk = createAsyncThunk(
+// Xóa vĩnh viễn một mục trong thùng rác.
+export const purgeTrashItemThunk = createApiThunk(
   "admin/purgeTrashItem",
-  async ({ type, id }, { rejectWithValue }) => {
-    try {
-      await adminService.purgeTrashItem(type, id);
-      return { id };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa vĩnh viễn thất bại");
-    }
-  }
+  async ({ type, id }) => {
+    await adminService.purgeTrashItem(type, id);
+    return { id };
+  },
+  "Xóa vĩnh viễn thất bại",
 );
 
 // ──────────────────────────── Profile change requests (gia sư đổi hồ sơ) ────────────────────────────
 
-export const getProfileChangesThunk = createAsyncThunk(
+// Lấy danh sách yêu cầu đổi hồ sơ gia sư.
+export const getProfileChangesThunk = createApiThunk(
   "admin/getProfileChanges",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getProfileChanges(params);
-      return res.data.data; // { requests, pagination, counts }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách yêu cầu đổi thông tin");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getProfileChanges(params);
+    return res.data.data; // { requests, pagination, counts }
+  },
+  "Không lấy được danh sách yêu cầu đổi thông tin",
 );
 
-export const approveProfileChangeThunk = createAsyncThunk(
+// Duyệt yêu cầu đổi hồ sơ gia sư.
+export const approveProfileChangeThunk = createApiThunk(
   "admin/approveProfileChange",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.approveProfileChange(id);
-      return res.data.data.request;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Duyệt yêu cầu thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.approveProfileChange(id);
+    return res.data.data.request;
+  },
+  "Duyệt yêu cầu thất bại",
 );
 
-export const rejectProfileChangeThunk = createAsyncThunk(
+// Từ chối yêu cầu đổi hồ sơ gia sư kèm lý do.
+export const rejectProfileChangeThunk = createApiThunk(
   "admin/rejectProfileChange",
-  async ({ id, rejectionReason }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.rejectProfileChange(id, rejectionReason);
-      return res.data.data.request;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Từ chối yêu cầu thất bại");
-    }
-  }
+  async ({ id, rejectionReason }) => {
+    const res = await adminService.rejectProfileChange(id, rejectionReason);
+    return res.data.data.request;
+  },
+  "Từ chối yêu cầu thất bại",
 );
 
 // ──────────────────────────── Hủy đơn nhận lớp (gia sư rút đơn) ────────────────────────────
 
-export const getApplicationCancellationsThunk = createAsyncThunk(
+// Lấy danh sách yêu cầu hủy đơn nhận lớp.
+export const getApplicationCancellationsThunk = createApiThunk(
   "admin/getApplicationCancellations",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getApplicationCancellations(params);
-      return res.data.data; // { cancellations, pagination, counts }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đơn hủy");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getApplicationCancellations(params);
+    return res.data.data; // { cancellations, pagination, counts }
+  },
+  "Không lấy được danh sách đơn hủy",
 );
 
-export const approveCancellationThunk = createAsyncThunk(
+// Duyệt yêu cầu hủy đơn nhận lớp.
+export const approveCancellationThunk = createApiThunk(
   "admin/approveCancellation",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.approveCancellation(id);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Duyệt hủy đơn thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.approveCancellation(id);
+    return res.data.data.application;
+  },
+  "Duyệt hủy đơn thất bại",
 );
 
-export const rejectCancellationThunk = createAsyncThunk(
+// Từ chối yêu cầu hủy đơn nhận lớp kèm lý do.
+export const rejectCancellationThunk = createApiThunk(
   "admin/rejectCancellation",
-  async ({ id, rejectionReason }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.rejectCancellation(id, rejectionReason);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Từ chối hủy đơn thất bại");
-    }
-  }
+  async ({ id, rejectionReason }) => {
+    const res = await adminService.rejectCancellation(id, rejectionReason);
+    return res.data.data.application;
+  },
+  "Từ chối hủy đơn thất bại",
 );
 
 // ──────────────────────────── Promo (mã ưu đãi) ────────────────────────────
 
-export const getPromosThunk = createAsyncThunk(
+// Lấy danh sách mã ưu đãi.
+export const getPromosThunk = createApiThunk(
   "admin/getPromos",
-  async (params, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getPromos(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách mã ưu đãi");
-    }
-  }
+  async (params) => {
+    const res = await adminService.getPromos(params);
+    return res.data.data;
+  },
+  "Không lấy được danh sách mã ưu đãi",
 );
 
-export const createPromoThunk = createAsyncThunk(
+// Tạo mã ưu đãi mới.
+export const createPromoThunk = createApiThunk(
   "admin/createPromo",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const res = await adminService.createPromo(payload);
-      return res.data.data.promo;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Tạo mã ưu đãi thất bại");
-    }
-  }
+  async (payload) => {
+    const res = await adminService.createPromo(payload);
+    return res.data.data.promo;
+  },
+  "Tạo mã ưu đãi thất bại",
 );
 
-export const updatePromoThunk = createAsyncThunk(
+// Cập nhật mã ưu đãi.
+export const updatePromoThunk = createApiThunk(
   "admin/updatePromo",
-  async ({ id, payload }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.updatePromo(id, payload);
-      return res.data.data.promo;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Cập nhật mã ưu đãi thất bại");
-    }
-  }
+  async ({ id, payload }) => {
+    const res = await adminService.updatePromo(id, payload);
+    return res.data.data.promo;
+  },
+  "Cập nhật mã ưu đãi thất bại",
 );
 
-export const deletePromoThunk = createAsyncThunk(
+// Xóa mềm mã ưu đãi.
+export const deletePromoThunk = createApiThunk(
   "admin/deletePromo",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await adminService.deletePromo(id);
-      return res.data.data.promo;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa mã ưu đãi thất bại");
-    }
-  }
+  async (id) => {
+    const res = await adminService.deletePromo(id);
+    return res.data.data.promo;
+  },
+  "Xóa mã ưu đãi thất bại",
 );
 
 // ──────────────────────────── Subject (môn học) ────────────────────────────
 
-export const getSubjectsThunk = createAsyncThunk(
+// Lấy danh mục môn học (bản dành cho admin).
+export const getSubjectsThunk = createApiThunk(
   "admin/getSubjects",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getSubjects(params);
-      return res.data.data.subjects;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách môn học");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getSubjects(params);
+    return res.data.data.subjects;
+  },
+  "Không lấy được danh sách môn học",
 );
 
-export const createSubjectThunk = createAsyncThunk(
+// Tạo môn học mới.
+export const createSubjectThunk = createApiThunk(
   "admin/createSubject",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const res = await adminService.createSubject(payload);
-      return res.data.data.subject;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Thêm môn học thất bại");
-    }
-  }
+  async (payload) => {
+    const res = await adminService.createSubject(payload);
+    return res.data.data.subject;
+  },
+  "Thêm môn học thất bại",
 );
 
-export const updateSubjectThunk = createAsyncThunk(
+// Cập nhật môn học (đổi tên hoặc bật/tắt).
+export const updateSubjectThunk = createApiThunk(
   "admin/updateSubject",
-  async ({ id, payload }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.updateSubject(id, payload);
-      return res.data.data.subject;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Cập nhật môn học thất bại");
-    }
-  }
+  async ({ id, payload }) => {
+    const res = await adminService.updateSubject(id, payload);
+    return res.data.data.subject;
+  },
+  "Cập nhật môn học thất bại",
 );
 
 // ──────────────────────────── Review (đánh giá gia sư) ────────────────────────────
 
-export const getReviewTutorsThunk = createAsyncThunk(
+// Lấy danh sách gia sư kèm thống kê đánh giá.
+export const getReviewTutorsThunk = createApiThunk(
   "admin/getReviewTutors",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getReviewTutors(params);
-      return res.data.data; // { tutors, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách gia sư");
-    }
-  }
+  async (params = {}) => {
+    const res = await adminService.getReviewTutors(params);
+    return res.data.data; // { tutors, pagination }
+  },
+  "Không lấy được danh sách gia sư",
 );
 
-export const getAdminTutorReviewsThunk = createAsyncThunk(
+// Lấy các đánh giá của một gia sư cụ thể.
+export const getAdminTutorReviewsThunk = createApiThunk(
   "admin/getTutorReviews",
-  async ({ tutorId, params }, { rejectWithValue }) => {
-    try {
-      const res = await adminService.getTutorReviews(tutorId, params);
-      return res.data.data; // { tutor, reviews, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đánh giá");
-    }
-  }
+  async ({ tutorId, params }) => {
+    const res = await adminService.getTutorReviews(tutorId, params);
+    return res.data.data; // { tutor, reviews, pagination }
+  },
+  "Không lấy được danh sách đánh giá",
 );
 
-export const deleteReviewThunk = createAsyncThunk(
+// Xóa mềm một đánh giá.
+export const deleteReviewThunk = createApiThunk(
   "admin/deleteReview",
-  async (id, { rejectWithValue }) => {
-    try {
-      await adminService.deleteReview(id);
-      return { id };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa đánh giá thất bại");
-    }
-  }
+  async (id) => {
+    await adminService.deleteReview(id);
+    return { id };
+  },
+  "Xóa đánh giá thất bại",
 );

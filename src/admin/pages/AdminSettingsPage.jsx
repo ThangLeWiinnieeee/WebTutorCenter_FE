@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import settingsService from "@/services/settingsService";
 
+// Trang admin chỉnh sửa thông tin chân trang của website.
 const AdminSettingsPage = () => {
   const [form, setForm] = useState({
     address: "",
@@ -39,6 +40,7 @@ const AdminSettingsPage = () => {
       });
   }, []);
 
+  // Lưu cấu hình chân trang lên server.
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.address || !form.phone || !form.email) {
@@ -64,6 +66,7 @@ const AdminSettingsPage = () => {
       });
   };
 
+  // Cập nhật một trường trong form cấu hình.
   const handleChange = (field, val) => {
     setForm((prev) => ({ ...prev, [field]: val }));
   };
@@ -80,7 +83,7 @@ const AdminSettingsPage = () => {
     <div className="max-w-2xl space-y-6 mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f] text-white">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
           <SettingsIcon className="h-6 w-6" />
         </div>
         <div>
@@ -96,9 +99,7 @@ const AdminSettingsPage = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Địa chỉ liên hệ *
-              </label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa chỉ liên hệ *</label>
               <Input
                 type="text"
                 value={form.address}
@@ -123,9 +124,7 @@ const AdminSettingsPage = () => {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Email hỗ trợ *
-                </label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Email hỗ trợ *</label>
                 <Input
                   type="email"
                   value={form.email}
@@ -151,9 +150,7 @@ const AdminSettingsPage = () => {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Link Zalo liên hệ
-                </label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Link Zalo liên hệ</label>
                 <Input
                   type="url"
                   value={form.zaloLink}

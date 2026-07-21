@@ -1,5 +1,20 @@
 import { useEffect, useState } from "react";
-import { Ban, Bell, BellRing, CalendarX2, CheckCheck, CheckCircle2, Clock, Gift, GraduationCap, Handshake, RotateCcw, UserCheck, XCircle } from "lucide-react";
+import {
+  Ban,
+  Bell,
+  BellRing,
+  CalendarX2,
+  CheckCheck,
+  CheckCircle2,
+  Clock,
+  Gift,
+  GraduationCap,
+  Handshake,
+  ReceiptText,
+  RotateCcw,
+  UserCheck,
+  XCircle,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AOS from "aos";
@@ -43,17 +58,17 @@ const NOTIFICATION_ICON_MAP = {
   // Nhắc chọn gia sư gấp (lớp sắp bắt đầu, chưa chọn ai) — màu cam gợi sự khẩn
   CLASS_SELECTION_REMINDER: { icon: Clock, className: "bg-orange-50 text-orange-600" },
   CLASS_COMPLETED_REWARD: { icon: Gift, className: "bg-violet-50 text-violet-600" },
-  CLASS_INVITE_RECEIVED: { icon: Handshake, className: "bg-blue-50 text-[#1e3a5f]" },
+  CLASS_INVITE_RECEIVED: { icon: Handshake, className: "bg-blue-50 text-brand" },
   CLASS_INVITE_ACCEPTED: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
   CLASS_INVITE_DECLINED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  // Thanh toán phí nhận lớp
+  CLASS_FEE_PAID: { icon: ReceiptText, className: "bg-emerald-50 text-emerald-600" },
+  CLASS_FEE_PAYMENT_FAILED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
 };
 
 const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-slate-500" };
 
-// Một số loại thông báo có thể bấm để đi tới trang liên quan.
-// CLASS_APPLICATION_PENDING (gửi cho người đăng khi có gia sư ứng tuyển) → mở "Bài đăng của tôi" để chọn gia sư.
-// CLASS_MATCHED (gửi cho người đăng khi admin duyệt gia sư) → mở "Bài đăng của tôi".
-// CLASS_COMPLETED_REWARD (tặng mã giảm giá khi hoàn thành lớp) → mở "Kho mã giảm giá".
+// Bảng điều hướng: loại thông báo nào bấm vào thì mở trang nào.
 const NOTIFICATION_LINK = {
   CLASS_APPLICATION_PENDING: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   CLASS_SELECTION_REMINDER: { to: "/my-posts", label: "Chọn gia sư ngay" },
@@ -65,8 +80,12 @@ const NOTIFICATION_LINK = {
   CLASS_INVITE_DECLINED: { to: "/my-posts", label: "Xem bài đăng của tôi" },
   // Gia sư được admin duyệt nhận lớp → mở danh sách nhận lớp
   CLASS_APPLICATION_APPROVED: { to: "/my-classes", label: "Xem danh sách nhận lớp" },
+  // Chuyển phí thành công → xem hóa đơn; thất bại → về danh sách nhận lớp để thử lại
+  CLASS_FEE_PAID: { to: "/my-payments", label: "Xem hóa đơn thanh toán" },
+  CLASS_FEE_PAYMENT_FAILED: { to: "/my-classes", label: "Xem danh sách nhận lớp" },
 };
 
+// Danh sách thông báo kèm phân trang.
 const NotificationsList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -86,6 +105,7 @@ const NotificationsList = () => {
   }, [loading, notifications.length]);
 
   const totalPages = pagination?.totalPages || 1;
+  // Chuyển trang danh sách thông báo.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -122,7 +142,7 @@ const NotificationsList = () => {
           <button
             type="button"
             onClick={() => dispatch(markAllAsReadThunk())}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1e3a5f] hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
           >
             <CheckCheck className="h-4 w-4" />
             Đánh dấu tất cả đã đọc
@@ -134,9 +154,7 @@ const NotificationsList = () => {
         const meta = NOTIFICATION_ICON_MAP[n.type] || DEFAULT_NOTIFICATION_ICON;
         const link = NOTIFICATION_LINK[n.type];
         return (
-          // Lớp ngoài chỉ giữ hiệu ứng AOS với className tĩnh: khi bấm "đã đọc",
-          // React chỉ ghi lại class ở lớp trong nên không xoá mất class `aos-animate`
-          // mà AOS gắn trực tiếp lên DOM → thông báo không bị animate lại từ đầu.
+          // Lớp ngoài giữ className tĩnh cho AOS để thông báo không animate lại khi đổi trạng thái đọc.
           <div key={n.id} data-aos="fade-up" data-aos-delay={Math.min(idx, 6) * 40}>
             <NotificationItem
               notification={n}
@@ -161,6 +179,7 @@ const NotificationsList = () => {
   );
 };
 
+// Trang thông báo của người dùng.
 const NotificationsPage = () => {
   const dispatch = useDispatch();
   const { user } = useAuth();
@@ -185,7 +204,7 @@ const NotificationsPage = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header band */}
-      <div className="border-b border-slate-200 bg-linear-to-r from-[#1e3a5f] to-[#2c5282]">
+      <div className="border-b border-slate-200 bg-linear-to-r from-brand to-[#2c5282]">
         <div className="mx-auto max-w-5xl px-6 py-8" data-aos="fade-down">
           <div className="flex items-center gap-2 text-emerald-300">
             <BellRing className="h-5 w-5" />

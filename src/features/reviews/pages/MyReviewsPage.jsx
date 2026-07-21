@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader2, Star } from "lucide-react";
 
-import { getTutorProfileThunk } from "@/features/tutors";
+import { getTutorProfileThunk } from "@/features/tutors/store/tutorThunks";
 import { StarRating } from "@/features/reviews/components/StarRating";
 import TutorReviewsSection from "@/features/reviews/components/TutorReviewsSection";
 
+// Trang gia sư xem các đánh giá về mình và trả lời.
 export default function MyReviewsPage() {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.tutors.profile);
@@ -20,7 +21,7 @@ export default function MyReviewsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="border-b border-slate-200 bg-linear-to-r from-[#1e3a5f] to-[#2c5282]">
+      <div className="border-b border-slate-200 bg-linear-to-r from-brand to-[#2c5282]">
         <div className="mx-auto max-w-5xl px-6 py-8">
           <div className="flex items-center gap-2 text-amber-300">
             <Star className="h-5 w-5" />
@@ -56,7 +57,9 @@ export default function MyReviewsPage() {
                     <span className="font-semibold text-gray-900">{reviewCount}</span> học viên.
                   </p>
                 ) : (
-                  <p>Bạn chưa nhận được đánh giá nào. Hãy hoàn thành thêm lớp học để nhận đánh giá từ học viên.</p>
+                  <p>
+                    Bạn chưa nhận được đánh giá nào. Hãy hoàn thành thêm lớp học để nhận đánh giá từ học viên.
+                  </p>
                 )}
               </div>
             </div>

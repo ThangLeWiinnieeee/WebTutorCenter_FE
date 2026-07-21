@@ -8,6 +8,8 @@
     "dev:force": "vite --force",
     "build": "vite build",
     "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{js,jsx,css}\" \"*.{js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css}\" \"*.{js,json}\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -31,6 +33,7 @@
     "react-hook-form": "^7.72.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.0",
+    "recharts": "^3.9.2",
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
@@ -43,9 +46,11 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "prettier": "^3.9.6",
     "vite": "^8.0.4"
   }
 }

@@ -56,7 +56,10 @@ const dedupPush = (arr, msg) => {
 // Nội dung xem trước ở danh sách hội thoại (ảnh/thẻ không có text → hiển thị nhãn).
 const previewOf = (message) => {
   if (message.content) return message.content;
-  if (message.card) return message.card.kind === "tutor" ? `[Gia sư] ${message.card.title}` : `[Bài đăng] ${message.card.title}`;
+  if (message.card)
+    return message.card.kind === "tutor"
+      ? `[Gia sư] ${message.card.title}`
+      : `[Bài đăng] ${message.card.title}`;
   if (message.imageUrl) return "[Hình ảnh]";
   return "";
 };
@@ -101,10 +104,7 @@ const chatSlice = createSlice({
         const incoming = p.conversation;
         const idx = admin.conversations.findIndex((c) => c.id === incoming.id);
         const oldUnread = idx >= 0 ? admin.conversations[idx].unreadCount || 0 : 0;
-        admin.totalUnread = Math.max(
-          0,
-          admin.totalUnread + ((incoming.unreadCount || 0) - oldUnread)
-        );
+        admin.totalUnread = Math.max(0, admin.totalUnread + ((incoming.unreadCount || 0) - oldUnread));
         admin.conversations = upsertConversation(admin.conversations, incoming);
         if (admin.activeId === incoming.id) dedupPush(admin.messages, p.message);
       } else if (p.conversationId !== undefined) {
@@ -272,9 +272,13 @@ export const {
   socketConversationUpserted,
 } = chatSlice.actions;
 
+// Selector: state chat phía người dùng.
 export const selectTutorChat = (state) => state.chat.tutor;
+// Selector: số tin nhắn chưa đọc của người dùng.
 export const selectTutorUnreadCount = (state) => state.chat.tutor.unreadCount;
+// Selector: state chat phía admin.
 export const selectAdminChat = (state) => state.chat.admin;
+// Selector: tổng số tin nhắn chưa đọc của admin.
 export const selectAdminUnreadTotal = (state) => state.chat.admin.totalUnread;
 
 export default chatSlice.reducer;
