@@ -6,6 +6,7 @@ export const ROLE_CONFIG = {
 
 export { GENDER_LABEL } from "@/constants/enums";
 
+// Đổi giá trị ngày sang chuỗi yyyy-MM-dd cho input type="date".
 export const toInputDate = (dateVal) => {
   if (!dateVal) return "";
   const d = new Date(dateVal);
@@ -13,9 +14,4 @@ export const toInputDate = (dateVal) => {
   return d.toISOString().split("T")[0];
 };
 
-export const formatDate = (dateVal) => {
-  if (!dateVal) return "—";
-  const d = new Date(dateVal);
-  if (isNaN(d)) return "—";
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-};
+export { formatDate } from "@/lib/format";

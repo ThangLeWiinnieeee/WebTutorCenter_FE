@@ -34,9 +34,10 @@ const VerifyOtpForm = ({
 
   const otpValue = useWatch({ control, name: "otp" }) || "";
 
+  // Cập nhật một ô OTP và tự chuyển focus sang ô kế tiếp.
   const handleOtpChange = (index, char) => {
     const digits = char.replace(/\D/g, "").slice(0, 1);
-    const current = (otpValue).split("");
+    const current = otpValue.split("");
     current[index] = digits;
     const next = current.join("").slice(0, OTP_LENGTH);
     setValue("otp", next, { shouldValidate: true });
@@ -46,6 +47,7 @@ const VerifyOtpForm = ({
     }
   };
 
+  // Xử lý phím xóa/mũi tên để di chuyển giữa các ô OTP.
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace") {
       const current = otpValue.split("");
@@ -60,6 +62,7 @@ const VerifyOtpForm = ({
     }
   };
 
+  // Cho phép dán nguyên chuỗi OTP và tự điền vào các ô.
   const handlePaste = (e) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
@@ -73,17 +76,17 @@ const VerifyOtpForm = ({
       <div className="w-full max-w-[400px]">
         {/* Mobile logo */}
         <div data-aos="fade-up" className="mb-10 flex items-center gap-2 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-[#1e3a5f]">WebTutorCenter</span>
+          <span className="text-lg font-bold text-brand">WebTutorCenter</span>
         </div>
 
         {/* Icon + Heading */}
         <div className="space-y-4">
           <div
             data-aos="zoom-in"
-            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100 text-[#1e3a5f] shadow-sm ring-1 ring-blue-100"
+            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100 text-brand shadow-sm ring-1 ring-blue-100"
           >
             <Mail className="h-7 w-7" />
           </div>
@@ -130,10 +133,8 @@ const VerifyOtpForm = ({
                 value={otpValue[i] || ""}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`h-14 w-full max-w-[54px] rounded-xl border text-center text-xl font-bold text-slate-800 outline-none transition-all duration-150 focus:scale-105 focus:border-[#1e3a5f] focus:bg-white ${
-                  otpValue[i]
-                    ? "border-[#1e3a5f] bg-white"
-                    : "border-transparent bg-slate-100/70"
+                className={`h-14 w-full max-w-[54px] rounded-xl border text-center text-xl font-bold text-slate-800 outline-none transition-all duration-150 focus:scale-105 focus:border-brand focus:bg-white ${
+                  otpValue[i] ? "border-brand bg-white" : "border-transparent bg-slate-100/70"
                 }`}
               />
             ))}
@@ -143,7 +144,7 @@ const VerifyOtpForm = ({
           <Button
             type="submit"
             disabled={isSubmitting || otpValue.length < OTP_LENGTH}
-            className="h-12 w-full rounded-xl bg-linear-to-r from-[#1e3a5f] to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-[#1e3a5f]/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-[#16304f] hover:to-[#244269] hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+            className="h-12 w-full rounded-xl bg-linear-to-r from-brand to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-brand/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-brand-dark hover:to-[#244269] hover:shadow-xl hover:shadow-brand/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {isSubmitting ? (
               <>
@@ -161,8 +162,7 @@ const VerifyOtpForm = ({
           Không nhận được mã?{" "}
           {resendCooldown > 0 ? (
             <span className="text-slate-400">
-              Gửi lại sau{" "}
-              <span className="font-semibold tabular-nums text-slate-600">{resendCooldown}s</span>
+              Gửi lại sau <span className="font-semibold tabular-nums text-slate-600">{resendCooldown}s</span>
             </span>
           ) : (
             <button

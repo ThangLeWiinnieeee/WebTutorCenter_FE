@@ -1,25 +1,26 @@
-import { useWatch } from 'react-hook-form';
+import { useWatch } from "react-hook-form";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 const BOOKING_PROGRESS_FIELD_NAMES = [
-  'contactPhone',
-  'subject',
-  'summary',
-  'provinceCode',
-  'districtCode',
-  'locationLabel',
-  'studentCount',
-  'startDate',
-  'minutesPerSession',
-  'sessionsPerWeek',
-  'studentGender',
-  'availabilitySlots',
-  'tutorGenderPref',
-  'tutorLevelPref',
-  'description',
+  "contactPhone",
+  "subject",
+  "summary",
+  "provinceCode",
+  "districtCode",
+  "locationLabel",
+  "studentCount",
+  "startDate",
+  "minutesPerSession",
+  "sessionsPerWeek",
+  "studentGender",
+  "availabilitySlots",
+  "tutorGenderPref",
+  "tutorLevelPref",
+  "description",
 ];
 
+// Thanh tiến trình các bước điền form đăng lớp.
 const BookingProgressHeader = ({ control, isEdit = false }) => {
   const watched = useWatch({ control, name: BOOKING_PROGRESS_FIELD_NAMES }) || [];
   const [
@@ -58,7 +59,7 @@ const BookingProgressHeader = ({ control, isEdit = false }) => {
     !!startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate),
     !!minutesPerSession && Number(minutesPerSession) > 0,
     !!sessionsPerWeek && Number(sessionsPerWeek) >= 1,
-    ['male', 'female', 'other'].includes(studentGender),
+    ["male", "female", "other"].includes(studentGender),
     Array.isArray(availabilitySlots) && availabilitySlots.length >= 1,
   ];
   const s2Filled = s2Fields.filter(Boolean).length;
@@ -66,16 +67,14 @@ const BookingProgressHeader = ({ control, isEdit = false }) => {
 
   // Section 3: Yêu cầu gia sư (2 fields)
   const s3Fields = [
-    ['male', 'female', 'other', 'any'].includes(tutorGenderPref),
-    ['student', 'teacher', 'any'].includes(tutorLevelPref),
+    ["male", "female", "other", "any"].includes(tutorGenderPref),
+    ["student", "teacher", "any"].includes(tutorLevelPref),
   ];
   const s3Filled = s3Fields.filter(Boolean).length;
   const s3Progress = Math.round((s3Filled / 2) * 100);
 
   // Section 5: Mô tả chi tiết (1 field)
-  const s5Fields = [
-    !!description && description.trim().length >= 20,
-  ];
+  const s5Fields = [!!description && description.trim().length >= 20];
   const s5Filled = s5Fields.filter(Boolean).length;
   const s5Progress = Math.round((s5Filled / 1) * 100);
 
@@ -85,11 +84,11 @@ const BookingProgressHeader = ({ control, isEdit = false }) => {
   const progress = Math.round((totalFilled / totalFields) * 100);
 
   const sectionsInfo = [
-    { label: '1. Thông tin lớp', progress: s1Progress },
-    { label: '2. Lịch học', progress: s2Progress },
-    { label: '3. Yêu cầu gia sư', progress: s3Progress },
-    { label: '4. Mô tả chi tiết', progress: s5Progress },
-    { label: '5. Xác nhận', progress: progress === 100 ? 100 : 0 },
+    { label: "1. Thông tin lớp", progress: s1Progress },
+    { label: "2. Lịch học", progress: s2Progress },
+    { label: "3. Yêu cầu gia sư", progress: s3Progress },
+    { label: "4. Mô tả chi tiết", progress: s5Progress },
+    { label: "5. Xác nhận", progress: progress === 100 ? 100 : 0 },
   ];
 
   return (
@@ -111,7 +110,10 @@ const BookingProgressHeader = ({ control, isEdit = false }) => {
         </div>
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div
+          className="h-full rounded-full bg-emerald-600 transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
         {sectionsInfo.map((item) => {
@@ -125,15 +127,17 @@ const BookingProgressHeader = ({ control, isEdit = false }) => {
                 isComplete
                   ? "bg-emerald-50/70 border-emerald-250 text-emerald-800"
                   : isStarted
-                  ? "bg-amber-50/70 border-amber-250 text-amber-800"
-                  : "bg-slate-50/60 border-slate-200/50 text-slate-400"
+                    ? "bg-amber-50/70 border-amber-250 text-amber-800"
+                    : "bg-slate-50/60 border-slate-200/50 text-slate-400",
               )}
             >
               <span className="font-semibold text-slate-750">{item.label}</span>
-              <span className={cn(
-                "text-[10px] font-bold mt-1.5",
-                isComplete ? "text-emerald-600" : isStarted ? "text-amber-600" : "text-slate-450"
-              )}>
+              <span
+                className={cn(
+                  "text-[10px] font-bold mt-1.5",
+                  isComplete ? "text-emerald-600" : isStarted ? "text-amber-600" : "text-slate-450",
+                )}
+              >
                 {isComplete ? "✓ Hoàn thành" : isStarted ? `Đang điền (${item.progress}%)` : "Chưa bắt đầu"}
               </span>
             </div>

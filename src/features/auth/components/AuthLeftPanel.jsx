@@ -9,8 +9,9 @@ const STATS = [
   { value: "4.9★", label: "Đánh giá" },
 ];
 
+// Panel giới thiệu bên trái của các trang xác thực.
 const AuthLeftPanel = () => (
-  <div className="relative hidden flex-col justify-between overflow-hidden bg-linear-to-br from-[#1e3a5f] via-[#1b3556] to-[#0e2038] px-14 py-12 lg:flex lg:w-[52%]">
+  <div className="relative hidden flex-col justify-between overflow-hidden bg-linear-to-br from-brand via-[#1b3556] to-[#0e2038] px-14 py-12 lg:flex lg:w-[52%]">
     {/* Ambient floating blobs — single blue accent family */}
     <div className="animate-float-slow pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full bg-blue-400/15 blur-2xl" />
     <div className="animate-float-slower pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-sky-400/10 blur-2xl" />
@@ -60,8 +61,7 @@ const AuthLeftPanel = () => (
           data-aos-delay="200"
           className="max-w-sm text-base leading-relaxed text-blue-100/80"
         >
-          Nền tảng kết nối học sinh với gia sư uy tín, giúp bạn nắm vững kiến thức và đạt kết quả tốt
-          nhất.
+          Nền tảng kết nối học sinh với gia sư uy tín, giúp bạn nắm vững kiến thức và đạt kết quả tốt nhất.
         </p>
       </div>
 

@@ -21,6 +21,8 @@ import { hasCompleteTutorDocuments } from "@/features/tutors/utils/tutorDocument
 import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
 import { applyForClassThunk, fetchClassFeedThunk } from "@/features/classes/store/classThunks";
 import {
+  CLASS_FEE_LABEL,
+  classFee,
   formatAvailabilitySlotsOneLine,
   formatDateTime,
   formatPrice,
@@ -29,12 +31,14 @@ import {
   formatTutorLevelPref,
 } from "@/features/classes/utils/classFormatters";
 
+// Đổi giới tính học viên sang nhãn tiếng Việt.
 const formatPersonalGender = (gender) => {
   if (gender === "male") return "Nam";
   if (gender === "female") return "Nữ";
   return "Chưa cập nhật";
 };
 
+// Đổi cấp học sang nhãn tiếng Việt.
 const formatPersonalLevel = (level) => {
   if (level === "student") return "Sinh viên";
   if (level === "teacher") return "Giáo viên";
@@ -44,12 +48,14 @@ const formatPersonalLevel = (level) => {
 const PAGE_SIZE = 10;
 const NEW_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+// Kiểm tra bài đăng có đủ mới để gắn nhãn "mới" không.
 const isNewPost = (createdAt) => {
   if (!createdAt) return false;
   const t = new Date(createdAt).getTime();
   return !Number.isNaN(t) && Date.now() - t < NEW_WINDOW_MS;
 };
 
+// Bảng gợi ý lớp theo môn cho gia sư, kèm luồng ứng tuyển nhận lớp.
 export default function ClassFeedPanel() {
   const dispatch = useDispatch();
   const { user } = useAuth();
@@ -66,7 +72,7 @@ export default function ClassFeedPanel() {
         ...(selectedSubject ? { subject: selectedSubject } : {}),
         page,
         limit: PAGE_SIZE,
-      })
+      }),
     );
   }, [dispatch, selectedSubject, page]);
 
@@ -79,11 +85,13 @@ export default function ClassFeedPanel() {
     return [...set].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
   }, [page, totalPages]);
 
+  // Đổi môn đang lọc trong danh sách gợi ý.
   const handleSelectSubject = (subject) => {
     setSelectedSubject(subject);
     setPage(1);
   };
 
+  // Mở hộp thoại nhận lớp sau khi kiểm tra điều kiện.
   const handleReceive = async (item) => {
     if (user?.id && item.createdBy === user.id) return;
     // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
@@ -99,6 +107,7 @@ export default function ClassFeedPanel() {
     setReceiveDialog({ open: true, type: "confirm", classItem: item });
   };
 
+  // Xác nhận gửi đơn ứng tuyển nhận lớp.
   const handleConfirmApply = async () => {
     const item = receiveDialog.classItem;
     const result = await dispatch(applyForClassThunk(item?.id || item?._id));
@@ -110,7 +119,7 @@ export default function ClassFeedPanel() {
           ...(selectedSubject ? { subject: selectedSubject } : {}),
           page,
           limit: PAGE_SIZE,
-        })
+        }),
       );
     } else {
       setReceiveDialog((prev) => ({ ...prev, open: false }));
@@ -231,7 +240,8 @@ export default function ClassFeedPanel() {
           </div>
           <p className="text-base font-semibold text-slate-700">Chưa có bài đăng nào</p>
           <p className="max-w-md text-sm text-slate-500">
-            Hiện chưa có bài đăng tuyển gia sư cho {selectedSubject ? `môn ${selectedSubject}` : "các môn bạn dạy"}. Hãy quay lại sau nhé.
+            Hiện chưa có bài đăng tuyển gia sư cho{" "}
+            {selectedSubject ? `môn ${selectedSubject}` : "các môn bạn dạy"}. Hãy quay lại sau nhé.
           </p>
         </div>
       )}
@@ -257,7 +267,8 @@ export default function ClassFeedPanel() {
                   </span>
                 </div>
                 <h3 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight text-slate-900">
-                  {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
+                  {item.subject} -{" "}
+                  {item.summary || `Cần Gia Sư tại ${item.districtName || ""}, ${item.provinceName || ""}`}
                 </h3>
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <Clock3 className="h-3.5 w-3.5" />
@@ -267,7 +278,9 @@ export default function ClassFeedPanel() {
                   <BookOpenText className="h-3.5 w-3.5 text-emerald-600" />
                   <span>
                     Học phí / buổi:{" "}
-                    <strong className="font-semibold text-slate-700">{formatPrice(item.feePerSession)}</strong>
+                    <strong className="font-semibold text-slate-700">
+                      {formatPrice(item.feePerSession)}
+                    </strong>
                   </span>
                 </div>
               </div>
@@ -275,9 +288,9 @@ export default function ClassFeedPanel() {
               <div className="w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:w-[200px]">
                 <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                 <p className="mt-1 text-2xl font-bold leading-none text-emerald-700">
-                  {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}
+                  {formatPrice(classFee(item))}
                 </p>
-                <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
+                <p className="mt-1 text-xs text-emerald-700/80">{CLASS_FEE_LABEL}</p>
                 {user?.id && item.createdBy === user.id ? (
                   <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
                     Bài đăng của bạn
@@ -312,13 +325,15 @@ export default function ClassFeedPanel() {
               <div className="flex items-center gap-2 text-slate-600">
                 <UserRound className="h-4 w-4 text-emerald-600" />
                 <span className="line-clamp-1">
-                  <span className="text-slate-400">Trình độ:</span> {formatTutorLevelPref(item.tutorLevelPref)}
+                  <span className="text-slate-400">Trình độ:</span>{" "}
+                  {formatTutorLevelPref(item.tutorLevelPref)}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
                 <UserRound className="h-4 w-4 text-emerald-600" />
                 <span className="line-clamp-1">
-                  <span className="text-slate-400">Giới tính:</span> {formatTutorGenderPref(item.tutorGenderPref)}
+                  <span className="text-slate-400">Giới tính:</span>{" "}
+                  {formatTutorGenderPref(item.tutorGenderPref)}
                 </span>
               </div>
             </div>
@@ -326,9 +341,16 @@ export default function ClassFeedPanel() {
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm">
               <div className="flex items-center gap-2 text-slate-500">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="line-clamp-1">{item.provinceName && item.districtName ? `${item.provinceName}, ${item.districtName}` : item.locationLabel}</span>
+                <span className="line-clamp-1">
+                  {item.provinceName && item.districtName
+                    ? `${item.provinceName}, ${item.districtName}`
+                    : item.locationLabel}
+                </span>
                 <span className="hidden text-slate-300 sm:inline">·</span>
-                <span className="hidden line-clamp-1 sm:inline" title={formatAvailabilitySlotsOneLine(item.availabilitySlots)}>
+                <span
+                  className="hidden line-clamp-1 sm:inline"
+                  title={formatAvailabilitySlotsOneLine(item.availabilitySlots)}
+                >
                   {formatAvailabilitySlotsOneLine(item.availabilitySlots)}
                 </span>
               </div>
@@ -364,7 +386,9 @@ export default function ClassFeedPanel() {
                   type="button"
                   onClick={() => setPage(p)}
                   className={`min-w-9 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
-                    p === page ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    p === page
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   {p}

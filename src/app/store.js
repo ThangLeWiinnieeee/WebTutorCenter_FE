@@ -1,7 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-// Import reducer trực tiếp từ file slice (không qua barrel @/features/* | @/admin) để
-// barrel — vốn re-export cả các Page — không bị kéo vào bundle chính, đảm bảo các trang
-// thực sự được tách chunk qua React.lazy ở routes/index.jsx.
+// Import reducer trực tiếp từ file slice (không qua barrel) để các trang vẫn tách được chunk.
 import authReducer from "@/features/auth/store/authSlice";
 import tutorReducer from "@/features/tutors/store/tutorSlice";
 import adminReducer from "@/admin/store/adminSlice";

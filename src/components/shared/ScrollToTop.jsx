@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-/**
- * Mỗi khi đổi trang (pathname thay đổi) thì đưa cửa sổ về đầu trang.
- * Đặt trong các layout để áp dụng cho mọi route. Không render gì ra giao diện.
- */
+// Đưa cửa sổ về đầu trang mỗi khi đổi route. Không render giao diện.
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 

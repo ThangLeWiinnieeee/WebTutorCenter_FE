@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-  Ban,
-  Bell,
-  BellRing,
-  CheckCheck,
-  ClipboardCheck,
-  RotateCcw,
-  UserCheck,
-} from "lucide-react";
+import { Ban, Bell, BellRing, CheckCheck, ClipboardCheck, RotateCcw, UserCheck } from "lucide-react";
 
 import Pagination from "@/components/shared/Pagination";
 import NotificationItem from "@/features/notifications/components/NotificationItem";
@@ -39,10 +31,14 @@ const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-sl
 const NOTIFICATION_LINK = {
   CLASS_APPLICATION_SELECTED: { to: "/admin/class-applications", label: "Đến trang duyệt nhận lớp" },
   CLASS_APPLICATION_CANCELLED: { to: "/admin/class-applications", label: "Đến trang duyệt nhận lớp" },
-  CLASS_APPLICATION_CANCEL_REQUESTED: { to: "/admin/application-cancellations", label: "Đến trang duyệt hủy đơn" },
+  CLASS_APPLICATION_CANCEL_REQUESTED: {
+    to: "/admin/application-cancellations",
+    label: "Đến trang duyệt hủy đơn",
+  },
   PROFILE_CHANGE_PENDING: { to: "/admin/profile-changes", label: "Đến trang duyệt đổi hồ sơ" },
 };
 
+// Trang danh sách thông báo dành cho admin.
 const AdminNotificationsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -57,6 +53,7 @@ const AdminNotificationsPage = () => {
   }, [dispatch, page]);
 
   const totalPages = pagination?.totalPages || 1;
+  // Chuyển trang danh sách thông báo.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -67,7 +64,7 @@ const AdminNotificationsPage = () => {
       {/* Heading */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[#1e3a5f]">
+          <div className="flex items-center gap-2 text-brand">
             <BellRing className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">Thông báo quản trị</span>
           </div>
@@ -80,7 +77,7 @@ const AdminNotificationsPage = () => {
           <button
             type="button"
             onClick={() => dispatch(markAllAdminNotificationsReadThunk())}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-[#1e3a5f] transition-colors hover:bg-slate-50"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-brand transition-colors hover:bg-slate-50"
           >
             <CheckCheck className="h-4 w-4" />
             Đánh dấu tất cả đã đọc

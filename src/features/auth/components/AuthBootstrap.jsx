@@ -14,6 +14,7 @@ import tokenStorage from "@/utils/tokenStorage";
 // Chu kỳ làm tươi số thông báo chưa đọc (ms) — để chuông cập nhật gần realtime, không cần reload.
 const NOTIFICATION_POLL_MS = 30000;
 
+// Khôi phục phiên đăng nhập khi mở app và đồng bộ thông báo theo tài khoản hiện tại.
 const AuthBootstrap = ({ children }) => {
   const dispatch = useDispatch();
   const initialized = useSelector((state) => state.auth.initialized);
@@ -41,11 +42,11 @@ const AuthBootstrap = ({ children }) => {
     prevUserIdRef.current = userId || null;
   }, [dispatch, userId, isAuthenticated]);
 
-  // Khi đã đăng nhập: định kỳ làm tươi số thông báo chưa đọc + làm tươi ngay khi tab được focus lại.
-  // Giúp chuông thông báo cập nhật mà không cần tải lại trang.
+  // Làm tươi số thông báo chưa đọc theo chu kỳ và mỗi khi tab được xem lại.
   useEffect(() => {
     if (!isAuthenticated || !userId) return undefined;
 
+    // Chỉ gọi API khi tab đang hiển thị.
     const refresh = () => {
       if (document.visibilityState === "visible") dispatch(refreshUnreadCountThunk());
     };
@@ -64,7 +65,7 @@ const AuthBootstrap = ({ children }) => {
   if (!ready && !initialized) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1e3a5f]" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand" />
       </div>
     );
   }

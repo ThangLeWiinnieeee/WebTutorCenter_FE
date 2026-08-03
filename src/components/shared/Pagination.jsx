@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+// Tính dải số trang hiển thị quanh trang hiện tại (tối đa 5 nút).
 const getPageNumbers = (currentPage, totalPages) => {
   const maxVisiblePages = 5;
 
@@ -20,6 +21,7 @@ const getPageNumbers = (currentPage, totalPages) => {
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 };
 
+// Thanh phân trang dùng chung: nút lùi/tiến, số trang và dấu rút gọn.
 const Pagination = ({ currentPage, totalPages, onPageChange, className = "" }) => {
   if (totalPages <= 1) {
     return null;
@@ -28,10 +30,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, className = "" }) =
   const pageNumbers = getPageNumbers(currentPage, totalPages);
 
   return (
-    <nav
-      className={`flex items-center justify-center gap-2 ${className}`}
-      aria-label="Phân trang"
-    >
+    <nav className={`flex items-center justify-center gap-2 ${className}`} aria-label="Phân trang">
       <Button
         type="button"
         variant="outline"
@@ -55,9 +54,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, className = "" }) =
           >
             1
           </Button>
-          {pageNumbers[0] > 2 && (
-            <span className="px-1 text-sm text-slate-400">...</span>
-          )}
+          {pageNumbers[0] > 2 && <span className="px-1 text-sm text-slate-400">...</span>}
         </>
       )}
 
@@ -68,9 +65,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, className = "" }) =
           variant={page === currentPage ? "default" : "outline"}
           size="sm"
           onClick={() => onPageChange(page)}
-          className={`h-9 w-9 p-0 ${
-            page === currentPage ? "bg-[#1e3a5f] text-white hover:bg-[#172f4d]" : ""
-          }`}
+          className={`h-9 w-9 p-0 ${page === currentPage ? "bg-brand text-white hover:bg-[#172f4d]" : ""}`}
           aria-current={page === currentPage ? "page" : undefined}
         >
           {page}

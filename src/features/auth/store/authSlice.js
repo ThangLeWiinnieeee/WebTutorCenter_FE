@@ -89,12 +89,11 @@ const authSlice = createSlice({
       });
 
     // Logout
-    builder
-      .addCase(logoutThunk.fulfilled, (state) => {
-        state.user = null;
-        state.accessToken = null;
-        state.isAuthenticated = false;
-      });
+    builder.addCase(logoutThunk.fulfilled, (state) => {
+      state.user = null;
+      state.accessToken = null;
+      state.isAuthenticated = false;
+    });
 
     // Get user info (dùng để khôi phục phiên khi reload trang)
     builder

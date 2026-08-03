@@ -2,14 +2,16 @@ import {
   getMinStartIsoDateLocal,
   getTodayIsoDateLocal,
   MIN_START_LEAD_DAYS,
-} from '@/features/classes/schemas/classRequestSchema';
+} from "@/features/classes/schemas/classRequestSchema";
 
+// Đổi chuỗi ISO sang định dạng dd/mm/yyyy để hiển thị.
 export const formatDdMmYyyyUi = (iso) => {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
 };
 
+// Đổi Date sang chuỗi yyyy-MM-dd theo giờ địa phương.
 export const toLocalIsoDate = (date) => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -17,6 +19,7 @@ export const toLocalIsoDate = (date) => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
+// Đổi chuỗi yyyy-MM-dd thành Date lúc 0h theo giờ địa phương.
 export const parseIsoToLocalMidnightDate = (iso) => {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);

@@ -1,19 +1,20 @@
-import { CalendarDays } from 'lucide-react';
-import { useState } from 'react';
+import { CalendarDays } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getMinStartIsoDateLocal } from '@/features/classes/schemas/classRequestSchema';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getMinStartIsoDateLocal } from "@/features/classes/schemas/classRequestSchema";
 import {
   dayAfterMinStartIsoFromTodayLocal,
   formatDdMmYyyyUi,
   parseIsoToLocalMidnightDate,
   saturdayIsoOnOrAfterMinLocal,
   toLocalIsoDate,
-} from '@/features/classes/utils/classRequestDateUtils';
-import { cn } from '@/lib/utils';
+} from "@/features/classes/utils/classRequestDateUtils";
+import { cn } from "@/lib/utils";
 
+// Ô chọn ngày bắt đầu học kèm lịch popover.
 const CustomDateField = ({ value, onChange }) => {
   // Ngày bắt đầu buổi học phải cách hôm nay >= 2 ngày (không nhận hôm nay/ngày mai)
   const minIso = getMinStartIsoDateLocal();
@@ -35,7 +36,7 @@ const CustomDateField = ({ value, onChange }) => {
             variant="outline"
             className={cn(
               "h-11 w-full justify-start text-left font-normal rounded-xl border border-slate-200 bg-white px-3.5 text-slate-800 hover:bg-slate-50 hover:text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100",
-              !value && "text-slate-500"
+              !value && "text-slate-500",
             )}
           >
             <CalendarDays className="mr-2.5 h-4 w-4 text-emerald-600 shrink-0" />
@@ -65,7 +66,7 @@ const CustomDateField = ({ value, onChange }) => {
             "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
             isMin
               ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800",
           )}
           onClick={() => onChange(minIso)}
         >
@@ -77,7 +78,7 @@ const CustomDateField = ({ value, onChange }) => {
             "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
             isNext
               ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800",
           )}
           onClick={() => onChange(nextIso)}
         >
@@ -89,7 +90,7 @@ const CustomDateField = ({ value, onChange }) => {
             "rounded-full border px-2 py-1.5 text-xs font-bold transition cursor-pointer",
             isWeekend
               ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+              : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800",
           )}
           onClick={() => onChange(weekendIso)}
         >

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -8,29 +8,27 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Clock,
+  CreditCard,
   Home,
   Loader2,
   RefreshCw,
   ShieldCheck,
   UserCog,
   Users,
+  Wallet,
   XCircle,
 } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { Button } from "@/components/ui/button";
 import { getDashboardStatsThunk, getPendingTutorsThunk } from "@/admin/store/adminThunks";
+import adminService from "@/admin/services/adminService";
+import StatLineChart from "@/admin/components/charts/StatLineChart";
+import ChartCard from "@/admin/components/charts/ChartCard";
+import { formatDayFull, formatDayTick, formatVnd, formatVndCompact } from "@/admin/utils/statsFormat";
+import { formatDate, formatNumber } from "@/lib/format";
 
-const formatNumber = (value) => Number(value || 0).toLocaleString("vi-VN");
-
-const formatDate = (value) => {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
+// Nhãn ngày hôm nay hiển thị ở đầu dashboard.
 const getCurrentDateLabel = () =>
   new Date().toLocaleDateString("vi-VN", {
     weekday: "long",
@@ -39,18 +37,18 @@ const getCurrentDateLabel = () =>
     year: "numeric",
   });
 
+// Ghép tên quận/tỉnh nơi gia sư đang ở thành một chuỗi hiển thị.
 const currentAreaLabel = (tutor) =>
   tutor.currentArea
     ? `${tutor.currentArea.districtName}, ${tutor.currentArea.provinceName}`
     : "Chưa cập nhật";
 
+// Thẻ số liệu tổng quan, bấm vào để tới trang quản lý tương ứng.
 const StatCard = ({ to, icon, iconBg, value, label, description, loading }) => {
   const content = (
     <>
       <div className="flex items-start justify-between gap-4">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg}`}>
-          {icon}
-        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg}`}>{icon}</div>
         {to && <ArrowRight className="h-4 w-4 text-slate-400" />}
       </div>
       <div className="mt-4">
@@ -69,43 +67,96 @@ const StatCard = ({ to, icon, iconBg, value, label, description, loading }) => {
     return (
       <Link
         to={to}
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#1e3a5f]/30 hover:shadow-md"
+        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand/30 hover:shadow-md"
       >
         {content}
       </Link>
     );
   }
 
+  return <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">{content}</div>;
+};
+
+// Tính phần trăm của một giá trị trên tổng (0 khi tổng bằng 0).
+const percentOf = (value, total) => (total > 0 ? Math.round((value / total) * 100) : 0);
+
+// Biểu đồ tỉ lệ hồ sơ gia sư theo trạng thái chờ/duyệt/từ chối.
+const ProfileRatioChart = ({ pending, approved, rejected, total }) => {
+  const data = [
+    { name: "Chờ duyệt", value: pending, color: "#f59e0b" },
+    { name: "Đã phê duyệt", value: approved, color: "#10b981" },
+    { name: "Đã từ chối", value: rejected, color: "#f43f5e" },
+  ];
+
+  if (total === 0) {
+    return (
+      <p className="flex min-h-40 items-center justify-center text-sm text-slate-500">
+        Chưa có hồ sơ nào để thống kê.
+      </p>
+    );
+  }
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      {content}
-    </div>
+    <>
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={200}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={58}
+              outerRadius={86}
+              paddingAngle={2}
+              stroke="none"
+              isAnimationActive={false}
+            >
+              {data.map((item) => (
+                <Cell key={item.name} fill={item.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value, name) => [
+                `${formatNumber(value)} hồ sơ (${percentOf(value, total)}%)`,
+                name,
+              ]}
+              contentStyle={{
+                borderRadius: 12,
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
+                fontSize: 12,
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-2xl font-bold text-slate-900">{formatNumber(total)}</p>
+          <p className="text-xs text-slate-500">Tổng hồ sơ</p>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {data.map((item) => (
+          <div key={item.name} className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 font-medium text-slate-700">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+              {item.name}
+            </span>
+            <span className="text-slate-500">
+              {formatNumber(item.value)} · {percentOf(item.value, total)}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 
-const ProgressRow = ({ label, value, total, barClassName }) => {
-  const percent = total > 0 ? Math.round((value / total) * 100) : 0;
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-sm">
-        <span className="font-medium text-slate-700">{label}</span>
-        <span className="text-slate-500">{percent}%</span>
-      </div>
-      <div className="h-2 rounded-full bg-slate-100">
-        <div
-          className={`h-2 rounded-full ${barClassName}`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-    </div>
-  );
-};
-
+// Một dòng gia sư chờ duyệt trong danh sách rút gọn ở dashboard.
 const PendingTutorItem = ({ tutor }) => (
   <Link
     to="/admin/tutors"
-    className="grid grid-cols-[1fr_auto] gap-4 rounded-lg border border-slate-100 bg-white px-4 py-3 transition hover:border-[#1e3a5f]/20 hover:bg-slate-50"
+    className="grid grid-cols-[1fr_auto] gap-4 rounded-lg border border-slate-100 bg-white px-4 py-3 transition hover:border-brand/20 hover:bg-slate-50"
   >
     <div className="min-w-0">
       <div className="flex items-center gap-3">
@@ -117,7 +168,7 @@ const PendingTutorItem = ({ tutor }) => (
             className="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100"
           />
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
             {(tutor.fullName ?? "?")[0]}
           </div>
         )}
@@ -142,12 +193,13 @@ const PendingTutorItem = ({ tutor }) => (
   </Link>
 );
 
+// Ô lối tắt dẫn tới một trang quản trị thường dùng.
 const QuickAction = ({ to, icon, title, description }) => (
   <Link
     to={to}
-    className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#1e3a5f]/25 hover:shadow-md"
+    className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand/25 hover:shadow-md"
   >
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[#1e3a5f]">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-brand">
       {icon}
     </div>
     <div className="min-w-0">
@@ -157,6 +209,7 @@ const QuickAction = ({ to, icon, title, description }) => (
   </Link>
 );
 
+// Trang tổng quan quản trị: số liệu chính, biểu đồ và các lối tắt.
 const AdminDashboardPage = () => {
   const dispatch = useDispatch();
   const {
@@ -167,9 +220,26 @@ const AdminDashboardPage = () => {
     error,
   } = useSelector((state) => state.admin);
 
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  // Tải dữ liệu thống kê tổng hợp cho dashboard.
+  const loadSummary = async () => {
+    setSummaryLoading(true);
+    try {
+      const res = await adminService.getStatsSummary();
+      setSummary(res.data.data.stats);
+    } catch {
+      // Widget phụ — lỗi không chặn phần còn lại của dashboard.
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
     dispatch(getDashboardStatsThunk());
     dispatch(getPendingTutorsThunk({ page: 1, limit: 5 }));
+    loadSummary();
   }, [dispatch]);
 
   const stats = dashboardStats || {};
@@ -178,15 +248,16 @@ const AdminDashboardPage = () => {
   const rejectedCount = stats.rejectedCount || 0;
   const pendingClassApplicationsCount = stats.pendingClassApplicationsCount || 0;
   const totalProfiles = pendingCount + approvedCount + rejectedCount;
-  const latestPendingTutors = useMemo(
-    () => pendingTutors.slice(0, 5),
-    [pendingTutors],
-  );
+  const latestPendingTutors = useMemo(() => pendingTutors.slice(0, 5), [pendingTutors]);
 
+  // Tải lại toàn bộ số liệu dashboard.
   const handleRefresh = () => {
     dispatch(getDashboardStatsThunk());
     dispatch(getPendingTutorsThunk({ page: 1, limit: 5 }));
+    loadSummary();
   };
+
+  const revenueTotals = summary?.totals || {};
 
   return (
     <div className="space-y-6">
@@ -214,7 +285,7 @@ const AdminDashboardPage = () => {
               )}
               Làm mới
             </Button>
-            <Button asChild className="h-10 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#16304f]">
+            <Button asChild className="h-10 rounded-lg bg-brand text-white hover:bg-brand-dark">
               <Link to="/admin/tutors">Duyệt hồ sơ</Link>
             </Button>
           </div>
@@ -223,7 +294,7 @@ const AdminDashboardPage = () => {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
-          icon={<BarChart3 className="h-6 w-6 text-[#1e3a5f]" />}
+          icon={<BarChart3 className="h-6 w-6 text-brand" />}
           iconBg="bg-blue-50"
           value={totalProfiles}
           label="Tổng hồ sơ gia sư"
@@ -266,6 +337,41 @@ const AdminDashboardPage = () => {
         />
       </section>
 
+      {/* Biểu đồ doanh thu phí nhận lớp (30 ngày qua) */}
+      <ChartCard
+        icon={<Wallet className="h-6 w-6 text-emerald-700" />}
+        iconBg="bg-emerald-50"
+        title="Doanh thu phí nhận lớp — 30 ngày qua"
+        subtitle="Tổng tiền gia sư chuyển phí nhận lớp mỗi ngày (giao dịch thành công)."
+        loading={summaryLoading}
+        headerRight={
+          <div className="text-right">
+            <p className="text-2xl font-bold leading-none text-emerald-700">
+              {formatVnd(revenueTotals.revenue30d)}
+            </p>
+            <Link
+              to="/admin/statistics"
+              className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+            >
+              Xem thống kê chi tiết
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        }
+      >
+        <StatLineChart
+          data={summary?.revenueDaily || []}
+          xKey="date"
+          yKey="amount"
+          color="#059669"
+          xTickFormatter={formatDayTick}
+          yTickFormatter={formatVndCompact}
+          tooltipLabelFormatter={formatDayFull}
+          tooltipValueFormatter={formatVnd}
+          valueName="Doanh thu"
+        />
+      </ChartCard>
+
       <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -275,7 +381,7 @@ const AdminDashboardPage = () => {
             </div>
             <Link
               to="/admin/tutors"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a5f] hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
             >
               Xem tất cả
               <ArrowRight className="h-4 w-4" />
@@ -310,24 +416,12 @@ const AdminDashboardPage = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900">Tỷ lệ xử lý hồ sơ</h2>
             <p className="mt-1 text-sm text-slate-500">Dựa trên tổng hồ sơ gia sư hiện có.</p>
-            <div className="mt-5 space-y-4">
-              <ProgressRow
-                label="Chờ duyệt"
-                value={pendingCount}
+            <div className="mt-5">
+              <ProfileRatioChart
+                pending={pendingCount}
+                approved={approvedCount}
+                rejected={rejectedCount}
                 total={totalProfiles}
-                barClassName="bg-amber-500"
-              />
-              <ProgressRow
-                label="Đã phê duyệt"
-                value={approvedCount}
-                total={totalProfiles}
-                barClassName="bg-emerald-500"
-              />
-              <ProgressRow
-                label="Đã từ chối"
-                value={rejectedCount}
-                total={totalProfiles}
-                barClassName="bg-rose-500"
               />
             </div>
           </div>
@@ -358,6 +452,18 @@ const AdminDashboardPage = () => {
           <p className="text-sm text-slate-500">Các lối tắt thường dùng cho quản trị viên.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <QuickAction
+            to="/admin/statistics"
+            icon={<BarChart3 className="h-5 w-5" />}
+            title="Thống kê hệ thống"
+            description="Biểu đồ bài đăng, gia sư mới và doanh thu phí nhận lớp."
+          />
+          <QuickAction
+            to="/admin/payments"
+            icon={<CreditCard className="h-5 w-5" />}
+            title="Quản lý thanh toán"
+            description="Xem toàn bộ giao dịch phí nhận lớp của gia sư."
+          />
           <QuickAction
             to="/admin/users"
             icon={<UserCog className="h-5 w-5" />}

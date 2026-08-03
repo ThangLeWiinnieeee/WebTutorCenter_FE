@@ -19,6 +19,7 @@ import { createElement } from "react";
 import { ProfileBadge } from "./ProfileBadges";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 
+// Khối nội dung có tiêu đề và icon trong thẻ hồ sơ gia sư.
 const Section = ({ icon, title, children }) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
@@ -29,9 +30,10 @@ const Section = ({ icon, title, children }) => (
   </div>
 );
 
-const dayLabel = (day) =>
-  DAYS_OF_WEEK_OPTIONS.find((d) => d.value === day)?.label ?? day;
+// Đổi mã ngày trong tuần sang nhãn tiếng Việt.
+const dayLabel = (day) => DAYS_OF_WEEK_OPTIONS.find((d) => d.value === day)?.label ?? day;
 
+// Đổi số giờ sang chuỗi dạng HH:00.
 const hhmm = (h) => `${String(h).padStart(2, "0")}:00`;
 
 // Gộp các giờ liên tiếp trong cùng 1 ngày thành 1 khoảng; tách khi có quãng trống.
@@ -66,6 +68,7 @@ const buildAvailabilityRanges = (availability = []) => {
   return ranges;
 };
 
+// Thẻ hiển thị hồ sơ gia sư, kèm nút sửa và cảnh báo khi có yêu cầu đổi hồ sơ đang chờ.
 const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest = null, onEdit }) => {
   if (loading) {
     return (
@@ -77,11 +80,10 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
 
   if (!tutorProfile) return null;
 
-  const statusConfig =
-    TUTOR_STATUS_CONFIG[tutorProfile.status] ?? {
-      label: tutorProfile.status,
-      className: "bg-slate-100 text-slate-600 border border-slate-200",
-    };
+  const statusConfig = TUTOR_STATUS_CONFIG[tutorProfile.status] ?? {
+    label: tutorProfile.status,
+    className: "bg-slate-100 text-slate-600 border border-slate-200",
+  };
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -110,7 +112,8 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
           <div className="flex gap-3 rounded-lg bg-amber-50 border border-amber-100 p-4">
             <Hourglass className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-700">
-              Bạn có một yêu cầu đổi thông tin đang chờ admin duyệt. Khi được duyệt, hồ sơ sẽ tự động cập nhật.
+              Bạn có một yêu cầu đổi thông tin đang chờ admin duyệt. Khi được duyệt, hồ sơ sẽ tự động cập
+              nhật.
             </p>
           </div>
         )}
@@ -199,7 +202,9 @@ const TutorInfoCard = ({ tutorProfile, loading, canEdit = false, pendingRequest 
               <span className="text-sm text-slate-500 w-36 shrink-0">Có thể dạy tại</span>
               <div>
                 {tutorProfile.teachingAreas?.provinceName && (
-                  <p className="text-sm font-medium text-slate-800 mb-1">{tutorProfile.teachingAreas.provinceName}</p>
+                  <p className="text-sm font-medium text-slate-800 mb-1">
+                    {tutorProfile.teachingAreas.provinceName}
+                  </p>
                 )}
                 <div className="flex flex-wrap gap-1.5">
                   {tutorProfile.teachingAreas?.districts?.map((d, i) => (

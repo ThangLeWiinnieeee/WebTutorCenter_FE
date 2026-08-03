@@ -21,15 +21,17 @@ import AreaPicker from "@/features/tutors/components/AreaPicker";
 import MultiCheckbox from "@/features/tutors/components/MultiCheckbox";
 import DocumentMultiUpload from "@/features/tutors/components/DocumentMultiUpload";
 
+// Tiêu đề nhóm trường trong form sửa hồ sơ gia sư.
 const SectionTitle = ({ icon, title }) => (
   <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1e3a5f]/10">
-      {createElement(icon, { className: "h-4 w-4 text-[#1e3a5f]" })}
+    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
+      {createElement(icon, { className: "h-4 w-4 text-brand" })}
     </div>
     <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
   </div>
 );
 
+// Form gia sư chỉnh sửa hồ sơ; thay đổi được gửi đi dưới dạng yêu cầu chờ admin duyệt.
 const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) => {
   const initialValues = useMemo(() => tutorProfileToFormValues(tutorProfile), [tutorProfile]);
   const { subjects: activeSubjects } = useSubjects();
@@ -37,7 +39,7 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
   // Options = môn đang bật + môn gia sư đã đăng ký (kể cả môn admin đã tắt) để luôn hiển thị môn bị khóa.
   const subjectOptions = useMemo(
     () => [...new Set([...(initialValues.subjects ?? []), ...activeSubjects])],
-    [initialValues.subjects, activeSubjects]
+    [initialValues.subjects, activeSubjects],
   );
 
   const form = useForm({
@@ -48,6 +50,7 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
   const occupationStatus = useWatch({ control: form.control, name: "occupationStatus" });
   const isStudent = occupationStatus === "student";
 
+  // Chỉ gửi các trường thực sự thay đổi so với hồ sơ hiện tại.
   const handleSubmit = (data) => {
     // Sinh viên không có năm tốt nghiệp → ép null trước khi so sánh thay đổi
     const normalized = { ...data, graduationYear: isStudent ? null : data.graduationYear };
@@ -155,7 +158,7 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
                         placeholder={isStudent ? "—" : `VD: ${new Date().getFullYear()}`}
                         disabled={isStudent}
                         className="disabled:cursor-not-allowed disabled:opacity-50"
-                        value={isStudent ? "" : field.value ?? ""}
+                        value={isStudent ? "" : (field.value ?? "")}
                         onChange={(e) => {
                           const raw = e.target.value.replace(/\D/g, "");
                           field.onChange(raw === "" ? null : Number(raw));
@@ -191,9 +194,7 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
                   {field.value?.length > 0 && (
                     <p className="text-xs text-slate-500">Đã chọn: {field.value.length} môn</p>
                   )}
-                  {fieldState.error && (
-                    <p className="text-xs text-rose-500">{fieldState.error.message}</p>
-                  )}
+                  {fieldState.error && <p className="text-xs text-rose-500">{fieldState.error.message}</p>}
                 </FormItem>
               )}
             />
@@ -304,7 +305,7 @@ const TutorProfileEditForm = ({ tutorProfile, submitting, onSubmit, onCancel }) 
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-[#1e3a5f] text-white hover:bg-[#2d5a9e]"
+              className="flex-1 bg-brand text-white hover:bg-brand-accent"
             >
               {submitting ? (
                 <>

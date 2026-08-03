@@ -14,15 +14,15 @@ import {
 import chatbotService from "@/features/chat/services/chatbotService";
 import MessageCard from "@/features/chat/components/MessageCard";
 
+// Định dạng giờ gửi hiển thị cạnh mỗi tin nhắn.
 const formatTime = (iso) => {
   if (!iso) return "";
   return new Date(iso).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 };
 
+// Sinh id tạm cho tin nhắn hiển thị ở phía client.
 const uid = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random()}`;
+  typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 
 // Câu hỏi mồi cho khách chưa biết hỏi gì (khớp FAQ của chatbot-service).
 const BOT_STARTERS = [
@@ -33,16 +33,17 @@ const BOT_STARTERS = [
 ];
 
 const bubbleBase = "max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm";
-const bubbleMine = `${bubbleBase} rounded-br-sm bg-[#1e3a5f] text-white`;
+const bubbleMine = `${bubbleBase} rounded-br-sm bg-brand text-white`;
 const bubbleBot = `${bubbleBase} rounded-bl-sm bg-white text-slate-700 ring-1 ring-slate-200`;
 const bubbleError = `${bubbleBase} rounded-bl-sm bg-rose-50 text-rose-600 ring-1 ring-rose-200`;
 
+// Nút chuyển tab giữa trợ lý ảo và nhắn tin với admin.
 const TabButton = ({ active, onClick, icon, label, badge = 0 }) => (
   <button
     type="button"
     onClick={onClick}
     className={`relative flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition ${
-      active ? "border-b-2 border-[#1e3a5f] text-[#1e3a5f]" : "text-slate-400 hover:text-slate-600"
+      active ? "border-b-2 border-brand text-brand" : "text-slate-400 hover:text-slate-600"
     }`}
   >
     {icon}
@@ -55,6 +56,7 @@ const TabButton = ({ active, onClick, icon, label, badge = 0 }) => (
   </button>
 );
 
+// Khung chat nổi cho người dùng: tab trợ lý ảo và tab nhắn tin với admin.
 const TutorChatWidget = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useAuth();
@@ -116,11 +118,13 @@ const TutorChatWidget = () => {
   // Admin dùng trang quản lý tin nhắn riêng → không hiện widget nổi.
   if (isAdmin) return null;
 
+  // Chuyển tab đang hiển thị trong widget.
   const switchTab = (tab) => {
     setActiveTab(tab);
     if (tab === "bot" && image) clearImage(); // ảnh không dùng cho bot
   };
 
+  // Nhận ảnh người dùng chọn để gửi kèm tin nhắn.
   const handlePickImage = (e) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // cho phép chọn lại cùng file
@@ -128,6 +132,7 @@ const TutorChatWidget = () => {
     setImage({ file, preview: URL.createObjectURL(file) });
   };
 
+  // Bỏ ảnh đang đính kèm.
   const clearImage = () => setImage(null);
 
   // ── Gửi cho admin (text/ảnh) ──
@@ -183,6 +188,7 @@ const TutorChatWidget = () => {
     }
   };
 
+  // Gửi nội dung đang soạn tới trợ lý ảo hoặc tới admin tùy tab hiện tại.
   const onSubmit = (e) => {
     e.preventDefault();
     if (activeTab === "bot") return askBot(draft);
@@ -192,17 +198,20 @@ const TutorChatWidget = () => {
   const isBot = activeTab === "bot";
   const header = isBot
     ? { icon: <Bot className="h-5 w-5" />, title: "Trợ lý ảo", subtitle: "Trả lời tự động 24/7" }
-    : { icon: <Headset className="h-5 w-5" />, title: "Hỗ trợ từ Trung tâm", subtitle: "Đội ngũ quản trị viên" };
+    : {
+        icon: <Headset className="h-5 w-5" />,
+        title: "Hỗ trợ từ Trung tâm",
+        subtitle: "Đội ngũ quản trị viên",
+      };
 
-  const sendDisabled = isBot
-    ? !draft.trim() || botSending
-    : (!draft.trim() && !image) || sending;
+  const sendDisabled = isBot ? !draft.trim() || botSending : (!draft.trim() && !image) || sending;
 
+  // Render nội dung tab trợ lý ảo.
   const renderBot = () => {
     if (botMessages.length === 0 && !botSending) {
       return (
         <div className="flex h-full flex-col items-center justify-center px-5 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#1e3a5f]/10 text-[#1e3a5f]">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 text-brand">
             <Bot className="h-6 w-6" />
           </div>
           <p className="text-sm font-medium text-slate-700">Xin chào! Mình là trợ lý ảo 🤖</p>
@@ -213,7 +222,7 @@ const TutorChatWidget = () => {
                 key={q}
                 type="button"
                 onClick={() => askBot(q)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:border-[#1e3a5f] hover:text-[#1e3a5f]"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:border-brand hover:text-brand"
               >
                 {q}
               </button>
@@ -241,7 +250,7 @@ const TutorChatWidget = () => {
                       key={s}
                       type="button"
                       onClick={() => askBot(s)}
-                      className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 transition hover:border-[#1e3a5f] hover:text-[#1e3a5f]"
+                      className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 transition hover:border-brand hover:text-brand"
                     >
                       {s}
                     </button>
@@ -253,7 +262,7 @@ const TutorChatWidget = () => {
                 <button
                   type="button"
                   onClick={() => switchTab("admin")}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-[#1e3a5f] transition hover:border-[#1e3a5f] hover:bg-[#1e3a5f]/5"
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-brand transition hover:border-brand hover:bg-brand/5"
                 >
                   <Headset className="h-3.5 w-3.5" />
                   Không giải quyết được? → Nhắn admin
@@ -277,6 +286,7 @@ const TutorChatWidget = () => {
     );
   };
 
+  // Render nội dung tab nhắn tin với admin.
   const renderAdmin = () => {
     if (messages.length === 0) {
       return (
@@ -325,7 +335,7 @@ const TutorChatWidget = () => {
       {open && (
         <div className="fixed inset-3 z-50 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:static sm:mb-3 sm:mr-5 sm:inset-auto sm:h-[39rem] sm:max-h-[calc(100vh-6rem)] sm:w-[26rem] sm:max-w-[calc(100vw-3rem)]">
           {/* Header */}
-          <div className="flex items-center gap-3 bg-gradient-to-r from-[#1e3a5f] to-[#2c5282] px-4 py-3 text-white">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-brand to-[#2c5282] px-4 py-3 text-white">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
               {header.icon}
             </div>
@@ -385,7 +395,10 @@ const TutorChatWidget = () => {
           )}
 
           {/* Ô nhập */}
-          <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-slate-100 bg-white p-2">
+          <form
+            onSubmit={onSubmit}
+            className="flex items-center gap-2 border-t border-slate-100 bg-white p-2"
+          >
             {!isBot && (
               <>
                 <input
@@ -400,7 +413,7 @@ const TutorChatWidget = () => {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={sending}
                   aria-label="Đính kèm ảnh"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#1e3a5f] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ImagePlus className="h-5 w-5" />
                 </button>
@@ -413,13 +426,13 @@ const TutorChatWidget = () => {
               placeholder={isBot ? "Hỏi trợ lý ảo…" : image ? "Nhấn gửi để gửi ảnh..." : "Nhập tin nhắn..."}
               disabled={!isBot && !!image}
               maxLength={isBot ? 1000 : 2000}
-              className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-[#1e3a5f] focus:bg-white disabled:opacity-60"
+              className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-brand focus:bg-white disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={sendDisabled}
               aria-label="Gửi"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-white transition hover:bg-[#16304f] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -432,7 +445,7 @@ const TutorChatWidget = () => {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Mở khung nhắn tin"
-        className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-[#1e3a5f] to-[#2c5282] text-white shadow-lg transition hover:scale-105 hover:shadow-xl ${
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-brand to-[#2c5282] text-white shadow-lg transition hover:scale-105 hover:shadow-xl ${
           open ? "max-sm:hidden" : ""
         }`}
       >

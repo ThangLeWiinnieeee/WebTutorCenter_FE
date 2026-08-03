@@ -3,10 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { Search, GraduationCap, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Ô tìm kiếm gia sư ở khu vực hero của trang chủ.
 export default function HeroSearchBar() {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
 
+  // Chuyển sang trang danh sách gia sư kèm từ khóa tìm kiếm.
   const handleSearch = (e) => {
     e.preventDefault();
     const value = subject.trim();
@@ -33,13 +35,9 @@ export default function HeroSearchBar() {
           </span>
         </h1>
 
-        <p
-          data-aos="fade-up"
-          data-aos-delay="200"
-          className="mx-auto mt-4 max-w-2xl text-lg text-gray-600"
-        >
-          Kết nối với hàng nghìn giáo viên gia sư chuyên nghiệp trên toàn quốc.
-          Học tập linh hoạt, hiệu quả, đúng nhu cầu của bạn.
+        <p data-aos="fade-up" data-aos-delay="200" className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+          Kết nối với hàng nghìn giáo viên gia sư chuyên nghiệp trên toàn quốc. Học tập linh hoạt, hiệu quả,
+          đúng nhu cầu của bạn.
         </p>
       </div>
 

@@ -1,68 +1,50 @@
-import {
-  startTransition,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  BookOpenCheck,
-  Check,
-  CheckCircle2,
-  CircleAlert,
-  Loader2,
-} from 'lucide-react';
-import {
-  useForm,
-  useWatch,
-} from 'react-hook-form';
-import {
-  useDispatch,
-  useSelector,
-} from 'react-redux';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { BookOpenCheck, Check, CheckCircle2, CircleAlert, Loader2 } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import BookingProgressHeader from '@/features/classes/components/findTutorRequest/BookingProgressHeader';
-import BookingSummaryAsideCard from '@/features/classes/components/findTutorRequest/BookingSummaryAsideCard';
-import DescriptionLengthCounter from '@/features/classes/components/findTutorRequest/DescriptionLengthCounter';
-import ClassRequestSuccessCard from '@/features/classes/components/findTutorRequest/ClassRequestSuccessCard';
-import InviteTutorBanner from '@/features/classes/components/findTutorRequest/InviteTutorBanner';
-import ClassInfoSection from '@/features/classes/components/findTutorRequest/ClassInfoSection';
-import ScheduleSection from '@/features/classes/components/findTutorRequest/ScheduleSection';
-import TutorRequirementSection from '@/features/classes/components/findTutorRequest/TutorRequirementSection';
-import QuoteConfirmationPanel from '@/features/classes/components/findTutorRequest/QuoteConfirmationPanel';
-import tutorService from '@/features/tutors/services/tutorService';
+import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
+import BookingProgressHeader from "@/features/classes/components/findTutorRequest/BookingProgressHeader";
+import BookingSummaryAsideCard from "@/features/classes/components/findTutorRequest/BookingSummaryAsideCard";
+import DescriptionLengthCounter from "@/features/classes/components/findTutorRequest/DescriptionLengthCounter";
+import ClassRequestSuccessCard from "@/features/classes/components/findTutorRequest/ClassRequestSuccessCard";
+import InviteTutorBanner from "@/features/classes/components/findTutorRequest/InviteTutorBanner";
+import ClassInfoSection from "@/features/classes/components/findTutorRequest/ClassInfoSection";
+import ScheduleSection from "@/features/classes/components/findTutorRequest/ScheduleSection";
+import TutorRequirementSection from "@/features/classes/components/findTutorRequest/TutorRequirementSection";
+import QuoteConfirmationPanel from "@/features/classes/components/findTutorRequest/QuoteConfirmationPanel";
+import tutorService from "@/features/tutors/services/tutorService";
 import {
   buildClassRequestSchema,
   getDefaultClassRequestValues,
-} from '@/features/classes/schemas/classRequestSchema';
-import { scrollToFirstError } from '@/lib/formErrors';
-import classService from '@/features/classes/services/classService';
-import { clearClassFlow } from '@/features/classes/store/classSlice';
+} from "@/features/classes/schemas/classRequestSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
+import classService from "@/features/classes/services/classService";
+import { clearClassFlow } from "@/features/classes/store/classSlice";
 import {
   createClassThunk,
   createInvitedClassThunk,
   quoteClassThunk,
   updateClassThunk,
-} from '@/features/classes/store/classThunks';
-import { mapClassToFormValues } from '@/features/classes/utils/classRequestDateUtils';
+} from "@/features/classes/store/classThunks";
+import { mapClassToFormValues } from "@/features/classes/utils/classRequestDateUtils";
 import {
   clearClassRequestFormDraft,
   loadClassRequestFormDraft,
   saveClassRequestFormDraft,
-} from '@/features/classes/utils/classRequestFormDraftStorage';
-import locationService from '@/features/tutors/services/locationService';
-import { fetchMyVouchersThunk } from '@/features/vouchers/store/voucherThunks';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-
+} from "@/features/classes/utils/classRequestFormDraftStorage";
+import locationService from "@/features/tutors/services/locationService";
+import { fetchMyVouchersThunk } from "@/features/vouchers/store/voucherThunks";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // Map tình trạng nghề nghiệp gia sư → mức trình độ bài đăng yêu cầu (đồng bộ với BE).
-const OCCUPATION_TO_LEVEL_PREF = { student: 'student', graduated: 'teacher', teacher: 'teacher' };
+const OCCUPATION_TO_LEVEL_PREF = { student: "student", graduated: "teacher", teacher: "teacher" };
 
+// Nội dung form đăng/sửa lớp: nhập thông tin, áp mã ưu đãi, báo giá rồi gửi.
 const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedTutor = null }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -79,8 +61,11 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   const classRequestSchema = useMemo(() => buildClassRequestSchema(pricingConfig), [pricingConfig]);
 
   // ── Ràng buộc khi mời gia sư trực tiếp (khóa/lọc theo hồ sơ gia sư) ──
-  const inviteSubjects = useMemo(() => (isInvite ? invitedTutor.subjects || [] : []), [isInvite, invitedTutor]);
-  const inviteProvinceCode = isInvite ? invitedTutor.teachingAreas?.province ?? 0 : 0;
+  const inviteSubjects = useMemo(
+    () => (isInvite ? invitedTutor.subjects || [] : []),
+    [isInvite, invitedTutor],
+  );
+  const inviteProvinceCode = isInvite ? (invitedTutor.teachingAreas?.province ?? 0) : 0;
   const inviteDistrictCodes = useMemo(
     () => (isInvite ? (invitedTutor.teachingAreas?.districts || []).map((d) => Number(d.code)) : []),
     [isInvite, invitedTutor],
@@ -90,12 +75,10 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     [isInvite, invitedTutor],
   );
   const inviteGenderPref =
-    isInvite && (invitedTutor.gender === 'male' || invitedTutor.gender === 'female')
+    isInvite && (invitedTutor.gender === "male" || invitedTutor.gender === "female")
       ? invitedTutor.gender
-      : 'any';
-  const inviteLevelPref = isInvite
-    ? OCCUPATION_TO_LEVEL_PREF[invitedTutor.occupationStatus] || 'any'
-    : 'any';
+      : "any";
+  const inviteLevelPref = isInvite ? OCCUPATION_TO_LEVEL_PREF[invitedTutor.occupationStatus] || "any" : "any";
 
   const defaultFormValues = useMemo(() => {
     if (isEdit) return mapClassToFormValues(editClass);
@@ -111,8 +94,8 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pricingConfig, minuteOptions, isEdit, editClass, isInvite]);
   const form = useForm({ resolver: zodResolver(classRequestSchema), defaultValues: defaultFormValues });
-  const provinceCode = useWatch({ control: form.control, name: 'provinceCode' });
-  const studentCount = useWatch({ control: form.control, name: 'studentCount' });
+  const provinceCode = useWatch({ control: form.control, name: "provinceCode" });
+  const studentCount = useWatch({ control: form.control, name: "studentCount" });
   const isSingleStudent = Number(studentCount) <= 1;
   const persistReadyRef = useRef(false);
   const {
@@ -121,8 +104,8 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
 
   // 1 học viên không thể là "Nam & Nữ" -> reset về "Nam"
   useEffect(() => {
-    if (isSingleStudent && form.getValues('studentGender') === 'other') {
-      form.setValue('studentGender', 'male', { shouldValidate: true });
+    if (isSingleStudent && form.getValues("studentGender") === "other") {
+      form.setValue("studentGender", "male", { shouldValidate: true });
     }
   }, [isSingleStudent, form]);
 
@@ -132,12 +115,9 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   const [promoError, setPromoError] = useState("");
   const [showPromoList, setShowPromoList] = useState(false);
   const promoBoxRef = useRef(null);
-  const promoCodeValue = useWatch({ control: form.control, name: 'promoCode' });
+  const promoCodeValue = useWatch({ control: form.control, name: "promoCode" });
   const myVouchers = useSelector((state) => state.vouchers.items);
-  const activeVouchers = useMemo(
-    () => (myVouchers || []).filter((v) => v.status === 'active'),
-    [myVouchers],
-  );
+  const activeVouchers = useMemo(() => (myVouchers || []).filter((v) => v.status === "active"), [myVouchers]);
 
   // Lấy kho voucher cá nhân để gợi ý ngay khi ấn vào ô mã ưu đãi (chỉ khi đã đăng nhập —
   // endpoint /promos/mine yêu cầu token; gọi lúc chưa đăng nhập sẽ báo lỗi token ra UI)
@@ -149,13 +129,14 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   // Đóng danh sách gợi ý khi bấm ra ngoài
   useEffect(() => {
     if (!showPromoList) return;
+    // Đóng danh sách voucher khi bấm ra ngoài.
     const onClickOutside = (e) => {
       if (promoBoxRef.current && !promoBoxRef.current.contains(e.target)) {
         setShowPromoList(false);
       }
     };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, [showPromoList]);
 
   // Quay lại sửa (quote=null) hoặc đổi mã -> bỏ trạng thái đã áp dụng
@@ -172,8 +153,9 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     }
   }, [promoCodeValue, appliedPromo]);
 
+  // Kiểm tra và áp mã ưu đãi vào báo giá.
   const handleApplyPromo = async (overrideCode) => {
-    const code = (overrideCode ?? form.getValues('promoCode') ?? "").trim();
+    const code = (overrideCode ?? form.getValues("promoCode") ?? "").trim();
     if (!code) {
       setPromoError("Vui lòng nhập mã ưu đãi");
       return;
@@ -191,33 +173,31 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     }
   };
 
+  // Chọn một voucher từ kho cá nhân để áp vào lớp.
   const handleSelectVoucher = (voucher) => {
     setShowPromoList(false);
-    form.setValue('promoCode', voucher.code, { shouldValidate: true });
+    form.setValue("promoCode", voucher.code, { shouldValidate: true });
     handleApplyPromo(voucher.code);
   };
 
+  // Gỡ mã ưu đãi đang áp.
   const handleRemovePromo = () => {
     setAppliedPromo(null);
     setPromoError("");
-    form.setValue('promoCode', "");
+    form.setValue("promoCode", "");
   };
 
   useEffect(() => {
     classService
       .subjects()
-      .then((res) =>
-        startTransition(() => setSubjectOptions(res.data.data.subjects || [])),
-      )
+      .then((res) => startTransition(() => setSubjectOptions(res.data.data.subjects || [])))
       .catch(() => startTransition(() => setSubjectOptions([])));
   }, []);
 
   useEffect(() => {
     locationService
       .getProvinces()
-      .then((res) =>
-        startTransition(() => setProvinces(res.data.data.provinces || [])),
-      )
+      .then((res) => startTransition(() => setProvinces(res.data.data.provinces || [])))
       .catch(() => startTransition(() => setProvinces([])));
   }, []);
 
@@ -225,9 +205,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     if (!provinceCode) return;
     locationService
       .getDistricts(provinceCode)
-      .then((res) =>
-        startTransition(() => setDistricts(res.data.data.districts || [])),
-      )
+      .then((res) => startTransition(() => setDistricts(res.data.data.districts || [])))
       .catch(() => startTransition(() => setDistricts([])));
   }, [provinceCode]);
 
@@ -271,13 +249,17 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
 
   const provinceSelectOptions = useMemo(() => {
     // Mời gia sư: chỉ hiển thị tỉnh/thành mà gia sư có thể dạy (khóa, không cho đổi)
-    const list = isInvite ? provinces.filter((item) => Number(item.code) === Number(inviteProvinceCode)) : provinces;
+    const list = isInvite
+      ? provinces.filter((item) => Number(item.code) === Number(inviteProvinceCode))
+      : provinces;
     return list.map((item) => ({ value: String(item.code), label: item.name }));
   }, [provinces, isInvite, inviteProvinceCode]);
 
   const districtSelectOptions = useMemo(() => {
     // Mời gia sư: chỉ hiển thị quận/huyện gia sư có thể dạy
-    const list = isInvite ? districts.filter((item) => inviteDistrictCodes.includes(Number(item.code))) : districts;
+    const list = isInvite
+      ? districts.filter((item) => inviteDistrictCodes.includes(Number(item.code)))
+      : districts;
     return list.map((item) => ({ value: String(item.code), label: item.name }));
   }, [districts, isInvite, inviteDistrictCodes]);
 
@@ -290,12 +272,14 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     return false;
   };
 
+  // Gửi thông tin lớp để lấy báo giá học phí.
   const onQuote = async (values) => {
     if (!requireAuth()) return;
     const result = await dispatch(quoteClassThunk(values));
     if (result.error) toast.error(result.payload || "Không thể tính học phí");
   };
 
+  // Xác nhận báo giá và đăng lớp (kèm mời gia sư đích danh nếu có).
   const onCreate = async () => {
     if (!requireAuth()) return;
     // Luồng mời gia sư trực tiếp: tạo lớp + gửi lời mời tới gia sư được chọn
@@ -331,6 +315,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     }
   };
 
+  // Lưu thay đổi khi đang ở chế độ sửa bài đăng.
   const onUpdate = async (values) => {
     setSaving(true);
     const result = await dispatch(updateClassThunk({ id: editClass.id, payload: values }));
@@ -343,15 +328,14 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
     }
   };
 
+  // Đặt lại form để bắt đầu đăng một lớp mới.
   const startNewClassRequest = () => {
     dispatch(clearClassFlow());
     form.reset(getDefaultClassRequestValues(pricingConfig));
   };
 
   if (!isEdit && !isInvite && latestCreated) {
-    return (
-      <ClassRequestSuccessCard classCode={latestCreated.classCode} onCreateNew={startNewClassRequest} />
-    );
+    return <ClassRequestSuccessCard classCode={latestCreated.classCode} onCreateNew={startNewClassRequest} />;
   }
 
   return (
@@ -364,7 +348,10 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-5 lg:col-span-9">
             {!quote && (
-              <form className="space-y-5" onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote, scrollToFirstError)}>
+              <form
+                className="space-y-5"
+                onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote, scrollToFirstError)}
+              >
                 <ClassInfoSection
                   form={form}
                   errors={errors}
@@ -402,7 +389,9 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                     <span>Nên mô tả càng cụ thể để tăng tốc độ ghép gia sư.</span>
                     <DescriptionLengthCounter control={form.control} />
                   </div>
-                  {errors.description && <p className="mt-1 text-xs text-rose-600">{errors.description.message}</p>}
+                  {errors.description && (
+                    <p className="mt-1 text-xs text-rose-600">{errors.description.message}</p>
+                  )}
                 </section>
 
                 <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
@@ -460,10 +449,17 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
 
           <aside className="hidden space-y-4 lg:col-span-3 lg:block">
             <div className="top-6 space-y-4 lg:sticky">
-              <BookingSummaryAsideCard control={form.control} provinces={provinces} districts={districts} quote={quote} />
+              <BookingSummaryAsideCard
+                control={form.control}
+                provinces={provinces}
+                districts={districts}
+                quote={quote}
+              />
 
               <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Lợi ích khi đăng lớp</h3>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Lợi ích khi đăng lớp
+                </h3>
                 <ul className="space-y-3">
                   {[
                     "Gia sư chất lượng, được kiểm duyệt kỹ càng",
@@ -472,17 +468,24 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                     "Đổi gia sư nếu chưa phù hợp",
                     "Bảo mật thông tin tuyệt đối",
                   ].map((text) => (
-                    <li key={text} className="flex items-start gap-2.5 text-sm text-slate-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span>{text}</span></li>
+                    <li key={text} className="flex items-start gap-2.5 text-sm text-slate-700">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                      <span>{text}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Hỗ trợ trực tiếp</h3>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Hỗ trợ trực tiếp
+                </h3>
                 <p className="text-xs uppercase tracking-wide text-slate-400">Hotline</p>
                 <p className="text-2xl font-bold text-emerald-700">090 333 1985</p>
                 <p className="mt-1 text-2xl font-bold text-emerald-700">098 707 5826</p>
-                <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">Đội ngũ tư vấn luôn sẵn sàng hỗ trợ bạn.</div>
+                <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  Đội ngũ tư vấn luôn sẵn sàng hỗ trợ bạn.
+                </div>
               </div>
             </div>
           </aside>
@@ -492,48 +495,51 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
       {/* Yêu cầu đăng nhập/đăng ký khi guest bấm xem báo giá — form đã được lưu (draft),
           đăng nhập/đăng ký xong quay lại trang này sẽ tự khôi phục nội dung đã nhập */}
       {authPromptOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Cần đăng nhập để tiếp tục</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Vui lòng đăng nhập hoặc đăng ký tài khoản để xem báo giá và gửi yêu cầu tìm gia sư.
-              Nội dung bạn đã nhập sẽ được giữ nguyên.
-            </p>
-            <div className="mt-5 flex flex-col gap-2">
-              <Button
-                type="button"
-                onClick={() => navigate("/login", { state: { from: "/find-tutor" } })}
-                className="h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
-              >
-                Đăng nhập
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/register", { state: { from: "/find-tutor" } })}
-                className="h-11 w-full rounded-xl font-semibold"
-              >
-                Đăng ký tài khoản
-              </Button>
-              <button
-                type="button"
-                onClick={() => setAuthPromptOpen(false)}
-                className="mt-1 text-sm font-medium text-slate-500 hover:text-slate-700"
-              >
-                Để sau
-              </button>
-            </div>
+        <Modal
+          onClose={() => setAuthPromptOpen(false)}
+          overlayClassName="bg-slate-900/50 backdrop-blur-none"
+          panelClassName="max-w-sm rounded-2xl border-0 shadow-xl"
+        >
+          <h3 className="text-lg font-bold text-slate-900">Cần đăng nhập để tiếp tục</h3>
+          <p className="mt-2 text-sm text-slate-600">
+            Vui lòng đăng nhập hoặc đăng ký tài khoản để xem báo giá và gửi yêu cầu tìm gia sư. Nội dung bạn
+            đã nhập sẽ được giữ nguyên.
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            <Button
+              type="button"
+              onClick={() => navigate("/login", { state: { from: "/find-tutor" } })}
+              className="h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+            >
+              Đăng nhập
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/register", { state: { from: "/find-tutor" } })}
+              className="h-11 w-full rounded-xl font-semibold"
+            >
+              Đăng ký tài khoản
+            </Button>
+            <button
+              type="button"
+              onClick={() => setAuthPromptOpen(false)}
+              className="mt-1 text-sm font-medium text-slate-500 hover:text-slate-700"
+            >
+              Để sau
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );
 };
 
+// Trang đăng/sửa bài tìm gia sư: nạp cấu hình học phí rồi render form.
 const FindTutorRequestPage = () => {
   const { id: editId } = useParams();
   const [searchParams] = useSearchParams();
-  const invitedTutorId = editId ? null : searchParams.get('tutor');
+  const invitedTutorId = editId ? null : searchParams.get("tutor");
   const [pricingConfig, setPricingConfig] = useState(null);
   const [pricingConfigError, setPricingConfigError] = useState(null);
   const [loadingPricingConfig, setLoadingPricingConfig] = useState(true);
@@ -615,7 +621,10 @@ const FindTutorRequestPage = () => {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
         <p className="text-rose-600">{classError || "Không tìm thấy bài đăng"}</p>
-        <Link to="/my-posts" className="mt-3 inline-block text-sm font-medium text-emerald-700 hover:underline">
+        <Link
+          to="/my-posts"
+          className="mt-3 inline-block text-sm font-medium text-emerald-700 hover:underline"
+        >
           Quay lại danh sách bài đăng
         </Link>
       </div>

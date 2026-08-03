@@ -6,6 +6,7 @@ import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
 import ForgotPasswordForm from "@/features/auth/components/ForgotPasswordForm";
 import { forgotPasswordThunk } from "@/features/auth/store/authThunks";
 
+// Trang bước 1 quên mật khẩu: nhập email để nhận OTP.
 const ForgotPasswordPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const ForgotPasswordPage = () => {
   const [serverError, setServerError] = useState("");
   const defaultEmail = location.state?.email || "";
 
+  // Gửi yêu cầu OTP và chuyển sang trang xác thực.
   const onSubmit = async (data) => {
     setServerError("");
     const result = await dispatch(forgotPasswordThunk(data));
@@ -31,11 +33,7 @@ const ForgotPasswordPage = () => {
   return (
     <div className="auth-shell flex min-h-dvh w-full">
       <AuthLeftPanel />
-      <ForgotPasswordForm
-        defaultEmail={defaultEmail}
-        serverError={serverError}
-        onSubmit={onSubmit}
-      />
+      <ForgotPasswordForm defaultEmail={defaultEmail} serverError={serverError} onSubmit={onSubmit} />
     </div>
   );
 };

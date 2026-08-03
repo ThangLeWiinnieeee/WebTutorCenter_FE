@@ -1,23 +1,19 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import {
-  Eye,
-  EyeOff,
-  GraduationCap,
-  Loader2,
-} from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Eye, EyeOff, GraduationCap, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { registerSchema } from '@/features/auth/schemas/authSchema';
-import { scrollToFirstError } from '@/lib/formErrors';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { registerSchema } from "@/features/auth/schemas/authSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
+import { zodResolver } from "@hookform/resolvers/zod";
 
+// Form đăng ký tài khoản mới.
 const RegisterForm = ({ onSubmit }) => {
-  const [showPassword, setShowPassword]        = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
@@ -28,7 +24,7 @@ const RegisterForm = ({ onSubmit }) => {
 
   // Ô input dạng "filled" mềm, hòa vào nền trắng — focus mới nổi viền + nền trắng.
   const fieldClass = (hasError) =>
-    `h-12 rounded-xl border px-4 text-[15px] text-slate-800 transition-all duration-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-[#1e3a5f] ${
+    `h-12 rounded-xl border px-4 text-[15px] text-slate-800 transition-all duration-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-brand ${
       hasError
         ? "border-red-300 bg-red-50/60 focus-visible:border-red-400"
         : "border-transparent bg-slate-100/70 hover:bg-slate-100"
@@ -39,10 +35,10 @@ const RegisterForm = ({ onSubmit }) => {
       <div className="w-full max-w-[440px]">
         {/* Mobile logo */}
         <div data-aos="fade-up" className="mb-10 flex items-center gap-2 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-[#1e3a5f]">WebTutorCenter</span>
+          <span className="text-lg font-bold text-brand">WebTutorCenter</span>
         </div>
 
         {/* Heading */}
@@ -76,9 +72,7 @@ const RegisterForm = ({ onSubmit }) => {
               className={fieldClass(errors.fullName)}
               {...register("fullName")}
             />
-            {errors.fullName && (
-              <p className="text-xs text-red-500">{errors.fullName.message}</p>
-            )}
+            {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
           </div>
 
           {/* Thư điện tử */}
@@ -94,9 +88,7 @@ const RegisterForm = ({ onSubmit }) => {
               className={fieldClass(errors.email)}
               {...register("email")}
             />
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
           </div>
 
           {/* Phone */}
@@ -112,9 +104,7 @@ const RegisterForm = ({ onSubmit }) => {
               className={fieldClass(errors.phone)}
               {...register("phone")}
             />
-            {errors.phone && (
-              <p className="text-xs text-red-500">{errors.phone.message}</p>
-            )}
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
           </div>
 
           {/* Date of birth */}
@@ -129,9 +119,7 @@ const RegisterForm = ({ onSubmit }) => {
               className={fieldClass(errors.dateOfBirth)}
               {...register("dateOfBirth")}
             />
-            {errors.dateOfBirth && (
-              <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>
-            )}
+            {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>}
           </div>
 
           {/* Password */}
@@ -157,9 +145,7 @@ const RegisterForm = ({ onSubmit }) => {
                 {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
           </div>
 
           {/* Confirm password */}
@@ -194,7 +180,7 @@ const RegisterForm = ({ onSubmit }) => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-12 w-full rounded-xl bg-linear-to-r from-[#1e3a5f] to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-[#1e3a5f]/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-[#16304f] hover:to-[#244269] hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+            className="h-12 w-full rounded-xl bg-linear-to-r from-brand to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-brand/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-brand-dark hover:to-[#244269] hover:shadow-xl hover:shadow-brand/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {isSubmitting ? (
               <>

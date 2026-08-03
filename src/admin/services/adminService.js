@@ -1,6 +1,7 @@
 import axiosInstance from "@/services/axiosInstance";
 import API_ENDPOINTS from "@/constants/apiEndpoints";
 
+// Tập hợp lời gọi API cho khu vực quản trị (người dùng, gia sư, lớp, thùng rác, mã ưu đãi...).
 const adminService = {
   getDashboardStats: () => axiosInstance.get(API_ENDPOINTS.ADMIN.DASHBOARD_STATS),
   getPendingTutors: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TUTORS_PENDING, { params }),
@@ -9,8 +10,7 @@ const adminService = {
     axiosInstance.patch(API_ENDPOINTS.ADMIN.TUTOR_REJECT(id), { rejectionReason }),
   getUsers: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.USERS, { params }),
   updateUser: (id, payload) => axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_UPDATE(id), payload),
-  updateUserStatus: (id, isActive) =>
-    axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_STATUS(id), { isActive }),
+  updateUserStatus: (id, isActive) => axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_STATUS(id), { isActive }),
   deleteUser: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.USER_DELETE(id)),
   getClassApplications: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_APPLICATIONS, { params }),
   getClassApplicationStats: (params) =>
@@ -44,6 +44,9 @@ const adminService = {
   getTutorReviews: (tutorId, params) =>
     axiosInstance.get(API_ENDPOINTS.ADMIN.REVIEW_TUTOR_REVIEWS(tutorId), { params }),
   deleteReview: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.REVIEW_DELETE(id)),
+  // Thống kê tổng hợp (dashboard + trang thống kê) + quản lý thanh toán phí nhận lớp
+  getStatsSummary: () => axiosInstance.get(API_ENDPOINTS.ADMIN.STATS_SUMMARY),
+  getAdminPayments: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.PAYMENTS, { params }),
 };
 
 export default adminService;

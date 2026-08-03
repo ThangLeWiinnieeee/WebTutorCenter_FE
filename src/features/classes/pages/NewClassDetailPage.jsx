@@ -1,7 +1,4 @@
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from "react";
 
 import {
   ArrowRight,
@@ -18,36 +15,31 @@ import {
   UserCheck,
   UserRound,
   Users,
-} from 'lucide-react';
-import {
-  useDispatch,
-  useSelector,
-} from 'react-redux';
-import {
-  Link,
-  useLocation,
-  useParams,
-  Navigate,
-} from 'react-router-dom';
+} from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useParams, Navigate } from "react-router-dom";
 
-import { Button } from '@/components/ui/button';
-import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
-import ContractTemplateDialog from '@/features/classes/components/ContractTemplateDialog';
-import classService from '@/features/classes/services/classService';
-import { fetchClassDetailThunk } from '@/features/classes/store/classThunks';
-import useReceiveClass from '@/features/classes/hooks/useReceiveClass';
+import { Button } from "@/components/ui/button";
+import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
+import ContractTemplateDialog from "@/features/classes/components/ContractTemplateDialog";
+import classService from "@/features/classes/services/classService";
+import { fetchClassDetailThunk } from "@/features/classes/store/classThunks";
+import useReceiveClass from "@/features/classes/hooks/useReceiveClass";
 import {
+  CLASS_FEE_LABEL,
+  classFee,
   formatAvailabilitySlotsDetailed,
   formatClassTutorPrefsSummary,
   formatDate,
   formatDateTime,
   formatPrice,
   formatStudentGender,
-} from '@/features/classes/utils/classFormatters';
-import useAuth from '@/features/auth/hooks/useAuth';
-import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from '@/features/tutors/constants';
-import AOS from 'aos';
+} from "@/features/classes/utils/classFormatters";
+import useAuth from "@/features/auth/hooks/useAuth";
+import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
+import AOS from "aos";
 
+// Trang chi tiết một lớp cần gia sư kèm gợi ý các lớp liên quan.
 const NewClassDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -73,15 +65,17 @@ const NewClassDetailPage = () => {
     if (detailId) AOS.refresh();
   }, [detailId]);
 
+  // Rút gọn dữ liệu lớp về đúng các trường cần cho danh sách gợi ý.
   const mapClassToListItem = (item) => ({
     id: item.id || item._id,
-    title: `${item.subject} - ${item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}`,
+    title: `${item.subject} - ${item.summary || `Cần Gia Sư tại ${item.districtName || ""}, ${item.provinceName || ""}`}`,
   });
 
   useEffect(() => {
     if (!detailId) return;
 
     let isCancelled = false;
+    // Tải danh sách lớp gợi ý hiển thị bên dưới phần chi tiết.
     const fetchSuggestionData = async () => {
       setLoadingSuggestions(true);
       try {
@@ -175,10 +169,8 @@ const NewClassDetailPage = () => {
       className={`rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-right ${extraClass}`}
     >
       <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
-      <p className="mt-1 text-4xl font-bold leading-none text-emerald-700">
-        {formatPrice(Math.round((detail.feePerMonth || 0) * 0.05))}
-      </p>
-      <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
+      <p className="mt-1 text-4xl font-bold leading-none text-emerald-700">{formatPrice(classFee(detail))}</p>
+      <p className="mt-1 text-xs text-emerald-700/80">{CLASS_FEE_LABEL}</p>
       {isOwnPost ? (
         <div className="mt-3 flex h-11 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
           Bài đăng của bạn
@@ -204,7 +196,9 @@ const NewClassDetailPage = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
               <div className="min-w-0">
                 <h1 className="text-2xl font-semibold leading-tight text-slate-900 sm:text-3xl">
-                  {detail.subject} - {detail.summary || `Cần Gia Sư tại ${detail.districtName || ''}, ${detail.provinceName || ''}`}
+                  {detail.subject} -{" "}
+                  {detail.summary ||
+                    `Cần Gia Sư tại ${detail.districtName || ""}, ${detail.provinceName || ""}`}
                 </h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
@@ -296,7 +290,10 @@ const NewClassDetailPage = () => {
           </article>
 
           {detail.matchedTutor && (
-            <article className="rounded-2xl border border-sky-200 bg-sky-50/40 p-5 shadow-sm" data-aos="fade-up">
+            <article
+              className="rounded-2xl border border-sky-200 bg-sky-50/40 p-5 shadow-sm"
+              data-aos="fade-up"
+            >
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-sky-700">
                 <UserCheck className="h-4 w-4" />
                 Gia sư đã nhận lớp
@@ -316,7 +313,9 @@ const NewClassDetailPage = () => {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-lg font-semibold text-slate-900">{detail.matchedTutor.fullName || "Gia sư"}</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {detail.matchedTutor.fullName || "Gia sư"}
+                  </p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
                     <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
                       <Award className="h-4 w-4" />
@@ -325,15 +324,20 @@ const NewClassDetailPage = () => {
                     {detail.matchedTutor.occupationStatus && (
                       <span className="inline-flex items-center gap-1">
                         <GraduationCap className="h-4 w-4" />
-                        {OCCUPATION_STATUS_LABEL[detail.matchedTutor.occupationStatus] || detail.matchedTutor.occupationStatus}
+                        {OCCUPATION_STATUS_LABEL[detail.matchedTutor.occupationStatus] ||
+                          detail.matchedTutor.occupationStatus}
                       </span>
                     )}
-                    {detail.matchedTutor.gender && <span>{GENDER_LABEL[detail.matchedTutor.gender] || ""}</span>}
+                    {detail.matchedTutor.gender && (
+                      <span>{GENDER_LABEL[detail.matchedTutor.gender] || ""}</span>
+                    )}
                   </div>
                   {detail.matchedTutor.schoolName && (
                     <p className="mt-1 text-sm text-slate-500">
                       {detail.matchedTutor.schoolName}
-                      {detail.matchedTutor.graduationYear ? ` · TN ${detail.matchedTutor.graduationYear}` : ""}
+                      {detail.matchedTutor.graduationYear
+                        ? ` · TN ${detail.matchedTutor.graduationYear}`
+                        : ""}
                     </p>
                   )}
                 </div>
@@ -342,11 +346,14 @@ const NewClassDetailPage = () => {
                 <PhoneCall className="h-5 w-5 shrink-0 text-emerald-600" />
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">Số điện thoại gia sư</p>
-                  <p className="text-base font-bold text-slate-900">{detail.matchedTutor.phone || "Chưa cập nhật"}</p>
+                  <p className="text-base font-bold text-slate-900">
+                    {detail.matchedTutor.phone || "Chưa cập nhật"}
+                  </p>
                 </div>
               </div>
               <p className="mt-3 text-xs text-slate-500">
-                Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua số điện thoại trên.
+                Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua số
+                điện thoại trên.
               </p>
             </article>
           )}
@@ -362,7 +369,7 @@ const NewClassDetailPage = () => {
             <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-slate-700">
                 <p className="text-xs text-slate-500">Hoa hồng nhận lớp</p>
-                <p className="font-semibold text-slate-900">5% học phí tháng đầu</p>
+                <p className="font-semibold text-slate-900">{CLASS_FEE_LABEL}</p>
               </div>
               <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-slate-700">
                 <p className="text-xs text-slate-500">Hình thức xác nhận</p>
@@ -387,16 +394,18 @@ const NewClassDetailPage = () => {
                 </Link>
               </div>
               <ul className="space-y-2 text-sm">
-                {loadingSuggestions && (
-                  <li className="text-slate-500">Đang tải dữ liệu...</li>
-                )}
-                {!loadingSuggestions && relatedClasses.map((item) => (
-                  <li key={item.id}>
-                    <Link to={`/classes/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
+                {loadingSuggestions && <li className="text-slate-500">Đang tải dữ liệu...</li>}
+                {!loadingSuggestions &&
+                  relatedClasses.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        to={`/classes/${item.id}`}
+                        className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline"
+                      >
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
                 {!loadingSuggestions && relatedClasses.length === 0 && (
                   <li className="text-slate-500">Chưa có lớp tương tự.</li>
                 )}
@@ -411,16 +420,18 @@ const NewClassDetailPage = () => {
                 </Link>
               </div>
               <ul className="space-y-2 text-sm">
-                {loadingSuggestions && (
-                  <li className="text-slate-500">Đang tải dữ liệu...</li>
-                )}
-                {!loadingSuggestions && latestClasses.map((item) => (
-                  <li key={item.id}>
-                    <Link to={`/classes/${item.id}`} className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline">
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
+                {loadingSuggestions && <li className="text-slate-500">Đang tải dữ liệu...</li>}
+                {!loadingSuggestions &&
+                  latestClasses.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        to={`/classes/${item.id}`}
+                        className="line-clamp-1 text-slate-700 hover:text-emerald-700 hover:underline"
+                      >
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
                 {!loadingSuggestions && latestClasses.length === 0 && (
                   <li className="text-slate-500">Chưa có lớp cần gia sư phù hợp.</li>
                 )}
@@ -451,16 +462,18 @@ const NewClassDetailPage = () => {
               Lớp gợi ý theo môn
             </h3>
             <ul className="space-y-2.5">
-              {loadingSuggestions && (
-                <li className="text-sm text-slate-500">Đang tải dữ liệu...</li>
-              )}
-              {!loadingSuggestions && sidebarSuggestedClasses.map((item) => (
-                <li key={item.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
-                  <Link to={`/classes/${item.id}`} className="line-clamp-2 text-sm font-medium text-slate-800 hover:text-emerald-700 hover:underline">
-                    {item.title}
-                  </Link>
-                </li>
-              ))}
+              {loadingSuggestions && <li className="text-sm text-slate-500">Đang tải dữ liệu...</li>}
+              {!loadingSuggestions &&
+                sidebarSuggestedClasses.map((item) => (
+                  <li key={item.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
+                    <Link
+                      to={`/classes/${item.id}`}
+                      className="line-clamp-2 text-sm font-medium text-slate-800 hover:text-emerald-700 hover:underline"
+                    >
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
               {!loadingSuggestions && sidebarSuggestedClasses.length === 0 && (
                 <li className="text-sm text-slate-500">Chưa có lớp gợi ý.</li>
               )}
@@ -485,7 +498,10 @@ const NewClassDetailPage = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
+                <Link
+                  to="#"
+                  className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                >
                   Quy trình nhận lớp
                   <ArrowRight className="h-4 w-4" />
                 </Link>

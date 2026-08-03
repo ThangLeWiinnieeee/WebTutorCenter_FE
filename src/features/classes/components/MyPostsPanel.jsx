@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
 import {
   completeClassThunk,
   deleteClassThunk,
@@ -36,19 +37,23 @@ import { CLASS_STATUS_META } from "@/features/classes/utils/classStatus";
 import Pagination from "@/components/shared/Pagination";
 import ClassApplicantsDialog from "@/features/classes/components/ClassApplicantsDialog";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
-import { ReviewDialog } from "@/features/reviews";
+import ReviewDialog from "@/features/reviews/components/ReviewDialog";
 
 const PAGE_SIZE = 5;
 
+// Nhãn màu thể hiện trạng thái vòng đời của bài đăng.
 const StatusBadge = ({ status }) => {
   const meta = CLASS_STATUS_META[status] || CLASS_STATUS_META.open;
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}
+    >
       {meta.label}
     </span>
   );
 };
 
+// Bảng bài đăng của người dùng: xem ứng viên, sửa, xóa và xác nhận hoàn thành.
 export default function MyPostsPanel() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -102,6 +107,7 @@ export default function MyPostsPanel() {
     setDeleteTarget(item);
   };
 
+  // Xác nhận xóa bài đăng đang chọn.
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -186,7 +192,9 @@ export default function MyPostsPanel() {
 
       {/* Error */}
       {!loadingMyPosts && error && myPosts.length === 0 && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm">{error}</div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm">
+          {error}
+        </div>
       )}
 
       {/* Empty */}
@@ -227,7 +235,8 @@ export default function MyPostsPanel() {
                   <StatusBadge status={item.status} />
                 </div>
                 <h4 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight text-slate-900">
-                  {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
+                  {item.subject} -{" "}
+                  {item.summary || `Cần Gia Sư tại ${item.districtName || ""}, ${item.provinceName || ""}`}
                 </h4>
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <Clock3 className="h-3.5 w-3.5" />
@@ -237,7 +246,9 @@ export default function MyPostsPanel() {
 
               <div className="hidden shrink-0 text-right sm:block">
                 <p className="text-xs uppercase tracking-wide text-emerald-700">Học phí / buổi</p>
-                <p className="mt-0.5 text-xl font-bold leading-none text-emerald-700">{formatPrice(item.feePerSession)}</p>
+                <p className="mt-0.5 text-xl font-bold leading-none text-emerald-700">
+                  {formatPrice(item.feePerSession)}
+                </p>
               </div>
             </div>
 
@@ -283,7 +294,9 @@ export default function MyPostsPanel() {
                         <UserCheck className="h-3.5 w-3.5" />
                         Gia sư đã nhận lớp
                       </span>
-                      <span className="font-semibold text-slate-900">{item.matchedTutor.fullName || "Gia sư"}</span>
+                      <span className="font-semibold text-slate-900">
+                        {item.matchedTutor.fullName || "Gia sư"}
+                      </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                       <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
@@ -293,10 +306,13 @@ export default function MyPostsPanel() {
                       {item.matchedTutor.occupationStatus && (
                         <span className="inline-flex items-center gap-1">
                           <GraduationCap className="h-3.5 w-3.5" />
-                          {OCCUPATION_STATUS_LABEL[item.matchedTutor.occupationStatus] || item.matchedTutor.occupationStatus}
+                          {OCCUPATION_STATUS_LABEL[item.matchedTutor.occupationStatus] ||
+                            item.matchedTutor.occupationStatus}
                         </span>
                       )}
-                      {item.matchedTutor.gender && <span>{GENDER_LABEL[item.matchedTutor.gender] || ""}</span>}
+                      {item.matchedTutor.gender && (
+                        <span>{GENDER_LABEL[item.matchedTutor.gender] || ""}</span>
+                      )}
                     </div>
                     {item.matchedTutor.schoolName && (
                       <p className="mt-1 truncate text-xs text-slate-500">
@@ -311,7 +327,8 @@ export default function MyPostsPanel() {
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-slate-500">
-                  Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua số điện thoại trên.
+                  Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua
+                  số điện thoại trên.
                 </p>
               </div>
             )}
@@ -329,7 +346,7 @@ export default function MyPostsPanel() {
                     }`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[#1e3a5f]/20 bg-white px-2 py-0.5 text-xs font-semibold text-[#1e3a5f]">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-white px-2 py-0.5 text-xs font-semibold text-brand">
                         <Handshake className="h-3.5 w-3.5" />
                         Gia sư được mời
                       </span>
@@ -355,9 +372,7 @@ export default function MyPostsPanel() {
                     )}
                     {item.invitedTutor.status === "invite_declined" && (
                       <div className="mt-2">
-                        <p className="text-sm font-medium text-rose-700">
-                          Gia sư đã từ chối dạy lớp này.
-                        </p>
+                        <p className="text-sm font-medium text-rose-700">Gia sư đã từ chối dạy lớp này.</p>
                         {item.invitedTutor.declineReason && (
                           <p className="mt-1 rounded-lg bg-white/70 px-3 py-1.5 text-xs text-slate-600">
                             <span className="font-medium text-slate-500">Lý do:</span>{" "}
@@ -455,7 +470,11 @@ export default function MyPostsPanel() {
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
               <div className="flex items-center gap-2 text-slate-500">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="line-clamp-1">{item.provinceName && item.districtName ? `${item.provinceName}, ${item.districtName}` : item.locationLabel}</span>
+                <span className="line-clamp-1">
+                  {item.provinceName && item.districtName
+                    ? `${item.provinceName}, ${item.districtName}`
+                    : item.locationLabel}
+                </span>
               </div>
               <span className="inline-flex items-center gap-1 font-medium text-emerald-700 transition group-hover:gap-2">
                 Xem chi tiết
@@ -467,7 +486,12 @@ export default function MyPostsPanel() {
 
       {/* Pagination */}
       {!loadingMyPosts && myPosts.length > 0 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-2" />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          className="pt-2"
+        />
       )}
 
       {/* Hộp thoại danh sách gia sư ứng tuyển + chọn gia sư */}
@@ -489,47 +513,45 @@ export default function MyPostsPanel() {
 
       {/* Hộp xác nhận xóa bài đăng */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
-                <Trash2 className="h-6 w-6" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-lg font-bold text-slate-900">Xóa bài đăng?</h3>
-                <p className="mt-1 text-sm text-slate-600">
-                  Bạn có chắc muốn xóa bài đăng{" "}
-                  <span className="font-semibold">Mã lớp {deleteTarget.classCode}</span> ({deleteTarget.subject})?
-                  Hành động này sẽ gỡ bài khỏi danh sách của bạn.
-                </p>
-              </div>
+        <Modal onClose={() => setDeleteTarget(null)} panelClassName="rounded-2xl">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+              <Trash2 className="h-6 w-6" />
             </div>
-            <div className="mt-5 flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDeleteTarget(null)}
-                disabled={deleting}
-                className="h-10 rounded-lg border-slate-300 text-slate-700"
-              >
-                Hủy
-              </Button>
-              <Button
-                type="button"
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="h-10 rounded-lg bg-rose-600 text-white hover:bg-rose-700"
-              >
-                {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                Xóa bài
-              </Button>
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold text-slate-900">Xóa bài đăng?</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Bạn có chắc muốn xóa bài đăng{" "}
+                <span className="font-semibold">Mã lớp {deleteTarget.classCode}</span> ({deleteTarget.subject}
+                )? Hành động này sẽ gỡ bài khỏi danh sách của bạn.
+              </p>
             </div>
           </div>
-        </div>
+          <div className="mt-5 flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+              className="h-10 rounded-lg border-slate-300 text-slate-700"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="h-10 rounded-lg bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {deleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Xóa bài
+            </Button>
+          </div>
+        </Modal>
       )}
     </div>
   );

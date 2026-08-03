@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 
 // Tách phần "Lý do: ..." ra khỏi nội dung chính để hiển thị xuống dòng riêng.
 const REASON_LABEL = "Lý do:";
+// Tách phần lý do ra khỏi nội dung thông báo để hiển thị riêng.
 const splitReason = (message = "") => {
   const idx = message.indexOf(REASON_LABEL);
   if (idx === -1) return { main: message, reason: null };
@@ -11,10 +12,8 @@ const splitReason = (message = "") => {
   };
 };
 
-// Thẻ hiển thị một thông báo — dùng chung cho chuông phía người dùng lẫn chuông quản trị.
-// - iconMeta: { icon, className } chọn theo loại thông báo ở phía gọi.
-// - link: { to, label } | undefined — gợi ý điều hướng, chỉ để hiển thị nhãn.
-// - onClick: hành vi khi bấm (đánh dấu đã đọc + điều hướng) do phía gọi quyết định.
+// Thẻ hiển thị một thông báo, dùng chung cho cả phía người dùng và admin.
+// Icon, liên kết và hành vi khi bấm do nơi gọi truyền vào.
 const NotificationItem = ({ notification, iconMeta, link, onClick }) => {
   const Icon = iconMeta.icon;
   const { main, reason } = splitReason(notification.message);
@@ -27,7 +26,9 @@ const NotificationItem = ({ notification, iconMeta, link, onClick }) => {
         !isRead ? "border-blue-200 bg-blue-50/40" : "border-slate-200"
       }`}
     >
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${iconMeta.className}`}>
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${iconMeta.className}`}
+      >
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1">
@@ -48,7 +49,7 @@ const NotificationItem = ({ notification, iconMeta, link, onClick }) => {
           </p>
         )}
         {link && (
-          <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#1e3a5f]">
+          <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand">
             {link.label}
             <ArrowRight className="h-3.5 w-3.5" />
           </p>

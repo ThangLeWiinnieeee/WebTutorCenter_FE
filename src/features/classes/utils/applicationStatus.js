@@ -1,10 +1,16 @@
-import { Ban, CheckCircle2, Clock, Hand, MailOpen, MinusCircle, RotateCcw, UserCheck, XCircle } from "lucide-react";
+import {
+  Ban,
+  CheckCircle2,
+  Clock,
+  Hand,
+  MailOpen,
+  MinusCircle,
+  RotateCcw,
+  UserCheck,
+  XCircle,
+} from "lucide-react";
 
-/**
- * Metadata hiển thị cho trạng thái đơn nhận lớp của gia sư.
- * Khớp với enum CLASS_APPLICATION_STATUS bên backend:
- * pending | selected | approved | rejected | not_selected | cancel_requested | cancelled.
- */
+// Nhãn, icon và màu hiển thị cho từng trạng thái đơn nhận lớp.
 export const STATUS_META = {
   pending: {
     label: "Chờ người đăng chọn",
@@ -50,11 +56,7 @@ export const STATUS_META = {
   },
 };
 
-/**
- * Metadata phân biệt NGUỒN GỐC đơn nhận lớp (khớp CLASS_APPLICATION_ORIGIN backend):
- * - apply : gia sư chủ động ấn nhận lớp từ bài đăng công khai
- * - invite: người đăng chủ động gửi lời mời dạy đích danh cho gia sư
- */
+// Nhãn hiển thị phân biệt nguồn gốc đơn: gia sư tự ứng tuyển hay được mời đích danh.
 export const ORIGIN_META = {
   apply: {
     label: "Bạn nhận lớp",

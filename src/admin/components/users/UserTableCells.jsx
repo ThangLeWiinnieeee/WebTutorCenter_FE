@@ -1,7 +1,10 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 
+import { getInitials } from "@/lib/format";
+
 // Badge trạng thái (hoạt động/xác thực) + ô avatar người dùng cho bảng danh sách.
 
+// Nhãn bật/tắt trạng thái hoạt động trong bảng người dùng.
 export const StatusBadge = ({ active, activeLabel, inactiveLabel }) => (
   <span
     className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${
@@ -15,6 +18,7 @@ export const StatusBadge = ({ active, activeLabel, inactiveLabel }) => (
   </span>
 );
 
+// Ô avatar kèm tên/email của người dùng trong bảng.
 export const UserAvatar = ({ user }) => (
   <div className="flex items-center gap-3">
     {user.avatar ? (
@@ -25,8 +29,8 @@ export const UserAvatar = ({ user }) => (
         className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100"
       />
     ) : (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
-        {(user.fullName ?? user.email ?? "?")[0].toUpperCase()}
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+        {getInitials(user.fullName || user.email)}
       </div>
     )}
     <div className="min-w-0">

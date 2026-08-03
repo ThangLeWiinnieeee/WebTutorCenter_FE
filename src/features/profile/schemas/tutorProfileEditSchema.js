@@ -8,52 +8,54 @@ const availabilitySlotSchema = z.object({
 });
 
 // Schema cho form sửa hồ sơ gia sư — chỉ các field được phép đổi (qua duyệt admin).
-export const tutorProfileEditSchema = z.object({
-  phone: z
-    .string()
-    .min(1, "Số điện thoại là bắt buộc")
-    .regex(/^(84|0)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ (VD: 0912345678)"),
-  occupationStatus: z.enum(["student", "graduated", "teacher"], {
-    message: "Vui lòng chọn tình trạng nghề nghiệp",
-  }),
-  teachingAreas: z.object({
-    province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
-    districts: z.array(z.number().int()).min(1, "Phải chọn ít nhất 1 quận/huyện"),
-  }),
-  currentArea: z.object({
-    province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
-    district: z.number().int().min(1, "Vui lòng chọn quận/huyện"),
-  }),
-  bio: z
-    .string()
-    .min(10, "Giới thiệu bản thân phải có ít nhất 10 ký tự")
-    .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
-  availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
-  subjects: z.array(z.string()).min(1, "Phải chọn ít nhất 1 môn học"),
-  // Bằng cấp công khai — tùy chọn; thêm/sửa qua duyệt admin.
-  publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
-  graduationYear: z
-    .union([
-      z
-        .number()
-        .int()
-        .min(1950, "Năm tốt nghiệp phải từ 1950 trở lên")
-        .max(new Date().getFullYear(), `Năm tốt nghiệp không được lớn hơn ${new Date().getFullYear()}`),
-      z.null(),
-      z.literal(""),
-    ])
-    .optional()
-    .transform((v) => (v === "" ? null : v)),
-}).superRefine((data, ctx) => {
-  // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
-  if (data.occupationStatus !== "student" && data.graduationYear == null) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["graduationYear"],
-      message: "Vui lòng nhập năm tốt nghiệp",
-    });
-  }
-});
+export const tutorProfileEditSchema = z
+  .object({
+    phone: z
+      .string()
+      .min(1, "Số điện thoại là bắt buộc")
+      .regex(/^(84|0)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ (VD: 0912345678)"),
+    occupationStatus: z.enum(["student", "graduated", "teacher"], {
+      message: "Vui lòng chọn tình trạng nghề nghiệp",
+    }),
+    teachingAreas: z.object({
+      province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
+      districts: z.array(z.number().int()).min(1, "Phải chọn ít nhất 1 quận/huyện"),
+    }),
+    currentArea: z.object({
+      province: z.number().int().min(1, "Vui lòng chọn tỉnh/thành"),
+      district: z.number().int().min(1, "Vui lòng chọn quận/huyện"),
+    }),
+    bio: z
+      .string()
+      .min(10, "Giới thiệu bản thân phải có ít nhất 10 ký tự")
+      .max(2000, "Giới thiệu bản thân không được vượt quá 2000 ký tự"),
+    availability: z.array(availabilitySlotSchema).min(1, "Phải có ít nhất 1 khung giờ giảng dạy"),
+    subjects: z.array(z.string()).min(1, "Phải chọn ít nhất 1 môn học"),
+    // Bằng cấp công khai — tùy chọn; thêm/sửa qua duyệt admin.
+    publicCertificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp công khai").default([]),
+    graduationYear: z
+      .union([
+        z
+          .number()
+          .int()
+          .min(1950, "Năm tốt nghiệp phải từ 1950 trở lên")
+          .max(new Date().getFullYear(), `Năm tốt nghiệp không được lớn hơn ${new Date().getFullYear()}`),
+        z.null(),
+        z.literal(""),
+      ])
+      .optional()
+      .transform((v) => (v === "" ? null : v)),
+  })
+  .superRefine((data, ctx) => {
+    // Đã tốt nghiệp / giáo viên → năm tốt nghiệp là bắt buộc
+    if (data.occupationStatus !== "student" && data.graduationYear == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["graduationYear"],
+        message: "Vui lòng nhập năm tốt nghiệp",
+      });
+    }
+  });
 
 // Chuyển hồ sơ gia sư (đã resolve tên khu vực) → giá trị mặc định cho form (mã số).
 export const tutorProfileToFormValues = (profile) => ({

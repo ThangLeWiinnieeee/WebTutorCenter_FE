@@ -18,7 +18,7 @@ const AdminNotificationBell = () => {
       onClick={() => navigate("/admin/notifications")}
       aria-current={isActive ? "page" : undefined}
       className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors ${
-        isActive ? "bg-[#1e3a5f]/10 text-[#1e3a5f]" : "text-slate-600 hover:bg-slate-100"
+        isActive ? "bg-brand/10 text-brand" : "text-slate-600 hover:bg-slate-100"
       }`}
       aria-label="Thông báo quản trị"
     >

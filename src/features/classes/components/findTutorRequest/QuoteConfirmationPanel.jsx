@@ -1,22 +1,13 @@
-import { CheckCircle2, Ticket } from 'lucide-react';
+import { CheckCircle2, Ticket } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { formatPrice } from '@/features/classes/utils/classFormatters';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { formatPrice } from "@/features/classes/utils/classFormatters";
+import { cn } from "@/lib/utils";
 
 // Màn xác nhận thông tin & báo giá (hiện sau khi có `quote`), kèm ô nhập/gợi ý mã ưu đãi.
 // `promo` gom toàn bộ trạng thái + handler của mã ưu đãi để giữ danh sách prop gọn gàng.
-const QuoteConfirmationPanel = ({
-  form,
-  errors,
-  quote,
-  isInvite,
-  creating,
-  onBack,
-  onCreate,
-  promo,
-}) => {
+const QuoteConfirmationPanel = ({ form, errors, quote, isInvite, creating, onBack, onCreate, promo }) => {
   const {
     appliedPromo,
     promoError,
@@ -36,15 +27,17 @@ const QuoteConfirmationPanel = ({
       <div className="rounded-2xl border border-emerald-100 bg-white p-5 text-sm">
         <p className="flex justify-between border-b border-slate-100 pb-2">
           <span className="text-slate-500">Môn học</span>
-          <span className="font-semibold text-slate-800">{form.getValues('subject')}</span>
+          <span className="font-semibold text-slate-800">{form.getValues("subject")}</span>
         </p>
         <p className="mt-3 flex justify-between border-b border-slate-100 pb-2">
           <span className="text-slate-500">Số học viên</span>
-          <span className="font-semibold text-slate-800">{form.getValues('studentCount')}</span>
+          <span className="font-semibold text-slate-800">{form.getValues("studentCount")}</span>
         </p>
         <p className="mt-3 flex justify-between border-b border-slate-100 pb-2">
           <span className="text-slate-500">Lịch học</span>
-          <span className="font-semibold text-slate-800">{form.getValues('availabilitySlots')?.length || 0} khung giờ</span>
+          <span className="font-semibold text-slate-800">
+            {form.getValues("availabilitySlots")?.length || 0} khung giờ
+          </span>
         </p>
         <p className="mt-3 flex justify-between text-base">
           <span className="text-slate-600">Phí 1 buổi</span>
@@ -60,7 +53,9 @@ const QuoteConfirmationPanel = ({
           <>
             <p className="mt-2 flex justify-between text-sm">
               <span className="text-slate-600">Giảm giá ({appliedPromo.code})</span>
-              <span className="font-semibold text-rose-600">− {formatPrice(appliedPromo.discountAmount)}</span>
+              <span className="font-semibold text-rose-600">
+                − {formatPrice(appliedPromo.discountAmount)}
+              </span>
             </p>
             <p className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-base">
               <span className="font-semibold text-slate-700">Phí 1 tháng sau giảm</span>
@@ -95,7 +90,9 @@ const QuoteConfirmationPanel = ({
                     <Ticket className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-mono text-sm font-bold tracking-wider text-slate-900">{voucher.code}</span>
+                    <span className="block font-mono text-sm font-bold tracking-wider text-slate-900">
+                      {voucher.code}
+                    </span>
                     <span className="block text-xs font-medium text-emerald-700">
                       {voucher.discountType === "percent"
                         ? `Giảm ${voucher.discountValue}%${voucher.maxDiscountAmount ? ` (tối đa ${formatPrice(voucher.maxDiscountAmount)})` : ""}`
@@ -135,10 +132,18 @@ const QuoteConfirmationPanel = ({
         {errors.promoCode && <p className="mt-1 text-xs text-rose-600">{errors.promoCode.message}</p>}
       </div>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-        <Button variant="outline" className="h-11 flex-1 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100" onClick={onBack}>
+        <Button
+          variant="outline"
+          className="h-11 flex-1 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100"
+          onClick={onBack}
+        >
           Quay lại sửa
         </Button>
-        <Button className="h-11 flex-1 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700" onClick={onCreate} disabled={creating}>
+        <Button
+          className="h-11 flex-1 rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+          onClick={onCreate}
+          disabled={creating}
+        >
           {creating
             ? isInvite
               ? "Đang gửi lời mời..."

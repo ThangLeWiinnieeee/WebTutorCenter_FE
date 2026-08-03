@@ -8,16 +8,17 @@ import VerifyOtpForm from "@/features/auth/components/VerifyOtpForm";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+// Trang nhập OTP để hoàn tất đăng ký tài khoản.
 const VerifyOtpPage = () => {
-  const dispatch  = useDispatch();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const email = location.state?.email || "";
   const from = location.state?.from; // giữ đích quay lại (vd /find-tutor) xuyên suốt luồng đăng ký
 
-  const [serverError,     setServerError]     = useState("");
-  const [resendCooldown,  setResendCooldown]   = useState(RESEND_COOLDOWN_SECONDS);
+  const [serverError, setServerError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
   useEffect(() => {
     if (!email) {
@@ -31,6 +32,7 @@ const VerifyOtpPage = () => {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
+  // Xác thực OTP đăng ký và điều hướng khi thành công.
   const onSubmit = async ({ otp }) => {
     setServerError("");
     const result = await dispatch(verifyOtpThunk({ email, otp }));

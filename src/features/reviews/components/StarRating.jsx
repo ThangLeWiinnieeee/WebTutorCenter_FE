@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 
-/**
- * Hiển thị số sao (chỉ đọc), hỗ trợ sao lẻ (vd 4.5) bằng kỹ thuật phủ lớp.
- */
+// Hiển thị số sao ở chế độ chỉ đọc, hỗ trợ cả số sao lẻ.
 export function StarRating({ value = 0, size = 16, className = "", showValue = false, reviewCount = null }) {
   const safeValue = Number(value) || 0;
 
@@ -33,18 +31,14 @@ export function StarRating({ value = 0, size = 16, className = "", showValue = f
       {showValue && (
         <span className="text-sm font-semibold text-slate-700">
           {safeValue.toFixed(1)}
-          {reviewCount != null ? (
-            <span className="font-normal text-slate-400"> ({reviewCount})</span>
-          ) : null}
+          {reviewCount != null ? <span className="font-normal text-slate-400"> ({reviewCount})</span> : null}
         </span>
       )}
     </span>
   );
 }
 
-/**
- * Chọn số sao (1-5) cho form đánh giá.
- */
+// Ô chọn số sao (1-5) dùng trong form đánh giá.
 export function StarRatingInput({ value = 0, onChange, size = 36, disabled = false }) {
   const [hover, setHover] = useState(0);
   const active = hover || value;
@@ -66,9 +60,7 @@ export function StarRatingInput({ value = 0, onChange, size = 36, disabled = fal
         >
           <Star
             style={{ width: size, height: size }}
-            className={
-              star <= active ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-300"
-            }
+            className={star <= active ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-300"}
             strokeWidth={1.5}
           />
         </button>

@@ -1,229 +1,187 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiThunk } from "@/app/createApiThunk";
 import classService from "@/features/classes/services/classService";
 
-export const quoteClassThunk = createAsyncThunk(
+// Báo giá học phí cho lớp sắp đăng (có thể áp mã ưu đãi).
+export const quoteClassThunk = createApiThunk(
   "classes/quote",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const res = await classService.quote(payload);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tính được học phí");
-    }
-  }
+  async (payload) => {
+    const res = await classService.quote(payload);
+    return res.data.data;
+  },
+  "Không tính được học phí",
 );
 
-export const createClassThunk = createAsyncThunk(
+// Đăng một bài tìm gia sư mới.
+export const createClassThunk = createApiThunk(
   "classes/create",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const res = await classService.create(payload);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không đăng được lớp cần gia sư");
-    }
-  }
+  async (payload) => {
+    const res = await classService.create(payload);
+    return res.data.data.classItem;
+  },
+  "Không đăng được lớp cần gia sư",
 );
 
-export const updateClassThunk = createAsyncThunk(
+// Cập nhật một bài đăng lớp.
+export const updateClassThunk = createApiThunk(
   "classes/update",
-  async ({ id, payload }, { rejectWithValue }) => {
-    try {
-      const res = await classService.update(id, payload);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Cập nhật bài đăng thất bại");
-    }
-  }
+  async ({ id, payload }) => {
+    const res = await classService.update(id, payload);
+    return res.data.data.classItem;
+  },
+  "Cập nhật bài đăng thất bại",
 );
 
-export const deleteClassThunk = createAsyncThunk(
+// Xóa mềm một bài đăng lớp.
+export const deleteClassThunk = createApiThunk(
   "classes/delete",
-  async (id, { rejectWithValue }) => {
-    try {
-      await classService.remove(id);
-      return id;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xóa bài đăng thất bại");
-    }
-  }
+  async (id) => {
+    await classService.remove(id);
+    return id;
+  },
+  "Xóa bài đăng thất bại",
 );
 
-export const fetchClassesThunk = createAsyncThunk(
+// Lấy danh sách lớp công khai theo bộ lọc.
+export const fetchClassesThunk = createApiThunk(
   "classes/fetchList",
-  async (filters = {}, { rejectWithValue }) => {
-    try {
-      const res = await classService.list(filters);
-      return {
-        classes: res.data.data.classes || [],
-        pagination: res.data.data.pagination || null,
-      };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lớp");
-    }
-  }
+  async (filters = {}) => {
+    const res = await classService.list(filters);
+    return {
+      classes: res.data.data.classes || [],
+      pagination: res.data.data.pagination || null,
+    };
+  },
+  "Không tải được danh sách lớp",
 );
 
-export const fetchClassDetailThunk = createAsyncThunk(
+// Lấy chi tiết một lớp.
+export const fetchClassDetailThunk = createApiThunk(
   "classes/fetchDetail",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await classService.detail(id);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được chi tiết lớp");
-    }
-  }
+  async (id) => {
+    const res = await classService.detail(id);
+    return res.data.data.classItem;
+  },
+  "Không tải được chi tiết lớp",
 );
 
-export const fetchMyClassesThunk = createAsyncThunk(
+// Lấy các đơn nhận lớp của gia sư hiện tại.
+export const fetchMyClassesThunk = createApiThunk(
   "classes/fetchMine",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await classService.mine(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lớp đã nhận");
-    }
-  }
+  async (params = {}) => {
+    const res = await classService.mine(params);
+    return res.data.data;
+  },
+  "Không tải được danh sách lớp đã nhận",
 );
 
-export const fetchClassFeedThunk = createAsyncThunk(
+// Lấy danh sách lớp gợi ý theo môn cho gia sư.
+export const fetchClassFeedThunk = createApiThunk(
   "classes/fetchFeed",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await classService.feed(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được bài đăng theo môn");
-    }
-  }
+  async (params = {}) => {
+    const res = await classService.feed(params);
+    return res.data.data;
+  },
+  "Không tải được bài đăng theo môn",
 );
 
-export const fetchMyPostsThunk = createAsyncThunk(
+// Lấy các bài đăng lớp của người dùng hiện tại.
+export const fetchMyPostsThunk = createApiThunk(
   "classes/fetchMyPosts",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await classService.myPosts(params);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách bài đăng");
-    }
-  }
+  async (params = {}) => {
+    const res = await classService.myPosts(params);
+    return res.data.data;
+  },
+  "Không tải được danh sách bài đăng",
 );
 
-export const cancelApplicationThunk = createAsyncThunk(
+// Gia sư gửi yêu cầu hủy đơn đã nhận lớp.
+export const cancelApplicationThunk = createApiThunk(
   "classes/cancelApplication",
-  async ({ id, reason }, { rejectWithValue }) => {
-    try {
-      const res = await classService.cancelApplication(id, reason);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Hủy đơn thất bại");
-    }
-  }
+  async ({ id, reason }) => {
+    const res = await classService.cancelApplication(id, reason);
+    return res.data.data.application;
+  },
+  "Hủy đơn thất bại",
 );
 
-export const completeClassThunk = createAsyncThunk(
+// Xác nhận đã hoàn thành lớp (cần cả hai phía xác nhận).
+export const completeClassThunk = createApiThunk(
   "classes/complete",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await classService.completeClass(id);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Xác nhận hoàn thành thất bại");
-    }
-  }
+  async (id) => {
+    const res = await classService.completeClass(id);
+    return res.data.data.classItem;
+  },
+  "Xác nhận hoàn thành thất bại",
 );
 
-export const applyForClassThunk = createAsyncThunk(
+// Gia sư ứng tuyển nhận một lớp.
+export const applyForClassThunk = createApiThunk(
   "classes/apply",
-  async (classId, { rejectWithValue }) => {
-    try {
-      const res = await classService.apply(classId);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không thể gửi yêu cầu nhận lớp");
-    }
-  }
+  async (classId) => {
+    const res = await classService.apply(classId);
+    return res.data.data.application;
+  },
+  "Không thể gửi yêu cầu nhận lớp",
 );
 
 // Người đăng lấy danh sách gia sư ứng tuyển một bài đăng của mình
-export const fetchApplicantsThunk = createAsyncThunk(
+export const fetchApplicantsThunk = createApiThunk(
   "classes/fetchApplicants",
-  async (classId, { rejectWithValue }) => {
-    try {
-      const res = await classService.getApplicants(classId);
-      return res.data.data; // { classItem, applicants }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách gia sư ứng tuyển");
-    }
-  }
+  async (classId) => {
+    const res = await classService.getApplicants(classId);
+    return res.data.data; // { classItem, applicants }
+  },
+  "Không tải được danh sách gia sư ứng tuyển",
 );
 
 // Người đăng chọn 1 gia sư
-export const selectApplicantThunk = createAsyncThunk(
+export const selectApplicantThunk = createApiThunk(
   "classes/selectApplicant",
-  async ({ classId, applicationId }, { rejectWithValue }) => {
-    try {
-      const res = await classService.selectApplicant(classId, applicationId);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không thể chọn gia sư");
-    }
-  }
+  async ({ classId, applicationId }) => {
+    const res = await classService.selectApplicant(classId, applicationId);
+    return res.data.data.application;
+  },
+  "Không thể chọn gia sư",
 );
 
 // ── Mời gia sư trực tiếp ──
 
 // Người đăng tạo lớp + mời một gia sư cụ thể
-export const createInvitedClassThunk = createAsyncThunk(
+export const createInvitedClassThunk = createApiThunk(
   "classes/createInvite",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const res = await classService.createInvite(payload);
-      return res.data.data.classItem;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không gửi được lời mời tới gia sư");
-    }
-  }
+  async (payload) => {
+    const res = await classService.createInvite(payload);
+    return res.data.data.classItem;
+  },
+  "Không gửi được lời mời tới gia sư",
 );
 
 // Gia sư lấy danh sách lời mời dạy lớp
-export const fetchInvitationsThunk = createAsyncThunk(
+export const fetchInvitationsThunk = createApiThunk(
   "classes/fetchInvitations",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await classService.getInvitations(params);
-      return res.data.data; // { invitations, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lời mời");
-    }
-  }
+  async (params = {}) => {
+    const res = await classService.getInvitations(params);
+    return res.data.data; // { invitations, pagination }
+  },
+  "Không tải được danh sách lời mời",
 );
 
 // Gia sư đồng ý lời mời
-export const acceptInvitationThunk = createAsyncThunk(
+export const acceptInvitationThunk = createApiThunk(
   "classes/acceptInvitation",
-  async (applicationId, { rejectWithValue }) => {
-    try {
-      const res = await classService.acceptInvitation(applicationId);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không thể đồng ý lời mời");
-    }
-  }
+  async (applicationId) => {
+    const res = await classService.acceptInvitation(applicationId);
+    return res.data.data.application;
+  },
+  "Không thể đồng ý lời mời",
 );
 
 // Gia sư từ chối lời mời (kèm lý do)
-export const declineInvitationThunk = createAsyncThunk(
+export const declineInvitationThunk = createApiThunk(
   "classes/declineInvitation",
-  async ({ applicationId, reason }, { rejectWithValue }) => {
-    try {
-      const res = await classService.declineInvitation(applicationId, reason);
-      return res.data.data.application;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không thể từ chối lời mời");
-    }
-  }
+  async ({ applicationId, reason }) => {
+    const res = await classService.declineInvitation(applicationId, reason);
+    return res.data.data.application;
+  },
+  "Không thể từ chối lời mời",
 );

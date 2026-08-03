@@ -4,8 +4,9 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import PageLoader from "@/components/shared/PageLoader";
-import { TutorChatWidget } from "@/features/chat";
+import TutorChatWidget from "@/features/chat/components/TutorChatWidget";
 
+// Layout cho các trang public/người dùng: Header + nội dung + Footer + widget chat.
 const MainLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">

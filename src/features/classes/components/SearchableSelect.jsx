@@ -1,28 +1,17 @@
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
-import {
-  ChevronDown,
-  Search,
-  X,
-} from 'lucide-react';
+import { ChevronDown, Search, X } from "lucide-react";
 
-import { Input } from '@/components/ui/input';
-import { cn, normalizeForSearch } from '@/lib/utils';
+import { Input } from "@/components/ui/input";
+import { cn, normalizeForSearch } from "@/lib/utils";
 
 /** Large lists: show subset until user types (cheaper than mounting hundreds of controls). */
 const OPEN_FULL_RENDER_MAX = 90;
 const OPEN_SLICED_CAP = 72;
 const SEARCH_MATCH_CAP = 200;
 
+// Ô select có ô tìm kiếm, danh sách được render nổi theo vị trí của nút.
 function SearchableSelect({
   value,
   onValueChange,
@@ -33,11 +22,11 @@ function SearchableSelect({
   searchPlaceholder,
   emptyText,
   disabled = false,
-  triggerClassName = '',
-  contentClassName = '',
+  triggerClassName = "",
+  contentClassName = "",
 }) {
   const [open, setOpen] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
@@ -56,36 +45,39 @@ function SearchableSelect({
 
   useEffect(() => {
     if (!open) return;
+    // Cập nhật vị trí danh sách khi cuộn hoặc đổi kích thước cửa sổ.
     const onScrollOrResize = () => updateCoords();
-    window.addEventListener('scroll', onScrollOrResize, true);
-    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    window.addEventListener("resize", onScrollOrResize);
     return () => {
-      window.removeEventListener('scroll', onScrollOrResize, true);
-      window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+      window.removeEventListener("resize", onScrollOrResize);
     };
   }, [open, updateCoords]);
 
   const closePanel = useCallback(() => {
-    setSearchKeyword('');
+    setSearchKeyword("");
     setOpen(false);
   }, []);
 
   useEffect(() => {
     if (!open) return;
+    // Đóng danh sách khi bấm ra ngoài.
     const onDocPointerDown = (e) => {
       const t = e.target;
       if (!(t instanceof Node)) return;
       if (panelRef.current?.contains(t) || triggerRef.current?.contains(t)) return;
       closePanel();
     };
+    // Đóng danh sách khi nhấn Esc.
     const onKey = (e) => {
-      if (e.key === 'Escape') closePanel();
+      if (e.key === "Escape") closePanel();
     };
-    document.addEventListener('mousedown', onDocPointerDown);
-    document.addEventListener('keydown', onKey);
+    document.addEventListener("mousedown", onDocPointerDown);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('mousedown', onDocPointerDown);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("mousedown", onDocPointerDown);
+      document.removeEventListener("keydown", onKey);
     };
   }, [open, closePanel]);
 
@@ -98,7 +90,7 @@ function SearchableSelect({
   const displayLabel = useMemo(() => {
     if (allLabel && String(value) === String(allValue)) return allLabel;
     const found = options.find((o) => String(o.value) === String(value));
-    return found?.label ?? placeholder ?? '';
+    return found?.label ?? placeholder ?? "";
   }, [value, allValue, allLabel, options, placeholder]);
 
   const filteredOptions = useMemo(() => {
@@ -122,7 +114,7 @@ function SearchableSelect({
       return { rowItems: filteredOptions, listHint: null };
     }
     const sorted = [...filteredOptions].sort((a, b) =>
-      a.label.localeCompare(b.label, 'vi', { sensitivity: 'base' }),
+      a.label.localeCompare(b.label, "vi", { sensitivity: "base" }),
     );
     return {
       rowItems: sorted.slice(0, OPEN_SLICED_CAP),
@@ -132,36 +124,44 @@ function SearchableSelect({
 
   const pick = useCallback(
     (nextVal) => {
-      setSearchKeyword('');
+      setSearchKeyword("");
       onValueChange(nextVal);
       setOpen(false);
     },
     [onValueChange],
   );
 
-  const handleClear = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onValueChange('');
-    setSearchKeyword('');
-  }, [onValueChange]);
+  const handleClear = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onValueChange("");
+      setSearchKeyword("");
+    },
+    [onValueChange],
+  );
 
   const hasValue = useMemo(() => {
-    return value !== undefined && value !== null && value !== '' && (!allLabel || String(value) !== String(allValue));
+    return (
+      value !== undefined &&
+      value !== null &&
+      value !== "" &&
+      (!allLabel || String(value) !== String(allValue))
+    );
   }, [value, allValue, allLabel]);
 
   const dropdown =
-    open && typeof document !== 'undefined'
+    open && typeof document !== "undefined"
       ? createPortal(
           <div
             ref={panelRef}
             role="listbox"
             className={cn(
-              'z-[200] flex max-h-[min(20rem,70vh)] flex-col overflow-hidden rounded-md border border-slate-200 bg-white text-slate-900 shadow-lg',
+              "z-200 flex max-h-[min(20rem,70vh)] flex-col overflow-hidden rounded-md border border-slate-200 bg-white text-slate-900 shadow-lg",
               contentClassName,
             )}
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: coords.top,
               left: coords.left,
               width: Math.max(coords.width, 200),
@@ -186,10 +186,10 @@ function SearchableSelect({
                   role="option"
                   aria-selected={String(value) === String(allValue)}
                   className={cn(
-                    'flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition',
+                    "flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition",
                     String(value) === String(allValue)
-                      ? 'bg-emerald-50 font-medium text-emerald-900'
-                      : 'text-slate-900 hover:bg-slate-100',
+                      ? "bg-emerald-50 font-medium text-emerald-900"
+                      : "text-slate-900 hover:bg-slate-100",
                   )}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pick(String(allValue))}
@@ -206,8 +206,10 @@ function SearchableSelect({
                     role="option"
                     aria-selected={selected}
                     className={cn(
-                      'flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition',
-                      selected ? 'bg-emerald-50 font-medium text-emerald-900' : 'text-slate-900 hover:bg-slate-100',
+                      "flex w-full rounded-sm px-2 py-1.5 text-left text-sm outline-none transition",
+                      selected
+                        ? "bg-emerald-50 font-medium text-emerald-900"
+                        : "text-slate-900 hover:bg-slate-100",
                     )}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => pick(String(item.value))}
@@ -240,15 +242,15 @@ function SearchableSelect({
         aria-expanded={open}
         onClick={() => {
           if (disabled) return;
-          if (open) setSearchKeyword('');
+          if (open) setSearchKeyword("");
           setOpen((prev) => !prev);
         }}
         className={cn(
-          'flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:min-w-0 [&>span]:truncate',
+          "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:min-w-0 [&>span]:truncate",
           triggerClassName,
         )}
       >
-        <span className={cn('text-left', !displayLabel && 'text-slate-500')}>
+        <span className={cn("text-left", !displayLabel && "text-slate-500")}>
           {displayLabel || placeholder}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -261,7 +263,7 @@ function SearchableSelect({
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          <ChevronDown className={cn('h-4 w-4 opacity-50 transition-transform', open && 'rotate-180')} />
+          <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && "rotate-180")} />
         </div>
       </button>
       {dropdown}

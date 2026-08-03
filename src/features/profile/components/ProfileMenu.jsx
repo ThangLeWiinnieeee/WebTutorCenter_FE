@@ -1,9 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { ChevronRight, ClipboardList, FileText, Handshake, LogOut, Star, Ticket } from "lucide-react";
+import {
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  Handshake,
+  LogOut,
+  ReceiptText,
+  Star,
+  Ticket,
+} from "lucide-react";
 
 import { logoutThunk } from "@/features/auth/store/authThunks";
 
+// Menu điều hướng trong trang hồ sơ, có thêm mục dành riêng cho gia sư.
 const ProfileMenu = ({ isTutor }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,6 +39,12 @@ const ProfileMenu = ({ isTutor }) => {
             desc: "Đánh giá học viên dành cho bạn",
             icon: Star,
           },
+          {
+            to: "/my-payments",
+            label: "Hóa đơn thanh toán",
+            desc: "Lịch sử phí nhận lớp bạn đã thanh toán",
+            icon: ReceiptText,
+          },
         ]
       : []),
     {
@@ -45,6 +61,7 @@ const ProfileMenu = ({ isTutor }) => {
     },
   ];
 
+  // Đăng xuất rồi chuyển về trang đăng nhập.
   const handleLogout = async () => {
     await dispatch(logoutThunk());
     navigate("/login");
