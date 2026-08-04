@@ -178,11 +178,11 @@ const NewClassDetailPage = () => {
       ) : (
         <Button
           type="button"
-          className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="mt-3 h-auto min-h-11 w-full whitespace-normal rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-semibold leading-tight text-white hover:bg-emerald-700"
           onClick={() => openReceive(detail)}
         >
-          Nhận lớp ngay
-          <ArrowRight className="ml-1.5 h-4 w-4" />
+          Gửi yêu cầu nhận lớp
+          <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
         </Button>
       )}
     </div>

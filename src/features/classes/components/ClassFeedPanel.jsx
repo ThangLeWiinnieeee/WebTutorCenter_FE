@@ -12,14 +12,12 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import useAuth from "@/features/auth/hooks/useAuth";
-import tutorService from "@/features/tutors/services/tutorService";
-import { hasCompleteTutorDocuments } from "@/features/tutors/utils/tutorDocuments";
 import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
-import { applyForClassThunk, fetchClassFeedThunk } from "@/features/classes/store/classThunks";
+import useReceiveClass from "@/features/classes/hooks/useReceiveClass";
+import { fetchClassFeedThunk } from "@/features/classes/store/classThunks";
 import {
   CLASS_FEE_LABEL,
   classFee,
@@ -59,12 +57,20 @@ const isNewPost = (createdAt) => {
 export default function ClassFeedPanel() {
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { feed, feedPagination, feedSubjects, feedNewCount, feedPersonalization, loadingFeed, applying } =
+  const { feed, feedPagination, feedSubjects, feedNewCount, feedPersonalization, loadingFeed } =
     useSelector((state) => state.classes);
 
   const [selectedSubject, setSelectedSubject] = useState("");
   const [page, setPage] = useState(1);
-  const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "confirm", classItem: null });
+  const { receiveDialog, applying, openReceive, confirmApply, closeDialog } = useReceiveClass(() =>
+    dispatch(
+      fetchClassFeedThunk({
+        ...(selectedSubject ? { subject: selectedSubject } : {}),
+        page,
+        limit: PAGE_SIZE,
+      }),
+    ),
+  );
 
   useEffect(() => {
     dispatch(
@@ -89,42 +95,6 @@ export default function ClassFeedPanel() {
   const handleSelectSubject = (subject) => {
     setSelectedSubject(subject);
     setPage(1);
-  };
-
-  // Mở hộp thoại nhận lớp sau khi kiểm tra điều kiện.
-  const handleReceive = async (item) => {
-    if (user?.id && item.createdBy === user.id) return;
-    // Chưa bổ sung hồ sơ chứng thực → yêu cầu cập nhật trước khi nhận lớp
-    try {
-      const response = await tutorService.getProfile();
-      if (!hasCompleteTutorDocuments(response.data?.data?.tutor)) {
-        setReceiveDialog({ open: true, type: "documentsRequired", classItem: item });
-        return;
-      }
-    } catch (err) {
-      console.error("Failed to check tutor documents", err);
-    }
-    setReceiveDialog({ open: true, type: "confirm", classItem: item });
-  };
-
-  // Xác nhận gửi đơn ứng tuyển nhận lớp.
-  const handleConfirmApply = async () => {
-    const item = receiveDialog.classItem;
-    const result = await dispatch(applyForClassThunk(item?.id || item?._id));
-    if (applyForClassThunk.fulfilled.match(result)) {
-      setReceiveDialog((prev) => ({ ...prev, type: "submitted" }));
-      // Tải lại feed: bài vừa nhận sẽ được ẩn và badge cập nhật
-      dispatch(
-        fetchClassFeedThunk({
-          ...(selectedSubject ? { subject: selectedSubject } : {}),
-          page,
-          limit: PAGE_SIZE,
-        }),
-      );
-    } else {
-      setReceiveDialog((prev) => ({ ...prev, open: false }));
-      toast.error(result.payload || "Không thể gửi yêu cầu nhận lớp");
-    }
   };
 
   const hasNoSubjects = !loadingFeed && feedSubjects.length === 0;
@@ -285,7 +255,7 @@ export default function ClassFeedPanel() {
                 </div>
               </div>
 
-              <div className="w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:w-[200px]">
+              <div className="w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:w-[240px]">
                 <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                 <p className="mt-1 text-2xl font-bold leading-none text-emerald-700">
                   {formatPrice(classFee(item))}
@@ -298,11 +268,11 @@ export default function ClassFeedPanel() {
                 ) : (
                   <Button
                     type="button"
-                    onClick={() => handleReceive(item)}
-                    className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                    onClick={() => openReceive(item)}
+                    className="mt-3 h-auto min-h-10 w-full whitespace-normal rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-semibold leading-tight text-white hover:bg-emerald-700"
                   >
-                    Nhận lớp ngay
-                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                    Gửi yêu cầu nhận lớp
+                    <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
                   </Button>
                 )}
               </div>
@@ -411,9 +381,11 @@ export default function ClassFeedPanel() {
         open={receiveDialog.open}
         type={receiveDialog.type}
         classItem={receiveDialog.classItem}
-        onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
-        onConfirm={handleConfirmApply}
+        onClose={closeDialog}
+        onConfirm={confirmApply}
         applying={applying}
+        tutorSubjects={receiveDialog.tutorSubjects}
+        mismatchReasons={receiveDialog.mismatchReasons}
       />
     </div>
   );

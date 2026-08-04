@@ -8,6 +8,9 @@ import tutorService from "@/features/tutors/services/tutorService";
 import { hasCompleteTutorDocuments } from "@/features/tutors/utils/tutorDocuments";
 
 const INITIAL_DIALOG = { open: false, type: "login", classItem: null };
+const OCCUPATION_TO_LEVEL = { student: "student", graduated: "teacher", teacher: "teacher" };
+const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
+const LEVEL_LABEL = { student: "Sinh viên", teacher: "Giáo viên" };
 
 // Hook gom luồng "nhận lớp" dùng chung: kiểm tra điều kiện của gia sư,
 // mở dialog phù hợp và gửi đơn ứng tuyển.
@@ -55,26 +58,19 @@ const useReceiveClass = (onApplied) => {
         classItem.tutorGenderPref !== "any" &&
         user?.gender !== classItem.tutorGenderPref
       ) {
-        const requiredGender = classItem.tutorGenderPref === "male" ? "Nam" : "Nữ";
-        const currentGender =
-          user?.gender === "male" ? "Nam" : user?.gender === "female" ? "Nữ" : "Chưa cập nhật";
+        const requiredGender = GENDER_LABEL[classItem.tutorGenderPref] || "Khác";
+        const currentGender = GENDER_LABEL[user?.gender] || "Chưa cập nhật";
         mismatchReasons.push(
           `Giới tính: Lớp yêu cầu gia sư giới tính "${requiredGender}" nhưng giới tính tài khoản của bạn là "${currentGender}".`,
         );
       }
 
       if (classItem.tutorLevelPref && classItem.tutorLevelPref !== "any") {
-        const requiredLevel = classItem.tutorLevelPref === "student" ? "Sinh viên" : "Giáo viên";
-        const currentOccupation = tutorProfile?.occupationStatus;
-        const currentLevel =
-          currentOccupation === "student"
-            ? "Sinh viên"
-            : currentOccupation === "teacher"
-              ? "Giáo viên"
-              : "Khác";
-        if (classItem.tutorLevelPref !== currentOccupation) {
+        const requiredLevel = LEVEL_LABEL[classItem.tutorLevelPref] || "Khác";
+        const currentLevel = OCCUPATION_TO_LEVEL[tutorProfile?.occupationStatus];
+        if (classItem.tutorLevelPref !== currentLevel) {
           mismatchReasons.push(
-            `Trình độ: Lớp yêu cầu gia sư là "${requiredLevel}" nhưng trình độ của bạn là "${currentLevel}".`,
+            `Trình độ: Lớp yêu cầu gia sư là "${requiredLevel}" nhưng trình độ của bạn là "${LEVEL_LABEL[currentLevel] || "Chưa xác định"}".`,
           );
         }
       }
@@ -92,7 +88,7 @@ const useReceiveClass = (onApplied) => {
       setReceiveDialog({ open: true, type: "confirm", classItem, tutorSubjects: registeredSubjects });
     } catch (err) {
       console.error("Failed to check tutor profile conditions", err);
-      setReceiveDialog({ open: true, type: "confirm", classItem });
+      toast.error("Không thể kiểm tra hồ sơ gia sư. Vui lòng thử lại.");
     }
   };
 
