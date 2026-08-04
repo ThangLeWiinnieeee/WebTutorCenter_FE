@@ -353,7 +353,7 @@ const NewClassesPage = () => {
                 className="group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-slate-300 hover:shadow-md"
               >
                 {/* Tiêu đề + meta. Trên desktop chừa chỗ cho ô phí nổi góc phải (sm:pr) */}
-                <div className="min-w-0 sm:pr-[244px]">
+                <div className="min-w-0 sm:pr-[264px]">
                   <h2 className="line-clamp-2 text-xl font-semibold leading-tight text-slate-900 sm:text-[22px]">
                     {item.subject} -{" "}
                     {item.summary || `Cần Gia Sư tại ${item.districtName || ""}, ${item.provinceName || ""}`}
@@ -460,7 +460,7 @@ const NewClassesPage = () => {
                 </div>
 
                 {/* Phí nhận lớp + CTA: desktop nổi góc phải, điện thoại đặt xuống cuối bài */}
-                <div className="mt-4 w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[220px]">
+                <div className="mt-4 w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[240px]">
                   <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                   <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
                     {formatPrice(classFee(item))}
@@ -473,11 +473,11 @@ const NewClassesPage = () => {
                   ) : (
                     <Button
                       type="button"
-                      className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                      className="mt-3 h-auto min-h-10 w-full whitespace-normal rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-semibold leading-tight text-white hover:bg-emerald-700"
                       onClick={() => openReceive(item)}
                     >
-                      Nhận lớp ngay
-                      <ArrowRight className="ml-1.5 h-4 w-4" />
+                      Gửi yêu cầu nhận lớp
+                      <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
                     </Button>
                   )}
                 </div>
