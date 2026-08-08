@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
+import AOS from "aos";
 import { BookOpen, CalendarDays, Check, Clock3, MailQuestion, MapPin, Users, Wallet, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,11 @@ export default function ClassInvitationsPanel() {
     dispatch(fetchInvitationsThunk({ page, limit: PAGE_SIZE }));
   }, [dispatch, page]);
 
+  // Đăng ký lại phần tử AOS khi danh sách lời mời tải bất đồng bộ hoặc đổi trang.
+  useEffect(() => {
+    AOS.refreshHard();
+  }, [loading, invitations.length, page]);
+
   // Nhận lời mời dạy lớp (đơn sẽ vào luồng chờ admin duyệt).
   const handleAccept = async (applicationId) => {
     const result = await dispatch(acceptInvitationThunk(applicationId));
@@ -193,7 +199,13 @@ export default function ClassInvitationsPanel() {
     return (
       <div className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="h-40 animate-pulse rounded-2xl bg-slate-200" />
+          <div
+            key={i}
+            className="h-40 animate-pulse rounded-2xl bg-slate-200"
+            data-aos="fade-up"
+            data-aos-delay={i * 80}
+            data-aos-duration="450"
+          />
         ))}
       </div>
     );
@@ -201,7 +213,11 @@ export default function ClassInvitationsPanel() {
 
   if (invitations.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
+      <div
+        className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm"
+        data-aos="fade-up"
+        data-aos-duration="600"
+      >
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <MailQuestion className="h-7 w-7" />
         </div>
@@ -217,24 +233,29 @@ export default function ClassInvitationsPanel() {
 
   return (
     <div className="space-y-4">
-      {invitations.map((invitation) => (
-        <InvitationCard
-          key={invitation.id}
-          invitation={invitation}
-          onAccept={handleAccept}
-          onDecline={handleDecline}
-          responding={responding}
-        />
+      {invitations.map((invitation, idx) => (
+        <div key={invitation.id} data-aos="fade-up" data-aos-delay={idx * 150} data-aos-duration="600">
+          <InvitationCard
+            invitation={invitation}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+            responding={responding}
+          />
+        </div>
       ))}
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={(next) => {
-          setPage(next);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-        className="pt-3"
-      />
+      {totalPages > 1 && (
+        <div data-aos="fade-up" data-aos-delay="100" data-aos-duration="500">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={(next) => {
+              setPage(next);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="pt-3"
+          />
+        </div>
+      )}
     </div>
   );
 }

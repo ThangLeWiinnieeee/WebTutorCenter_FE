@@ -1,8 +1,10 @@
-// Giá trị footer mặc định khi chưa tải được cấu hình từ backend (settingsService.getFooter).
+// Shape rỗng trong lúc chờ cấu hình công khai từ database.
 export const DEFAULT_FOOTER = {
-  address: "54 Nguyễn Lương Bằng, Hòa Khánh Bắc, Liên Chiểu, Đà Nẵng",
-  phone: "093 143 9203",
-  email: "contact@webtutor.vn",
-  facebookLink: "https://facebook.com/webtutor",
-  zaloLink: "https://zalo.me/0931439203",
+  address: "",
+  phone: "",
+  phone2: "",
+  email: "",
+  facebookLink: "",
+  zaloLink: "",
+  contractHtml: "",
 };

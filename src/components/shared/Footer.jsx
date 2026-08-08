@@ -1,8 +1,6 @@
-import { useEffect, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 import { GraduationCap, MapPin, Phone, Mail, MessageCircle } from "lucide-react";
-import settingsService from "@/services/settingsService";
-import { DEFAULT_FOOTER } from "@/constants/footer";
+import useSiteSettings from "@/hooks/useSiteSettings";
 
 // Icon Facebook dạng SVG inline (lucide-react không có sẵn icon này).
 const Facebook = ({ className }) => (
@@ -21,24 +19,12 @@ const Facebook = ({ className }) => (
   </svg>
 );
 
-// Chân trang: lấy thông tin liên hệ động từ settings, fallback về DEFAULT_FOOTER.
-const Footer = () => {
-  const [data, setData] = useState(DEFAULT_FOOTER);
+const phoneHref = (phone) => `tel:${phone.replace(/[^+\d]/g, "")}`;
 
-  useEffect(() => {
-    settingsService
-      .getFooter()
-      .then((res) => {
-        if (res.data?.success && res.data?.data) {
-          startTransition(() => {
-            setData(res.data.data);
-          });
-        }
-      })
-      .catch(() => {
-        // Lỗi mạng: giữ nguyên DEFAULT_FOOTER.
-      });
-  }, []);
+// Chân trang: lấy thông tin liên hệ động từ settings trong database.
+const Footer = () => {
+  const { data } = useSiteSettings();
+  const phones = [...new Set([data.phone, data.phone2].filter(Boolean))];
 
   return (
     <footer className="w-full bg-slate-900 text-slate-400 border-t border-slate-800">
@@ -99,22 +85,39 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Liên hệ</h3>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 shrink-0 text-orange-500 mt-0.5" />
-                <span className="leading-relaxed">{data.address}</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href={`tel:${data.phone}`} className="hover:text-white transition-colors">
-                  {data.phone}
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href={`mailto:${data.email}`} className="hover:text-white transition-colors">
-                  {data.email}
-                </a>
-              </li>
+              {data.address && (
+                <li className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 shrink-0 text-orange-500 mt-0.5" />
+                  <span className="leading-relaxed">{data.address}</span>
+                </li>
+              )}
+              {phones.length > 0 && (
+                <li className="flex items-start gap-3">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Hotline
+                    </p>
+                    {phones.map((phone) => (
+                      <a
+                        key={phone}
+                        href={phoneHref(phone)}
+                        className="block hover:text-white transition-colors"
+                      >
+                        {phone}
+                      </a>
+                    ))}
+                  </div>
+                </li>
+              )}
+              {data.email && (
+                <li className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 shrink-0 text-orange-500" />
+                  <a href={`mailto:${data.email}`} className="hover:text-white transition-colors">
+                    {data.email}
+                  </a>
+                </li>
+              )}
               <li className="flex items-center gap-4 pt-2">
                 {data.facebookLink && (
                   <a

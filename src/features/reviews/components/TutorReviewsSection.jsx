@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CornerDownRight, Info, Loader2, MessageSquareText, Reply, Send } from "lucide-react";
+import AOS from "aos";
 
 import reviewService from "@/features/reviews/services/reviewService";
 import { reviewReplySchema } from "@/features/reviews/schemas/reviewSchema";
@@ -163,6 +164,11 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
     fetchReviews();
   }, [fetchReviews]);
 
+  // Trang "Đánh giá của tôi" render danh sách bất đồng bộ nên cần đăng ký lại từng thẻ AOS.
+  useEffect(() => {
+    if (editable) AOS.refreshHard();
+  }, [editable, loading, reviews.length, page]);
+
   // Cập nhật tại chỗ đánh giá vừa được gia sư phản hồi (không cần tải lại cả trang)
   const handleReplied = useCallback((updated) => {
     if (!updated?.id) return;
@@ -173,8 +179,16 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
   const averageRating = summary.averageRating || 0;
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <section
+      className="rounded-2xl border border-gray-200 bg-white p-6"
+      data-aos={editable ? undefined : "fade-up"}
+    >
+      <div
+        className="mb-4 flex flex-wrap items-center justify-between gap-3"
+        data-aos={editable ? "fade-up" : undefined}
+        data-aos-delay={editable ? "120" : undefined}
+        data-aos-duration={editable ? "500" : undefined}
+      >
         <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
           <MessageSquareText className="w-4 h-4 text-green-600" />
           Đánh giá từ học viên
@@ -189,12 +203,20 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-10 text-sm text-gray-500">
+        <div
+          className="flex items-center justify-center py-10 text-sm text-gray-500"
+          data-aos={editable ? "fade-up" : undefined}
+          data-aos-duration={editable ? "450" : undefined}
+        >
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Đang tải đánh giá...
         </div>
       ) : reviews.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-10 text-center">
+        <div
+          className="flex flex-col items-center gap-2 py-10 text-center"
+          data-aos={editable ? "fade-up" : undefined}
+          data-aos-duration={editable ? "600" : undefined}
+        >
           <MessageSquareText className="h-9 w-9 text-gray-300" />
           <p className="text-sm font-semibold text-gray-600">Chưa có đánh giá nào</p>
           <p className="text-sm text-gray-400">
@@ -205,8 +227,14 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id} className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+          {reviews.map((review, idx) => (
+            <div
+              key={review.id}
+              className="rounded-xl border border-gray-100 bg-gray-50/60 p-4"
+              data-aos={editable ? "fade-up" : undefined}
+              data-aos-delay={editable ? idx * 150 : undefined}
+              data-aos-duration={editable ? "600" : undefined}
+            >
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-green-400 to-blue-500 text-sm font-bold text-white">
                   {review.reviewerAvatar ? (
@@ -241,7 +269,20 @@ export default function TutorReviewsSection({ tutorId, initialSummary, editable 
             </div>
           ))}
 
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} className="pt-2" />
+          {totalPages > 1 && (
+            <div
+              data-aos={editable ? "fade-up" : undefined}
+              data-aos-delay={editable ? "100" : undefined}
+              data-aos-duration={editable ? "500" : undefined}
+            >
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                className="pt-2"
+              />
+            </div>
+          )}
         </div>
       )}
     </section>

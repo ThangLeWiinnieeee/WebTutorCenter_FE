@@ -13,7 +13,7 @@ const markAsRead = (id) => {
 
 // Gọi API đánh dấu tất cả thông báo của một nhóm người nhận là đã đọc.
 const markAllAsRead = (audience) => {
-  return axiosInstance.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ, null, {
+  return axiosInstance.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ, {}, {
     params: audience ? { audience } : undefined,
   });
 };

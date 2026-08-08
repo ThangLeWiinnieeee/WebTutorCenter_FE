@@ -11,7 +11,7 @@ import {
   Filter,
   MapPin,
   MapPinned,
-  PhoneCall,
+  MessageSquareText,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -24,6 +24,7 @@ import AOS from "aos";
 
 import { Button } from "@/components/ui/button";
 import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
+import DirectSupportCard from "@/features/classes/components/DirectSupportCard";
 import SearchableSelect from "@/features/classes/components/SearchableSelect";
 import classService from "@/features/classes/services/classService";
 import { fetchClassesThunk } from "@/features/classes/store/classThunks";
@@ -157,14 +158,18 @@ const NewClassesPage = () => {
     [pageSize],
   );
 
-  // Tính lại vị trí animation sau khi danh sách lớp (tải bất đồng bộ) thay đổi
+  // Tính lại vị trí animation khi nội dung bất đồng bộ hoặc bộ lọc mở rộng thay đổi.
   useEffect(() => {
     AOS.refresh();
-  }, [loadingList, list.length]);
+  }, [loadingList, list.length, showAdvancedFilters]);
 
   return (
     <div className="mx-auto max-w-[1360px] px-6 py-8">
-      <div className="sticky top-16 z-40 mb-7 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-md backdrop-blur-md ring-1 ring-white/60">
+      <div
+        data-aos="fade-down"
+        data-aos-duration="550"
+        className="sticky top-16 z-40 mb-7 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-md backdrop-blur-md ring-1 ring-white/60"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
             <BookOpenText className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -248,7 +253,12 @@ const NewClassesPage = () => {
         </div>
 
         {showAdvancedFilters && (
-          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4">
+          <div
+            data-aos="fade-down"
+            data-aos-duration="350"
+            data-aos-offset="0"
+            className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4"
+          >
             <div className="col-span-1">
               <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">
                 Quận/huyện
@@ -293,7 +303,11 @@ const NewClassesPage = () => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="min-w-0 space-y-4 lg:col-span-9">
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
+          <div
+            data-aos="fade-right"
+            data-aos-delay="80"
+            className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm"
+          >
             <div>
               <h1 className="text-lg font-semibold text-slate-900">Lớp cần gia sư</h1>
               <p className="text-sm text-slate-500">
@@ -306,7 +320,10 @@ const NewClassesPage = () => {
           </div>
 
           {!loadingList && list.length === 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
+            <div
+              data-aos="fade-up"
+              className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm"
+            >
               Chưa có lớp phù hợp với bộ lọc hiện tại.
             </div>
           )}
@@ -385,11 +402,17 @@ const NewClassesPage = () => {
                   </div>
                 </div>
 
-                {/* Mô tả: ẩn trên điện thoại cho gọn. Chừa lề phải cho ô phí nổi để không bị đè (sm:mr) */}
-                <div className="mt-4 hidden rounded-xl border border-slate-100 bg-slate-50 p-4 sm:mr-[244px] sm:block">
-                  <p className="line-clamp-2 text-sm leading-relaxed text-slate-700">
-                    {item.description || "Chưa có mô tả chi tiết cho lớp học này."}
-                  </p>
+                {/* Ghi chú: ẩn trên điện thoại cho gọn, có nhãn để tách khỏi thông tin hệ thống. */}
+                <div className="mt-4 hidden items-start gap-3 rounded-xl bg-slate-50/80 px-4 py-3 ring-1 ring-inset ring-slate-200/70 sm:mr-[260px] sm:flex">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200/80">
+                    <MessageSquareText className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-500">Ghi chú từ người đăng</p>
+                    <p className="mt-1 line-clamp-2 break-words text-sm leading-relaxed text-slate-700">
+                      {item.description || "Người đăng chưa bổ sung ghi chú cho lớp học này."}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
@@ -460,32 +483,41 @@ const NewClassesPage = () => {
                 </div>
 
                 {/* Phí nhận lớp + CTA: desktop nổi góc phải, điện thoại đặt xuống cuối bài */}
-                <div className="mt-4 w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[240px]">
-                  <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
-                  <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
-                    {formatPrice(classFee(item))}
-                  </p>
-                  <p className="mt-1 text-xs text-emerald-700/80">{CLASS_FEE_LABEL}</p>
+                <div className="mt-4 w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-[0_10px_28px_-22px_rgba(15,23,42,0.55)] sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[240px]">
+                  <div className="bg-linear-to-br from-white via-white to-emerald-50/70 px-4 pb-3 pt-3.5">
+                    <p className="text-xs font-semibold text-slate-500">Chi phí nhận lớp</p>
+                    <p className="mt-1.5 text-[28px] font-bold leading-none tracking-tight text-slate-950 tabular-nums">
+                      {formatPrice(classFee(item))}
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-emerald-700">{CLASS_FEE_LABEL}</p>
+                  </div>
                   {user?.id && item.createdBy === user.id ? (
-                    <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
-                      Bài đăng của bạn
+                    <div className="border-t border-slate-100 p-2.5">
+                      <div className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-100 text-sm font-medium text-slate-500">
+                        Bài đăng của bạn
+                      </div>
                     </div>
                   ) : (
-                    <Button
-                      type="button"
-                      className="mt-3 h-auto min-h-10 w-full whitespace-normal rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-semibold leading-tight text-white hover:bg-emerald-700"
-                      onClick={() => openReceive(item)}
-                    >
-                      Gửi yêu cầu nhận lớp
-                      <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
-                    </Button>
+                    <div className="border-t border-slate-100 p-2.5">
+                      <Button
+                        type="button"
+                        className="group/cta h-auto min-h-10 w-full whitespace-normal rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition-[background-color,transform] hover:bg-emerald-700 active:translate-y-px"
+                        onClick={() => openReceive(item)}
+                      >
+                        Gửi yêu cầu nhận lớp
+                        <ArrowRight className="ml-1.5 h-4 w-4 shrink-0 transition-transform duration-200 group-hover/cta:translate-x-1" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </article>
             ))}
 
           {!loadingList && list.length > 0 && (
-            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
+            <div
+              data-aos="fade-up"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm"
+            >
               <p className="text-slate-500">
                 Trang {currentPage}/{totalPages} • Hiển thị {list.length} / {totalItems} lớp
               </p>
@@ -536,7 +568,11 @@ const NewClassesPage = () => {
 
         <aside className="hidden space-y-4 lg:col-span-3 lg:block">
           {!isRegisteredTutor && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div
+              data-aos="fade-left"
+              data-aos-delay="80"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
               <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
                 <Sparkles className="h-5 w-5" />
               </div>
@@ -552,18 +588,13 @@ const NewClassesPage = () => {
             </div>
           )}
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-900 p-5 text-white shadow-sm">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
-              <PhoneCall className="h-4 w-4" />
-              Hỗ trợ trực tiếp
-            </div>
-            <p className="text-xs uppercase tracking-wide text-slate-400">Hotline 1</p>
-            <p className="mb-2 text-2xl font-bold tracking-wide">093 143 9203</p>
-            <p className="text-xs uppercase tracking-wide text-slate-400">Hotline 2</p>
-            <p className="text-2xl font-bold tracking-wide">098 707 5826</p>
-          </div>
+          <DirectSupportCard data-aos="fade-left" data-aos-delay="140" />
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div
+            data-aos="fade-left"
+            data-aos-delay="200"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          >
             <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
               <CircleHelp className="h-4 w-4" />
               Gia sư cần biết
@@ -590,7 +621,11 @@ const NewClassesPage = () => {
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div
+            data-aos="fade-left"
+            data-aos-delay="260"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          >
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Danh mục phổ biến
             </h3>
