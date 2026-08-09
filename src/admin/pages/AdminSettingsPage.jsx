@@ -52,11 +52,6 @@ const AdminSettingsPage = () => {
       return;
     }
 
-    if (!form.contractHtml.trim()) {
-      toast.error("Nội dung hợp đồng mẫu không được để trống");
-      return;
-    }
-
     setSaving(true);
     try {
       const response = await settingsService.updateFooter(form);

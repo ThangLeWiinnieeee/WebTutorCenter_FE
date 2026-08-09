@@ -1,11 +1,10 @@
 import { startTransition, useEffect, useState } from "react";
 
-import { DEFAULT_FOOTER } from "@/constants/footer";
 import settingsService from "@/services/settingsService";
 
 // Đọc một nguồn cấu hình công khai dùng chung từ database.
 const useSiteSettings = () => {
-  const [state, setState] = useState({ data: DEFAULT_FOOTER, loading: true, error: false });
+  const [state, setState] = useState({ data: {}, loading: true, error: false });
 
   useEffect(() => {
     let active = true;
@@ -16,7 +15,7 @@ const useSiteSettings = () => {
         if (!active) return;
         const data = response.data?.data;
         startTransition(() => {
-          setState({ data: { ...DEFAULT_FOOTER, ...data }, loading: false, error: !data });
+          setState({ data: data || {}, loading: false, error: !data });
         });
       })
       .catch(() => {

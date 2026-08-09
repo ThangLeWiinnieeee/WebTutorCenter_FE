@@ -73,11 +73,13 @@ const Footer = () => {
                   Trở thành gia sư
                 </Link>
               </li>
-              <li>
-                <Link to="/contract-template" className="hover:text-white transition-colors">
-                  Hợp đồng mẫu
-                </Link>
-              </li>
+              {data.contractHtml ? (
+                <li>
+                  <Link to="/contract-template" className="hover:text-white transition-colors">
+                    Hợp đồng mẫu
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </div>
 

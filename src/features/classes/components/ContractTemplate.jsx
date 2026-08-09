@@ -39,13 +39,7 @@ const ContractTemplate = ({ classCode, innerRef }) => {
     );
   }
 
-  if (error || !data.contractHtml) {
-    return (
-      <div className="mx-auto max-w-3xl rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-        Chưa tải được nội dung hợp đồng mẫu. Vui lòng thử lại sau.
-      </div>
-    );
-  }
+  if (error || !data.contractHtml) return null;
 
   return (
     <div
