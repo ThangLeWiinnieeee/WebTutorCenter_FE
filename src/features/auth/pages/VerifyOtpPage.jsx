@@ -37,7 +37,7 @@ const VerifyOtpPage = () => {
     setServerError("");
     const result = await dispatch(verifyOtpThunk({ email, otp }));
     if (verifyOtpThunk.fulfilled.match(result)) {
-      navigate("/login", { state: { verified: true, from } });
+      navigate(from || "/", { replace: true });
     } else {
       setServerError(result.payload || "Mã OTP không đúng, vui lòng thử lại.");
     }

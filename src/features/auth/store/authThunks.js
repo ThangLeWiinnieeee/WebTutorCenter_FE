@@ -4,6 +4,13 @@ import authService from "@/features/auth/services/authService";
 import tokenStorage from "@/utils/tokenStorage";
 import { clearClassRequestFormDraft } from "@/features/classes/utils/classRequestFormDraftStorage";
 
+const activateSession = ({ accessToken, user }) => {
+  if (!accessToken || !user) throw new Error("Phản hồi đăng nhập không hợp lệ");
+  tokenStorage.set(accessToken);
+  tokenStorage.announceSessionChange();
+  return { user };
+};
+
 // Đăng ký tài khoản mới, backend gửi OTP về email để xác thực.
 export const registerThunk = createApiThunk(
   "auth/register",
@@ -24,9 +31,7 @@ export const googleLoginThunk = createAsyncThunk(
 
     try {
       const res = await authService.googleLogin({ credential });
-      const { accessToken, user } = res.data.data;
-      tokenStorage.set(accessToken);
-      return { accessToken, user };
+      return activateSession(res.data.data);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Đăng nhập Google thất bại");
     }
@@ -38,9 +43,7 @@ export const loginThunk = createApiThunk(
   "auth/login",
   async (data) => {
     const res = await authService.login(data);
-    const { accessToken, user } = res.data.data;
-    tokenStorage.set(accessToken);
-    return { accessToken, user };
+    return activateSession(res.data.data);
   },
   "Đăng nhập thất bại",
 );
@@ -49,13 +52,12 @@ export const loginThunk = createApiThunk(
 export const logoutThunk = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
   try {
     await authService.logout();
-    tokenStorage.remove();
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || "Đăng xuất thất bại");
+  } finally {
+    tokenStorage.endSession();
     // Đăng xuất thì xóa luôn nháp form "tìm gia sư" đang lưu trong localStorage
     clearClassRequestFormDraft();
-  } catch (err) {
-    tokenStorage.remove();
-    clearClassRequestFormDraft();
-    return rejectWithValue(err.response?.data?.message || "Đăng xuất thất bại");
   }
 });
 
@@ -64,7 +66,7 @@ export const verifyOtpThunk = createApiThunk(
   "auth/verifyOtp",
   async (data) => {
     const res = await authService.verifyOtp(data);
-    return res.data.data;
+    return activateSession(res.data.data);
   },
   "Xác thực OTP thất bại",
 );
@@ -109,7 +111,22 @@ export const resetPasswordThunk = createApiThunk(
   "Đặt lại mật khẩu thất bại",
 );
 
-// Lấy thông tin người dùng hiện tại (dùng để khôi phục phiên đăng nhập).
+// Khôi phục phiên web sau reload: cookie HttpOnly cấp access token mới vào RAM,
+// sau đó mới tải người dùng để router không nháy trạng thái guest.
+export const restoreSessionThunk = createAsyncThunk("auth/restoreSession", async (_, { rejectWithValue }) => {
+  try {
+    await authService.refreshToken();
+    const res = await authService.getUserInfo();
+    const user = res.data?.data?.user;
+    if (!user) throw new Error("Phản hồi người dùng rỗng");
+    return user;
+  } catch (err) {
+    tokenStorage.remove();
+    return rejectWithValue(err.response?.data?.message || "Không thể khôi phục phiên đăng nhập");
+  }
+});
+
+// Làm mới thông tin người dùng trong một phiên đã được khôi phục.
 export const getUserInfoThunk = createAsyncThunk("auth/getUserInfo", async (_, { rejectWithValue }) => {
   try {
     const res = await authService.getUserInfo();
