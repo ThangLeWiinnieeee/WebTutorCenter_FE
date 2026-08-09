@@ -99,9 +99,9 @@ const NotificationsList = () => {
     dispatch(fetchNotificationsThunk({ page, limit: PAGE_SIZE }));
   }, [dispatch, page]);
 
-  // Tính lại vị trí animation khi danh sách (tải bất đồng bộ) thay đổi
+  // Đăng ký lại phần tử AOS khi nội dung tab được tải hoặc gắn lại vào DOM.
   useEffect(() => {
-    AOS.refresh();
+    AOS.refreshHard();
   }, [loading, notifications.length]);
 
   const totalPages = pagination?.totalPages || 1;
@@ -123,7 +123,11 @@ const NotificationsList = () => {
 
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
+      <div
+        className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm"
+        data-aos="fade-up"
+        data-aos-duration="600"
+      >
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <Bell className="h-7 w-7" />
         </div>
@@ -155,7 +159,7 @@ const NotificationsList = () => {
         const link = NOTIFICATION_LINK[n.type];
         return (
           // Lớp ngoài giữ className tĩnh cho AOS để thông báo không animate lại khi đổi trạng thái đọc.
-          <div key={n.id} data-aos="fade-up" data-aos-delay={Math.min(idx, 6) * 40}>
+          <div key={n.id} data-aos="fade-up" data-aos-delay={idx * 150} data-aos-duration="600">
             <NotificationItem
               notification={n}
               iconMeta={meta}
@@ -231,13 +235,19 @@ const NotificationsPage = () => {
                     : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {tab.label}
-                {tab.badge > 0 && (
-                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-xs font-bold text-white">
-                    {tab.badge > 9 ? "9+" : tab.badge}
-                  </span>
-                )}
+                <span
+                  className="inline-flex items-center gap-2"
+                  data-aos="fade-right"
+                  data-aos-delay={tab.value === "notifications" ? "100" : "200"}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                  {tab.badge > 0 && (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-xs font-bold text-white">
+                      {tab.badge > 9 ? "9+" : tab.badge}
+                    </span>
+                  )}
+                </span>
               </button>
             );
           })}

@@ -221,13 +221,15 @@ export default function TutorListingPage() {
 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* Filter bar (toàn bộ bộ lọc nằm trên đầu) */}
-        <TutorFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          lookups={lookupsForUI}
-          districts={districts}
-          loading={loadingLookups}
-        />
+        <div data-aos="fade-up" data-aos-delay="100">
+          <TutorFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            lookups={lookupsForUI}
+            districts={districts}
+            loading={loadingLookups}
+          />
+        </div>
 
         {/* Top tutors this month — chỉ hiện khi không lọc */}
         {!hasActiveFilters && topTutorsThisMonth?.length > 0 && (

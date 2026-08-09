@@ -80,15 +80,19 @@ export default function MyClassesPanel() {
     [],
   );
 
-  // Tính lại vị trí animation sau khi danh sách (tải bất đồng bộ) thay đổi
+  // Đăng ký lại phần tử AOS khi danh sách tải bất đồng bộ hoặc đổi trạng thái.
   useEffect(() => {
-    AOS.refresh();
+    AOS.refreshHard();
   }, [loadingMyClasses, myClasses.length]);
 
   return (
     <div className="space-y-5">
       {/* Heading */}
-      <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+      <div
+        className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm"
+        data-aos="fade-down"
+        data-aos-duration="550"
+      >
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
             <ClipboardList className="h-6 w-6" />
@@ -113,7 +117,7 @@ export default function MyClassesPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" data-aos="fade-up" data-aos-delay="80" data-aos-duration="500">
         {STATUS_TABS.map((tab) => {
           const isActive = activeTab === tab.value;
           return (
@@ -143,8 +147,14 @@ export default function MyClassesPanel() {
       {/* Loading */}
       {loadingMyClasses && (
         <div className="space-y-4">
-          {skeletonItems.map((key) => (
-            <div key={key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {skeletonItems.map((key, idx) => (
+            <div
+              key={key}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              data-aos="fade-up"
+              data-aos-delay={idx * 80}
+              data-aos-duration="450"
+            >
               <div className="animate-pulse space-y-3">
                 <div className="h-5 w-1/3 rounded bg-slate-200" />
                 <div className="h-6 w-2/3 rounded bg-slate-200" />
@@ -161,14 +171,22 @@ export default function MyClassesPanel() {
 
       {/* Error */}
       {!loadingMyClasses && error && myClasses.length === 0 && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm">
+        <div
+          className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="550"
+        >
           {error}
         </div>
       )}
 
       {/* Empty */}
       {!loadingMyClasses && !error && myClasses.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+        <div
+          className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="600"
+        >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <Inbox className="h-7 w-7" />
           </div>
@@ -204,7 +222,8 @@ export default function MyClassesPanel() {
                 key={application.id}
                 type="button"
                 data-aos="fade-up"
-                data-aos-delay={Math.min(idx, 4) * 60}
+                data-aos-delay={idx * 150}
+                data-aos-duration="600"
                 onClick={() => setSelected(application)}
                 className="group block w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
               >
@@ -304,13 +323,15 @@ export default function MyClassesPanel() {
         </div>
       )}
 
-      {!loadingMyClasses && myClasses.length > 0 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          className="pt-2"
-        />
+      {!loadingMyClasses && myClasses.length > 0 && totalPages > 1 && (
+        <div data-aos="fade-up" data-aos-delay="100" data-aos-duration="500">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            className="pt-2"
+          />
+        </div>
       )}
 
       <MyClassDetailDialog

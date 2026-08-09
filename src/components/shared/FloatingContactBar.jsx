@@ -1,9 +1,13 @@
 import { Phone } from "lucide-react";
+import useSiteSettings from "@/hooks/useSiteSettings";
 
 // Nút liên hệ nổi ở góc màn hình, bấm vào để gọi hotline.
 export default function FloatingContactBar() {
-  const phoneNumber = "09xxxxxxxx"; // Thay thế bằng số điện thoại thực tế
-  const phoneLink = `tel:${phoneNumber}`;
+  const { data } = useSiteSettings();
+
+  if (!data.phone) return null;
+
+  const phoneLink = `tel:${data.phone.replace(/[^+\d]/g, "")}`;
 
   return (
     <a
@@ -17,7 +21,7 @@ export default function FloatingContactBar() {
       </div>
 
       {/* Phone number */}
-      <span className="text-white font-semibold text-lg hidden sm:inline">{phoneNumber}</span>
+      <span className="text-white font-semibold text-lg hidden sm:inline">{data.phone}</span>
     </a>
   );
 }

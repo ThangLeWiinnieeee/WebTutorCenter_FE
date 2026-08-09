@@ -22,6 +22,7 @@ import { Link, useLocation, useParams, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog";
 import ContractTemplateDialog from "@/features/classes/components/ContractTemplateDialog";
+import DirectSupportCard from "@/features/classes/components/DirectSupportCard";
 import classService from "@/features/classes/services/classService";
 import { fetchClassDetailThunk } from "@/features/classes/store/classThunks";
 import useReceiveClass from "@/features/classes/hooks/useReceiveClass";
@@ -480,16 +481,7 @@ const NewClassDetailPage = () => {
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-900 p-5 text-white shadow-sm">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
-              <PhoneCall className="h-4 w-4" />
-              Hỗ trợ trực tiếp
-            </div>
-            <p className="text-xs uppercase tracking-wide text-slate-400">Hotline 1</p>
-            <p className="mb-2 text-2xl font-bold tracking-wide">093 143 9203</p>
-            <p className="text-xs uppercase tracking-wide text-slate-400">Hotline 2</p>
-            <p className="text-2xl font-bold tracking-wide">098 707 5826</p>
-          </div>
+          <DirectSupportCard />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">

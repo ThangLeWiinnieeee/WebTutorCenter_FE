@@ -5,9 +5,11 @@ import { useForm, useWatch } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import AOS from "aos";
 
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/shared/Modal";
+import DirectSupportCard from "@/features/classes/components/DirectSupportCard";
 import BookingProgressHeader from "@/features/classes/components/findTutorRequest/BookingProgressHeader";
 import BookingSummaryAsideCard from "@/features/classes/components/findTutorRequest/BookingSummaryAsideCard";
 import DescriptionLengthCounter from "@/features/classes/components/findTutorRequest/DescriptionLengthCounter";
@@ -59,6 +61,11 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   const [saving, setSaving] = useState(false);
   const minuteOptions = useMemo(() => pricingConfig.minutesPerSessionOptions || [], [pricingConfig]);
   const classRequestSchema = useMemo(() => buildClassRequestSchema(pricingConfig), [pricingConfig]);
+
+  // Làm mới vị trí AOS khi form chuyển giữa nhập liệu, báo giá và hoàn tất.
+  useEffect(() => {
+    AOS.refresh();
+  }, [quote, isInvite, latestCreated]);
 
   // ── Ràng buộc khi mời gia sư trực tiếp (khóa/lọc theo hồ sơ gia sư) ──
   const inviteSubjects = useMemo(
@@ -335,15 +342,25 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
   };
 
   if (!isEdit && !isInvite && latestCreated) {
-    return <ClassRequestSuccessCard classCode={latestCreated.classCode} onCreateNew={startNewClassRequest} />;
+    return (
+      <div data-aos="zoom-in">
+        <ClassRequestSuccessCard classCode={latestCreated.classCode} onCreateNew={startNewClassRequest} />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/60 animate-in fade-in duration-500 motion-reduce:animate-none">
+    <div className="min-h-screen bg-slate-50/60">
       <div className="mx-auto max-w-[1360px] px-4 py-6 md:px-6 md:py-8">
-        <BookingProgressHeader control={form.control} isEdit={isEdit} />
+        <div data-aos="fade-down">
+          <BookingProgressHeader control={form.control} isEdit={isEdit} />
+        </div>
 
-        {isInvite && <InviteTutorBanner invitedTutor={invitedTutor} />}
+        {isInvite && (
+          <div data-aos="zoom-in" data-aos-delay="80">
+            <InviteTutorBanner invitedTutor={invitedTutor} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-5 lg:col-span-9">
@@ -352,29 +369,38 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                 className="space-y-5"
                 onSubmit={form.handleSubmit(isEdit ? onUpdate : onQuote, scrollToFirstError)}
               >
-                <ClassInfoSection
-                  form={form}
-                  errors={errors}
-                  subjectSelectOptions={subjectSelectOptions}
-                  provinceSelectOptions={provinceSelectOptions}
-                  districtSelectOptions={districtSelectOptions}
-                  provinceCode={provinceCode}
-                  isInvite={isInvite}
-                  setDistricts={setDistricts}
-                />
+                <div data-aos="fade-up" data-aos-delay="80">
+                  <ClassInfoSection
+                    form={form}
+                    errors={errors}
+                    subjectSelectOptions={subjectSelectOptions}
+                    provinceSelectOptions={provinceSelectOptions}
+                    districtSelectOptions={districtSelectOptions}
+                    provinceCode={provinceCode}
+                    isInvite={isInvite}
+                    setDistricts={setDistricts}
+                  />
+                </div>
 
-                <ScheduleSection
-                  control={form.control}
-                  errors={errors}
-                  minuteOptions={minuteOptions}
-                  isSingleStudent={isSingleStudent}
-                  isInvite={isInvite}
-                  inviteAllowedSlots={inviteAllowedSlots}
-                />
+                <div data-aos="fade-up">
+                  <ScheduleSection
+                    control={form.control}
+                    errors={errors}
+                    minuteOptions={minuteOptions}
+                    isSingleStudent={isSingleStudent}
+                    isInvite={isInvite}
+                    inviteAllowedSlots={inviteAllowedSlots}
+                  />
+                </div>
 
-                <TutorRequirementSection control={form.control} isInvite={isInvite} />
+                <div data-aos="fade-up">
+                  <TutorRequirementSection control={form.control} isInvite={isInvite} />
+                </div>
 
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6">
+                <section
+                  data-aos="fade-up"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md md:p-6"
+                >
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <BookOpenCheck className="h-4 w-4 text-emerald-600" />
                     4. Mô tả chi tiết <span className="text-rose-500">*</span>
@@ -394,7 +420,10 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                   )}
                 </section>
 
-                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <section
+                  data-aos="fade-up"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6"
+                >
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     5. Xác nhận yêu cầu
@@ -423,31 +452,37 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
             )}
 
             {quote && (
-              <QuoteConfirmationPanel
-                form={form}
-                errors={errors}
-                quote={quote}
-                isInvite={isInvite}
-                creating={creating}
-                onBack={() => dispatch(clearClassFlow())}
-                onCreate={onCreate}
-                promo={{
-                  appliedPromo,
-                  promoError,
-                  promoChecking,
-                  showPromoList,
-                  setShowPromoList,
-                  activeVouchers,
-                  promoBoxRef,
-                  onApply: handleApplyPromo,
-                  onSelectVoucher: handleSelectVoucher,
-                  onRemove: handleRemovePromo,
-                }}
-              />
+              <div data-aos="fade-up">
+                <QuoteConfirmationPanel
+                  form={form}
+                  errors={errors}
+                  quote={quote}
+                  isInvite={isInvite}
+                  creating={creating}
+                  onBack={() => dispatch(clearClassFlow())}
+                  onCreate={onCreate}
+                  promo={{
+                    appliedPromo,
+                    promoError,
+                    promoChecking,
+                    showPromoList,
+                    setShowPromoList,
+                    activeVouchers,
+                    promoBoxRef,
+                    onApply: handleApplyPromo,
+                    onSelectVoucher: handleSelectVoucher,
+                    onRemove: handleRemovePromo,
+                  }}
+                />
+              </div>
             )}
           </div>
 
-          <aside className="hidden space-y-4 lg:col-span-3 lg:block">
+          <aside
+            data-aos="fade-left"
+            data-aos-delay="120"
+            className="hidden space-y-4 lg:col-span-3 lg:block"
+          >
             <div className="top-6 space-y-4 lg:sticky">
               <BookingSummaryAsideCard
                 control={form.control}
@@ -476,17 +511,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null, invitedT
                 </ul>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  Hỗ trợ trực tiếp
-                </h3>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Hotline</p>
-                <p className="text-2xl font-bold text-emerald-700">090 333 1985</p>
-                <p className="mt-1 text-2xl font-bold text-emerald-700">098 707 5826</p>
-                <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  Đội ngũ tư vấn luôn sẵn sàng hỗ trợ bạn.
-                </div>
-              </div>
+              <DirectSupportCard className="rounded-3xl" />
             </div>
           </aside>
         </div>

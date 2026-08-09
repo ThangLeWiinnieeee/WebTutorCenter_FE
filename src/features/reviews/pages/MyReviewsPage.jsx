@@ -22,7 +22,7 @@ export default function MyReviewsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="border-b border-slate-200 bg-linear-to-r from-brand to-[#2c5282]">
-        <div className="mx-auto max-w-5xl px-6 py-8">
+        <div className="mx-auto max-w-5xl px-6 py-8" data-aos="fade-down" data-aos-duration="550">
           <div className="flex items-center gap-2 text-amber-300">
             <Star className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">Đánh giá của tôi</span>
@@ -36,14 +36,23 @@ export default function MyReviewsPage() {
 
       <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         {loading && !profile ? (
-          <div className="flex items-center justify-center py-16 text-sm text-gray-500">
+          <div
+            className="flex items-center justify-center py-16 text-sm text-gray-500"
+            data-aos="fade-up"
+            data-aos-duration="500"
+          >
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Đang tải hồ sơ...
           </div>
         ) : (
           <>
             {/* Tóm tắt điểm đánh giá */}
-            <div className="flex flex-wrap items-center gap-6 rounded-2xl border border-gray-200 bg-white p-6">
+            <div
+              className="flex flex-wrap items-center gap-6 rounded-2xl border border-gray-200 bg-white p-6"
+              data-aos="fade-up"
+              data-aos-delay="80"
+              data-aos-duration="550"
+            >
               <div className="flex flex-col items-center">
                 <span className="text-4xl font-bold text-amber-500">{averageRating.toFixed(1)}</span>
                 <StarRating value={averageRating} size={18} className="mt-1" />

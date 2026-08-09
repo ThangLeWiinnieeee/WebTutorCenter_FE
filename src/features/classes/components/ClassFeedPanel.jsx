@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import AOS from "aos";
 
 import { Button } from "@/components/ui/button";
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -57,8 +58,9 @@ const isNewPost = (createdAt) => {
 export default function ClassFeedPanel() {
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { feed, feedPagination, feedSubjects, feedNewCount, feedPersonalization, loadingFeed } =
-    useSelector((state) => state.classes);
+  const { feed, feedPagination, feedSubjects, feedNewCount, feedPersonalization, loadingFeed } = useSelector(
+    (state) => state.classes,
+  );
 
   const [selectedSubject, setSelectedSubject] = useState("");
   const [page, setPage] = useState(1);
@@ -82,6 +84,11 @@ export default function ClassFeedPanel() {
     );
   }, [dispatch, selectedSubject, page]);
 
+  // Đăng ký lại phần tử AOS khi feed hoặc nội dung tab được gắn lại vào DOM.
+  useEffect(() => {
+    AOS.refreshHard();
+  }, [loadingFeed, feed.length, selectedSubject, page]);
+
   const totalPages = feedPagination?.totalPages || 1;
   const totalItems = feedPagination?.totalItems || 0;
 
@@ -103,7 +110,12 @@ export default function ClassFeedPanel() {
     <div className="space-y-5">
       {/* New count banner */}
       {feedNewCount > 0 && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+        <div
+          className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700"
+          data-aos="fade-down"
+          data-aos-delay="50"
+          data-aos-duration="500"
+        >
           <Sparkles className="h-4 w-4" />
           {feedNewCount} bài đăng mới trong 24 giờ qua phù hợp với hồ sơ của bạn
         </div>
@@ -111,7 +123,12 @@ export default function ClassFeedPanel() {
 
       {/* Personalization summary: feed đã được lọc theo hồ sơ gia sư */}
       {feedPersonalization && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <div
+          className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600"
+          data-aos="fade-up"
+          data-aos-delay="100"
+          data-aos-duration="550"
+        >
           <span className="font-medium text-slate-500">Đang lọc theo hồ sơ của bạn:</span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
             <UserRound className="h-3.5 w-3.5 text-emerald-600" />
@@ -132,7 +149,12 @@ export default function ClassFeedPanel() {
 
       {/* Subject filter chips */}
       {feedSubjects.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className="flex flex-wrap items-center gap-2"
+          data-aos="fade-up"
+          data-aos-delay="150"
+          data-aos-duration="550"
+        >
           <span className="text-sm font-medium text-slate-500">Môn dạy:</span>
           <button
             type="button"
@@ -164,7 +186,7 @@ export default function ClassFeedPanel() {
 
       {/* Results count */}
       {!loadingFeed && !hasNoSubjects && (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600" data-aos="fade-up" data-aos-delay="200" data-aos-duration="500">
           <span className="font-bold text-slate-900">{totalItems}</span> bài đăng
           {selectedSubject ? ` cho môn ${selectedSubject}` : " phù hợp với môn bạn dạy"}
         </p>
@@ -172,7 +194,11 @@ export default function ClassFeedPanel() {
 
       {/* No subjects registered */}
       {hasNoSubjects && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+        <div
+          className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="600"
+        >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <BookOpenText className="h-7 w-7" />
           </div>
@@ -187,7 +213,13 @@ export default function ClassFeedPanel() {
       {loadingFeed && (
         <div className="space-y-4">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div
+              key={i}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              data-aos="fade-up"
+              data-aos-delay={i * 80}
+              data-aos-duration="450"
+            >
               <div className="animate-pulse space-y-3">
                 <div className="h-6 w-2/3 rounded bg-slate-200" />
                 <div className="h-4 w-1/3 rounded bg-slate-200" />
@@ -204,7 +236,11 @@ export default function ClassFeedPanel() {
 
       {/* Empty (has subjects but no posts) */}
       {!loadingFeed && !hasNoSubjects && feed.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+        <div
+          className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="600"
+        >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <Inbox className="h-7 w-7" />
           </div>
@@ -218,9 +254,12 @@ export default function ClassFeedPanel() {
 
       {/* Feed list */}
       {!loadingFeed &&
-        feed.map((item) => (
+        feed.map((item, idx) => (
           <article
             key={item.id}
+            data-aos="fade-up"
+            data-aos-delay={idx * 150}
+            data-aos-duration="600"
             className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
@@ -337,7 +376,12 @@ export default function ClassFeedPanel() {
 
       {/* Pagination */}
       {!loadingFeed && feed.length > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1.5 pt-2">
+        <div
+          className="flex items-center justify-center gap-1.5 pt-2"
+          data-aos="fade-up"
+          data-aos-delay="100"
+          data-aos-duration="500"
+        >
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
