@@ -30,7 +30,7 @@ Frontend React cho hệ thống quản lý trung tâm gia sư trực tuyến. �
 npm install
 ```
 
-Tạo file cấu hình môi trường trong thư mục frontend và điền base API backend (`VITE_API_BASE_URL`) + Google OAuth client ID theo môi trường chạy của bạn. URL Socket.IO được suy ra từ `VITE_API_BASE_URL` bằng cách bỏ hậu tố `/api`.
+Ở development, tạo `.env` và đặt `VITE_API_BASE_URL` trỏ thẳng backend. Trên Vercel, REST/auth luôn gọi `/api` qua reverse proxy trong `vercel.json`; đặt `VITE_SOCKET_URL` trỏ thẳng Render và cấu hình Google OAuth client ID.
 
 ## Chạy Dự Án
 
@@ -134,8 +134,8 @@ Mọi page đều nạp qua `React.lazy` → mỗi route là một chunk riêng.
 - Tất cả endpoint đặt trong `src/constants/apiEndpoints.js` — nhóm: `AUTH`, `TUTORS`, `ADMIN`, `LOCATIONS`, `NOTIFICATIONS`, `LOOKUPS`, `SUBJECTS`, `PROMOS`, `CLASSES`, `REVIEWS`, `CHAT`.
 - Component không gọi `axiosInstance` trực tiếp (ngoại lệ: `settingsService.js` hardcode path `/settings/footer`).
 - API call đặt trong `features/<feature>/services` hoặc `admin/services`; shared async state dùng Redux thunk/slice.
-- Access token lưu qua `tokenStorage`; refresh token (single-flight 401) xử lý tập trung trong `axiosInstance` (toast lỗi/success, hard-redirect `/login` khi refresh fail).
-- Socket.IO client (`src/services/socket.js`) dùng chung access token từ `tokenStorage`, kết nối idempotent; URL suy ra từ `VITE_API_BASE_URL` bỏ `/api`.
+- Access token chỉ nằm trong RAM qua `tokenStorage`; refresh token HttpOnly được xoay single-flight trong `axiosInstance`.
+- Production REST/auth đi qua `/api` cùng origin Vercel; Socket.IO dùng access token RAM để kết nối thẳng Render qua `VITE_SOCKET_URL`.
 - Thêm endpoint mới: cập nhật `apiEndpoints.js` → service → thunk → component.
 
 ### Viết thunk

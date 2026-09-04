@@ -1,14 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader2 } from "lucide-react";
 
-import { getUserInfoThunk } from "@/features/auth/store/authThunks";
+import { restoreSessionThunk } from "@/features/auth/store/authThunks";
 import {
   fetchNotificationsThunk,
   refreshUnreadCountThunk,
 } from "@/features/notifications/store/notificationThunks";
 import { clearNotifications } from "@/features/notifications/store/notificationSlice";
 import { clearAdminNotifications } from "@/admin/store/adminNotificationSlice";
+import { clearCredentials } from "@/features/auth/store/authSlice";
 import tokenStorage from "@/utils/tokenStorage";
 
 // Chu kỳ làm tươi số thông báo chưa đọc (ms) — để chuông cập nhật gần realtime, không cần reload.
@@ -20,16 +21,23 @@ const AuthBootstrap = ({ children }) => {
   const initialized = useSelector((state) => state.auth.initialized);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const userId = useSelector((state) => state.auth.user?.id);
-  // Không có token → không cần khôi phục phiên, sẵn sàng ngay (tính ở initializer để
-  // tránh setState đồng bộ trong effect gây cascading render).
-  const [ready, setReady] = useState(() => !tokenStorage.get());
+  const bootstrapStartedRef = useRef(false);
   const prevUserIdRef = useRef(null);
 
   useEffect(() => {
-    const token = tokenStorage.get();
-    if (token) {
-      dispatch(getUserInfoThunk()).finally(() => setReady(true));
+    // Đồng bộ đăng nhập/đăng xuất giữa các tab mà không truyền access token.
+    const unsubscribe = tokenStorage.subscribe((event) => {
+      if (event === "session-changed") dispatch(restoreSessionThunk());
+      if (event === "session-ended") dispatch(clearCredentials());
+    });
+
+    // React StrictMode chạy effect hai lần ở dev; ref giữ bootstrap chỉ gọi một lần.
+    if (!bootstrapStartedRef.current) {
+      bootstrapStartedRef.current = true;
+      dispatch(restoreSessionThunk());
     }
+
+    return unsubscribe;
   }, [dispatch]);
 
   useEffect(() => {
@@ -62,7 +70,7 @@ const AuthBootstrap = ({ children }) => {
     };
   }, [dispatch, isAuthenticated, userId]);
 
-  if (!ready && !initialized) {
+  if (!initialized) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />

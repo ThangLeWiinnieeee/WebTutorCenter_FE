@@ -1,4 +1,4 @@
-import axiosInstance from "@/services/axiosInstance";
+import axiosInstance, { refreshAccessToken } from "@/services/axiosInstance";
 import API_ENDPOINTS from "@/constants/apiEndpoints";
 
 const authService = {
@@ -14,7 +14,7 @@ const authService = {
 
   logout: () => axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT),
 
-  refreshToken: () => axiosInstance.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN),
+  refreshToken: () => refreshAccessToken(),
 
   forgotPassword: (data) => axiosInstance.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, data),
 

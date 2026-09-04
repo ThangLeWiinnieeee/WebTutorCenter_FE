@@ -1,40 +1,37 @@
 import { createSlice } from "@reduxjs/toolkit";
-import tokenStorage from "@/utils/tokenStorage";
 import {
   loginThunk,
   googleLoginThunk,
   registerThunk,
+  verifyOtpThunk,
   logoutThunk,
+  restoreSessionThunk,
   getUserInfoThunk,
   updateProfileThunk,
   uploadAvatarThunk,
 } from "./authThunks";
 
-const existingToken = tokenStorage.get();
-
 const initialState = {
   user: null,
-  accessToken: existingToken,
-  isAuthenticated: Boolean(existingToken),
+  isAuthenticated: false,
   loading: false,
   error: null,
   initialized: false,
+};
+
+const clearSessionState = (state) => {
+  state.user = null;
+  state.isAuthenticated = false;
+  state.loading = false;
+  state.error = null;
+  state.initialized = true;
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setCredentials: (state, action) => {
-      state.user = action.payload.user;
-      state.accessToken = action.payload.accessToken;
-      state.isAuthenticated = true;
-    },
-    clearCredentials: (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.isAuthenticated = false;
-    },
+    clearCredentials: clearSessionState,
     clearError: (state) => {
       state.error = null;
     },
@@ -49,8 +46,8 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
+        state.initialized = true;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;
@@ -80,34 +77,55 @@ const authSlice = createSlice({
       .addCase(googleLoginThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
+        state.initialized = true;
       })
       .addCase(googleLoginThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
 
-    // Logout
-    builder.addCase(logoutThunk.fulfilled, (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.isAuthenticated = false;
-    });
-
-    // Get user info (dùng để khôi phục phiên khi reload trang)
+    // Verify OTP đăng ký đồng thời hoàn tất đăng nhập.
     builder
-      .addCase(getUserInfoThunk.fulfilled, (state, action) => {
+      .addCase(verifyOtpThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyOtpThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.initialized = true;
+      })
+      .addCase(verifyOtpThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Logout phía client luôn hoàn tất kể cả khi request thu hồi phiên bị lỗi.
+    builder
+      .addCase(logoutThunk.fulfilled, clearSessionState)
+      .addCase(logoutThunk.rejected, clearSessionState);
+
+    // Khôi phục phiên từ refresh-token cookie trước khi render router.
+    builder
+      .addCase(restoreSessionThunk.pending, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.initialized = false;
+      })
+      .addCase(restoreSessionThunk.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
         state.initialized = true;
       })
-      .addCase(getUserInfoThunk.rejected, (state) => {
-        state.user = null;
-        state.accessToken = null;
-        state.isAuthenticated = false;
-        state.initialized = true;
-      });
+      .addCase(restoreSessionThunk.rejected, clearSessionState);
+
+    // Đồng bộ lại hồ sơ trong phiên hiện tại mà không thay đổi trạng thái bootstrap.
+    builder.addCase(getUserInfoThunk.fulfilled, (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+    });
 
     // Update profile
     builder
@@ -141,5 +159,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearCredentials, clearError } = authSlice.actions;
+export const { clearCredentials, clearError } = authSlice.actions;
 export default authSlice.reducer;
