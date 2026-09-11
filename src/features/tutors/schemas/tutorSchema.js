@@ -58,6 +58,7 @@ export const tutorSchema = z
     // Ảnh giấy tờ xác thực — đã upload trước, lưu URL trong form
     cccdFrontImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt trước"),
     cccdBackImage: z.string().min(1, "Vui lòng tải ảnh CCCD mặt sau"),
+    cccdVerificationReceipt: z.string().min(1, "Vui lòng quét CCCD trước khi gửi hồ sơ"),
     studentCardFrontImage: z.string().optional().default(""),
     studentCardBackImage: z.string().optional().default(""),
     certificateImages: z.array(z.string()).max(5, "Tối đa 5 ảnh bằng cấp").default([]),

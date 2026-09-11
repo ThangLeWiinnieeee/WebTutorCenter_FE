@@ -9,21 +9,27 @@ const useSiteSettings = () => {
   useEffect(() => {
     let active = true;
 
-    settingsService
-      .getFooter()
-      .then((response) => {
-        if (!active) return;
-        const data = response.data?.data;
-        startTransition(() => {
-          setState({ data: data || {}, loading: false, error: !data });
+    const refresh = () => {
+      settingsService
+        .getFooter()
+        .then((response) => {
+          if (!active) return;
+          const data = response.data?.data;
+          startTransition(() => {
+            setState({ data: data || {}, loading: false, error: !data });
+          });
+        })
+        .catch(() => {
+          if (active) setState((current) => ({ ...current, loading: false, error: true }));
         });
-      })
-      .catch(() => {
-        if (active) setState((current) => ({ ...current, loading: false, error: true }));
-      });
+    };
+
+    refresh();
+    window.addEventListener("focus", refresh);
 
     return () => {
       active = false;
+      window.removeEventListener("focus", refresh);
     };
   }, []);
 

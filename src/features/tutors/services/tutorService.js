@@ -13,6 +13,15 @@ const tutorService = {
     });
   },
 
+  verifyCccd: (front, back) => {
+    const formData = new FormData();
+    formData.append("front", front);
+    formData.append("back", back);
+    return axiosInstance.post(API_ENDPOINTS.CCCD.VERIFY, formData, {
+      headers: { "Content-Type": undefined },
+    });
+  },
+
   getProfile: () => axiosInstance.get(API_ENDPOINTS.TUTORS.GET_PROFILE),
 
   // Danh sách và search

@@ -8,6 +8,7 @@ import {
   searchTutorsThunk,
   fetchMyProfileChangeRequestThunk,
   requestProfileChangeThunk,
+  verifyCccdThunk,
 } from "./tutorThunks";
 
 const initialState = {
@@ -29,6 +30,8 @@ const initialState = {
   loading: false,
   error: null,
   registered: false,
+  verifyingCccd: false,
+  cccdVerification: null,
 };
 
 const tutorSlice = createSlice({
@@ -40,6 +43,8 @@ const tutorSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.registered = false;
+      state.verifyingCccd = false;
+      state.cccdVerification = null;
     },
     setFilters: (state, action) => {
       state.filters = action.payload;
@@ -48,6 +53,9 @@ const tutorSlice = createSlice({
     clearFilters: (state) => {
       state.filters = {};
       state.currentPage = 1;
+    },
+    clearCccdVerification: (state) => {
+      state.cccdVerification = null;
     },
   },
   extraReducers: (builder) => {
@@ -65,6 +73,19 @@ const tutorSlice = createSlice({
       .addCase(registerTutorThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      });
+
+    builder
+      .addCase(verifyCccdThunk.pending, (state) => {
+        state.verifyingCccd = true;
+        state.cccdVerification = null;
+      })
+      .addCase(verifyCccdThunk.fulfilled, (state, action) => {
+        state.verifyingCccd = false;
+        state.cccdVerification = action.payload;
+      })
+      .addCase(verifyCccdThunk.rejected, (state) => {
+        state.verifyingCccd = false;
       });
 
     // Get Profile
@@ -164,5 +185,5 @@ const tutorSlice = createSlice({
   },
 });
 
-export const { clearTutorState, setFilters, clearFilters } = tutorSlice.actions;
+export const { clearTutorState, setFilters, clearFilters, clearCccdVerification } = tutorSlice.actions;
 export default tutorSlice.reducer;

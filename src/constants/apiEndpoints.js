@@ -135,6 +135,9 @@ const API_ENDPOINTS = {
     // Trợ lý ảo — 1 endpoint hỏi/đáp, cho cả khách lẫn người đã đăng nhập.
     ASK: "/chatbot",
   },
+  CCCD: {
+    VERIFY: "/cccd/verify",
+  },
   PAYMENTS: {
     // Gia sư thanh toán phí nhận lớp qua cổng (VNPay/MoMo/ZaloPay) + xem hóa đơn của mình
     PROVIDERS: "/payments/providers",

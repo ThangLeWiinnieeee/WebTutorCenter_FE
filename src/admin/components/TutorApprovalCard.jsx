@@ -10,6 +10,7 @@ import {
   Loader2,
   MapPin,
   Phone,
+  ScanLine,
   User2,
   X,
   XCircle,
@@ -70,6 +71,44 @@ const teachingAreasLabel = (tutor) =>
         tutor.teachingAreas.districts?.map((d) => d.name).join(", ") || "—"
       }`
     : "—";
+
+const CCCD_DECISION_META = {
+  pass: { label: "AI: đạt", className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+  review: { label: "AI: cần xem lại", className: "border-amber-200 bg-amber-50 text-amber-700" },
+  suspicious: { label: "AI: nghi ngờ", className: "border-rose-200 bg-rose-50 text-rose-700" },
+};
+
+const CccdVerificationSummary = ({ verification }) => {
+  if (!verification) {
+    return (
+      <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-500">
+        Hồ sơ cũ chưa có kết quả quét CCCD tự động.
+      </div>
+    );
+  }
+
+  const meta = CCCD_DECISION_META[verification.decision] || {
+    label: verification.decision,
+    className: "border-slate-200 bg-white text-slate-600",
+  };
+  const percent = (value) => `${Math.round((Number(value) || 0) * 100)}%`;
+
+  return (
+    <div className={`mb-4 rounded-lg border p-3 text-xs ${meta.className}`}>
+      <div className="flex items-center gap-2 font-semibold">
+        <ScanLine className="h-4 w-4" />
+        {meta.label}
+      </div>
+      <p className="mt-2">
+        OCR trước {percent(verification.frontOcrConfidence)} · OCR sau{" "}
+        {percent(verification.backOcrConfidence)} · QR {verification.qrDecoded ? "đã đọc" : "chưa đọc"}
+      </p>
+      {verification.reasons?.length > 0 && (
+        <p className="mt-1 break-words">Lý do: {verification.reasons.join(", ")}</p>
+      )}
+    </div>
+  );
+};
 
 // Ô ảnh giấy tờ trong modal chi tiết — nhấn để phóng to
 const DocumentThumb = ({ label, src, onZoom }) => (
@@ -217,6 +256,7 @@ const TutorDetailModal = ({ tutor, onClose }) => {
               <IdCard className="h-4 w-4 shrink-0 text-slate-400" />
               <p className="text-xs font-medium text-slate-500">Hình ảnh chứng thực</p>
             </div>
+            <CccdVerificationSummary verification={tutor.cccdVerification} />
             <div className="grid gap-4 sm:grid-cols-2">
               <DocumentThumb label="CCCD mặt trước" src={tutor.cccdFrontImage} onZoom={setZoomSrc} />
               <DocumentThumb label="CCCD mặt sau" src={tutor.cccdBackImage} onZoom={setZoomSrc} />
