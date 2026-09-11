@@ -20,7 +20,7 @@ Frontend React cho hệ thống quản lý trung tâm gia sư trực tuyến. �
 
 ## Yêu Cầu
 
-- Node.js
+- Node.js `^20.19.0` hoặc `>=22.12.0` (yêu cầu của Vite 8)
 - Backend WebTutorCenter đang chạy
 - Google OAuth client ID nếu dùng đăng nhập Google
 
@@ -30,7 +30,15 @@ Frontend React cho hệ thống quản lý trung tâm gia sư trực tuyến. �
 npm install
 ```
 
-Ở development, tạo `.env` và đặt `VITE_API_BASE_URL` trỏ thẳng backend. Trên Vercel, REST/auth luôn gọi `/api` qua reverse proxy trong `vercel.json`; đặt `VITE_SOCKET_URL` trỏ thẳng Render và cấu hình Google OAuth client ID.
+Tạo `.env` cho development:
+
+```env
+VITE_API_BASE_URL=http://localhost:5002/api
+VITE_SOCKET_URL=
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+```
+
+Ở development, Socket.IO tự suy ra host từ `VITE_API_BASE_URL` nếu `VITE_SOCKET_URL` để trống. File `.env` đã được git ignore; không commit cấu hình thật.
 
 ## Chạy Dự Án
 
@@ -42,12 +50,49 @@ npm run preview      # Preview build
 npm run lint         # ESLint
 npm run format       # Prettier: format toàn bộ src + file config ở gốc
 npm run format:check # Prettier: chỉ kiểm tra, không sửa (dùng cho CI)
+node --test          # Self-check format + regression auth/deployment
 ```
+
+Để kiểm tra bản build trên local: chạy backend, chạy `npm run build` rồi `npm run preview`.
+Preview dùng cổng `4000` (cần dừng dev server trước) và chuyển `/api` tới `VITE_API_BASE_URL`,
+mặc định `http://localhost:5002/api`. Cấu hình này chỉ dành cho máy local; Vercel vẫn dùng `vercel.json`.
+Nếu kiểm tra chat trong bản build local, đặt `VITE_SOCKET_URL` trỏ tới backend local trước khi build.
+
+Hotline ở các khung hỗ trợ lấy từ cấu hình admin trong database của backend đang kết nối.
+Dữ liệu được tải lại khi mở trang hoặc quay lại tab; endpoint cấu hình trả `Cache-Control: no-store`.
+Khi triển khai thay đổi này, cần cập nhật cả frontend trên Vercel và backend trên Render.
 
 Luật format nằm trong `.prettierrc.json` (110 cột, nháy kép, dấu phẩy cuối, xuống dòng LF).
 `.prettierignore` chặn Prettier ghi đè `package-lock.json`, `dist`, `node_modules`.
 **Cả hai file đều phải commit** — thiếu một trong hai thì mỗi máy format ra một kiểu,
 lần chạy sau sẽ đẻ diff rác hàng trăm file.
+
+`node --test` tự tìm các self-check trong `src/lib` và regression test trong `test/`, gồm
+định dạng dữ liệu, auth memory-only, refresh đồng thời, Socket.IO và cấu hình Vercel.
+
+## Triển Khai Production: Vercel + Render
+
+Production cố ý không gọi REST/auth thẳng tới domain Render. `axiosInstance` luôn dùng `/api`; external rewrite trong `vercel.json` chuyển request sang Render nhưng giữ URL trình duyệt ở Vercel:
+
+```text
+Browser -- HTTPS /api --> Vercel rewrite --> Render /api
+        <-- refresh cookie HttpOnly, host-only trên origin Vercel --
+Browser -- Socket.IO + access token RAM ----------> Render
+```
+
+Cấu hình Vercel:
+
+```env
+VITE_SOCKET_URL=https://webtutor-api.onrender.com
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+```
+
+- `VITE_API_BASE_URL` dùng ở development và proxy preview local; bản frontend production luôn gọi `/api`.
+- Project root: `WebTutorCenter_FE`; build command: `npm run build`; output: `dist`.
+- Nếu đổi host Render, cập nhật `vercel.json`, `VITE_SOCKET_URL` và test deployment.
+- Thêm domain Vercel/custom domain vào Google Authorized JavaScript origins.
+
+Render phải đặt `CLIENT_URL` bằng chính xác origin FE production và để trống `COOKIE_DOMAIN`. Preview URL chỉ hoạt động khi được thêm riêng vào `CLIENT_URL`; production không cho phép wildcard `*.vercel.app`.
 
 ## Cấu Trúc Chính
 
@@ -84,7 +129,7 @@ src/
 │   ├── notifications/            # NotificationBell, NotificationsPage
 │   ├── vouchers/                 # kho voucher cá nhân (slice `vouchers`)
 │   ├── reviews/                  # đánh giá gia sư + trang đánh giá của tôi (slice `reviews`)
-│   └── chat/                     # chat realtime với admin (slice `chat`)
+│   └── chat/                     # chat realtime với admin + trợ lý ảo (slice `chat`)
 ├── hooks/                        # useSubjects, useDebouncedValue
 ├── layouts/                      # AuthLayout, MainLayout (gắn TutorChatWidget)
 ├── lib/                          # utils (cn), formErrors, format (+ format.test.mjs)
@@ -93,6 +138,8 @@ src/
 ├── services/                     # axiosInstance.js, settingsService.js, socket.js
 └── utils/                        # tokenStorage.js
 ```
+
+Regression test cho auth memory-only và cấu hình Vercel nằm ở thư mục `test/` tại root FE.
 
 > Không dùng file barrel `index.js` để re-export. Import thẳng tới file cụ thể
 > (`@/features/reviews/components/StarRating`), nếu không Rollup sẽ kéo cả feature
@@ -116,7 +163,7 @@ Mọi page đều nạp qua `React.lazy` → mỗi route là một chunk riêng.
 
 | Slice | Mục đích |
 |---|---|
-| `auth` | Session, user, token, cờ `initialized` (sở hữu cả state hồ sơ cá nhân) |
+| `auth` | Session, user, `isAuthenticated`, cờ `initialized` (không chứa access token) |
 | `tutors` | Hồ sơ gia sư của user, kết quả listing/search |
 | `admin` | Dữ liệu các trang quản trị, action approve/reject/restore |
 | `notifications` | Thông báo lấy từ backend theo `userId` (unread count derive) |
@@ -131,10 +178,11 @@ Mọi page đều nạp qua `React.lazy` → mỗi route là một chunk riêng.
 
 ## API Layer
 
-- Tất cả endpoint đặt trong `src/constants/apiEndpoints.js` — nhóm: `AUTH`, `TUTORS`, `ADMIN`, `LOCATIONS`, `NOTIFICATIONS`, `LOOKUPS`, `SUBJECTS`, `PROMOS`, `CLASSES`, `REVIEWS`, `CHAT`.
+- Tất cả endpoint đặt trong `src/constants/apiEndpoints.js` — nhóm: `AUTH`, `TUTORS`, `ADMIN`, `LOCATIONS`, `NOTIFICATIONS`, `LOOKUPS`, `SUBJECTS`, `PROMOS`, `CLASSES`, `REVIEWS`, `CHAT`, `CHATBOT`, `PAYMENTS`.
 - Component không gọi `axiosInstance` trực tiếp (ngoại lệ: `settingsService.js` hardcode path `/settings/footer`).
 - API call đặt trong `features/<feature>/services` hoặc `admin/services`; shared async state dùng Redux thunk/slice.
-- Access token chỉ nằm trong RAM qua `tokenStorage`; refresh token HttpOnly được xoay single-flight trong `axiosInstance`.
+- Access token chỉ nằm trong biến module RAM của `tokenStorage`, không vào Web Storage hoặc Redux DevTools. Token `localStorage` của phiên bản cũ được xóa một lần khi app nạp.
+- Refresh token chỉ nằm trong cookie HttpOnly. Axios gom các request `401` vào một refresh promise trong tab và dùng Web Lock để tuần tự hóa rotation giữa nhiều tab; chỉ `401/403` từ refresh mới kết thúc phiên, lỗi mạng/`5xx` không ép logout.
 - Production REST/auth đi qua `/api` cùng origin Vercel; Socket.IO dùng access token RAM để kết nối thẳng Render qua `VITE_SOCKET_URL`.
 - Thêm endpoint mới: cập nhật `apiEndpoints.js` → service → thunk → component.
 
@@ -199,7 +247,15 @@ main.jsx → GoogleOAuthProvider → Redux Provider → App.jsx
   → AuthBootstrap → ChatSocketProvider → RouterProvider + Toaster
 ```
 
-`AuthBootstrap` đọc token từ `tokenStorage`; nếu có thì gọi `getUserInfoThunk` để restore session, và fetch/clear notifications theo `user.id` khi đổi tài khoản. `ChatSocketProvider` kết nối/ngắt Socket.IO theo trạng thái đăng nhập và lắng nghe sự kiện chat để cập nhật slice `chat`.
+```text
+AuthBootstrap → restoreSessionThunk
+  → POST /auth/refresh-token (cookie HttpOnly)
+  → lưu access token mới vào RAM
+  → GET /users/user-info
+  → cập nhật Redux rồi mới render router
+```
+
+Không có refresh cookie thì bootstrap hoàn tất ở trạng thái guest, không gọi `user-info`. `BroadcastChannel` chỉ phát sự kiện đổi/kết thúc phiên giữa các tab, không truyền token. Sau khi restore, `AuthBootstrap` tải thông báo và làm mới unread count khi focus/định kỳ. `ChatSocketProvider` kết nối theo session; mỗi handshake lấy token RAM mới nhất và tự refresh/reconnect khi token hết hạn.
 
 ### Đăng tin tìm gia sư
 
@@ -231,6 +287,7 @@ ReviewDialog (lớp completed) → createReviewThunk → POST /reviews
 Gia sư/học viên: TutorChatWidget (khung nổi trong MainLayout) → chatThunks → CHAT.MY_*
 Admin: AdminMessagesPage (/admin/messages) → danh sách hội thoại + trả lời → CHAT.CONVERSATION_*
 Realtime: services/socket.js + ChatSocketProvider lắng nghe chat:message / chat:read / chat:conversation
+Trợ lý ảo: TutorChatWidget → chatbotService → POST /chatbot (guest hoặc user)
 ```
 
 ### Khu vực quản trị

@@ -29,6 +29,8 @@ const SILENT_ENDPOINTS = [
   "/chat/",
   // Trợ lý ảo: mỗi câu trả lời là 1 POST → không pop toast thành công
   "/chatbot",
+  // Quét có thể trả RETAKE/REVIEW trong response 200; component tự hiện trạng thái phù hợp.
+  API_ENDPOINTS.CCCD.VERIFY,
 ];
 
 const isSilentRequest = (config) => SILENT_ENDPOINTS.some((endpoint) => config?.url?.includes(endpoint));

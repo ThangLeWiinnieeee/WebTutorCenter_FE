@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
@@ -30,6 +31,7 @@ const formatDate = (value) => formatDateBase(value, null);
 export default function TutorDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const [tutor, setTutor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -159,14 +161,16 @@ export default function TutorDetailPage() {
         </div>
 
         {/* CTA — mời chính gia sư này dạy lớp của bạn (luồng mời trực tiếp) */}
-        <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => navigate(`/find-tutor?tutor=${tutor.id}`)}
-            className="bg-brand hover:bg-brand-dark w-full sm:w-56"
-          >
-            Chọn gia sư này dạy lớp của bạn
-          </Button>
-        </div>
+        {isAuthenticated && (
+          <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
+            <Button
+              onClick={() => navigate(`/find-tutor?tutor=${tutor.id}`)}
+              className="bg-brand hover:bg-brand-dark w-full sm:w-56"
+            >
+              Chọn gia sư này dạy lớp của bạn
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">

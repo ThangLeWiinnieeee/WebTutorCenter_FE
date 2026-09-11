@@ -15,6 +15,7 @@ import { GENDER_LABEL, OCCUPATION_STATUS_LABEL } from "@/features/tutors/constan
 import { getAgeFromDate } from "@/features/tutors/utils/tutorAge";
 import { StarRating } from "@/features/reviews/components/StarRating";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
+import { useSelector } from "react-redux";
 import { getInitials } from "@/lib/format";
 import { cldThumb } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const MetaRow = ({ icon, children }) => (
 // Thẻ gia sư trong danh sách: thông tin chính, môn dạy và các nút hành động.
 export default function TutorCard({ tutor }) {
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const occupationLabel = OCCUPATION_STATUS_LABEL[tutor.occupationStatus] || tutor.occupationStatus;
   const genderLabel = GENDER_LABEL[tutor.gender] || null;
   const age = getAgeFromDate(tutor.dateOfBirth);
@@ -160,18 +162,20 @@ export default function TutorCard({ tutor }) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                navigate(`/find-tutor?tutor=${tutor.id}`);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition-all hover:bg-brand-dark"
-            >
-              <Handshake className="h-4 w-4" />
-              Chọn gia sư này dạy lớp của bạn
-            </button>
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(`/find-tutor?tutor=${tutor.id}`);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition-all hover:bg-brand-dark"
+              >
+                <Handshake className="h-4 w-4" />
+                Chọn gia sư này dạy lớp của bạn
+              </button>
+            )}
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-700 transition-all group-hover:gap-2.5 group-hover:bg-emerald-100">
               Xem hồ sơ
               <ArrowRight className="h-4 w-4" />

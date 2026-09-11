@@ -11,6 +11,16 @@ export const registerTutorThunk = createApiThunk(
   "Đăng ký gia sư thất bại",
 );
 
+// Quét hai mặt CCCD, rồi BE upload chính hai file đã quét và trả biên nhận có chữ ký.
+export const verifyCccdThunk = createApiThunk(
+  "tutors/verifyCccd",
+  async ({ front, back }) => {
+    const res = await tutorService.verifyCccd(front, back);
+    return res.data.data;
+  },
+  "Quét CCCD thất bại",
+);
+
 // Lấy hồ sơ gia sư của chính người dùng.
 export const getTutorProfileThunk = createApiThunk(
   "tutors/getProfile",

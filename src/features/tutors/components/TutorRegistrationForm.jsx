@@ -22,6 +22,7 @@ import AreaPicker from "./AreaPicker";
 import SchoolPicker from "./SchoolPicker";
 import DocumentUploadField from "./DocumentUploadField";
 import DocumentMultiUpload from "./DocumentMultiUpload";
+import CccdVerificationField from "./CccdVerificationField";
 
 // Tiêu đề nhóm trường trong form đăng ký gia sư.
 const SectionTitle = ({ icon: Icon, title }) => (
@@ -36,7 +37,7 @@ const SectionTitle = ({ icon: Icon, title }) => (
 // Form đăng ký làm gia sư: thông tin cá nhân, môn dạy, khu vực, lịch rảnh và giấy tờ.
 const TutorRegistrationForm = ({ onSuccess }) => {
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.tutors);
+  const { loading, verifyingCccd } = useSelector((state) => state.tutors);
   const { subjects: subjectOptions } = useSubjects();
 
   const form = useForm({
@@ -53,6 +54,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
       availability: [],
       cccdFrontImage: "",
       cccdBackImage: "",
+      cccdVerificationReceipt: "",
       studentCardFrontImage: "",
       studentCardBackImage: "",
       certificateImages: [],
@@ -264,34 +266,24 @@ const TutorRegistrationForm = ({ onSuccess }) => {
             bảo mật.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="cccdFrontImage"
-              render={({ field, fieldState }) => (
-                <DocumentUploadField
-                  label="CCCD mặt trước"
-                  required
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cccdBackImage"
-              render={({ field, fieldState }) => (
-                <DocumentUploadField
-                  label="CCCD mặt sau"
-                  required
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-          </div>
+          <input type="hidden" {...form.register("cccdVerificationReceipt")} />
+          <CccdVerificationField
+            error={
+              form.formState.errors.cccdVerificationReceipt?.message ||
+              form.formState.errors.cccdFrontImage?.message ||
+              form.formState.errors.cccdBackImage?.message
+            }
+            onReset={() => {
+              form.setValue("cccdFrontImage", "");
+              form.setValue("cccdBackImage", "");
+              form.setValue("cccdVerificationReceipt", "");
+            }}
+            onVerified={({ cccdFrontImage, cccdBackImage, receipt }) => {
+              form.setValue("cccdFrontImage", cccdFrontImage, { shouldValidate: true });
+              form.setValue("cccdBackImage", cccdBackImage, { shouldValidate: true });
+              form.setValue("cccdVerificationReceipt", receipt, { shouldValidate: true });
+            }}
+          />
 
           {showStudentCard && (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -441,7 +433,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
         <div className="pt-2 border-t border-slate-100">
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || verifyingCccd}
             className="w-full bg-brand text-white hover:bg-brand-accent h-11 cursor-pointer"
           >
             {loading ? (

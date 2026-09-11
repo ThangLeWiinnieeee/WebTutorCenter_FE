@@ -2,22 +2,17 @@ import axiosInstance from "@/services/axiosInstance";
 
 let footerRequest;
 
-// Dùng chung một request cho Footer và các khối hotline cùng xuất hiện trong một trang.
+// Share only in-flight requests so later reads fetch the latest settings.
 const getFooter = () => {
   if (!footerRequest) {
-    footerRequest = axiosInstance.get("/settings/footer").catch((error) => {
+    footerRequest = axiosInstance.get("/settings/footer").finally(() => {
       footerRequest = undefined;
-      throw error;
     });
   }
   return footerRequest;
 };
 
-const updateFooter = async (payload) => {
-  const response = await axiosInstance.put("/settings/footer", payload);
-  footerRequest = Promise.resolve(response);
-  return response;
-};
+const updateFooter = (payload) => axiosInstance.put("/settings/footer", payload);
 
 const settingsService = {
   getFooter,
