@@ -35,6 +35,7 @@ const ChatSocketProvider = ({ children }) => {
     const socket = connectSocket();
     if (!socket) return undefined;
 
+    // Nhận tin nhắn mới từ socket và đưa vào store.
     const onMessage = (payload) => {
       dispatch(socketMessageReceived(payload));
       // Admin đang mở đúng hội thoại + tab hiển thị → đánh dấu đã đọc ngay.
@@ -46,7 +47,9 @@ const ChatSocketProvider = ({ children }) => {
         dispatch(markConversationReadThunk(payload.conversation.id));
       }
     };
+    // Nhận báo đã đọc từ socket.
     const onRead = (payload) => dispatch(socketReadReceived(payload));
+    // Nhận hội thoại mới/được cập nhật từ socket.
     const onConversation = (payload) => dispatch(socketConversationUpserted(payload));
 
     socket.on("chat:message", onMessage);

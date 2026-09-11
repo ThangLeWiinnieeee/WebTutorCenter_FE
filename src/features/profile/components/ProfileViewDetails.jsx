@@ -1,12 +1,9 @@
-import {
-  formatDate,
-  GENDER_LABEL,
-  ROLE_CONFIG,
-} from '@/features/profile/constants';
+import { formatDate, GENDER_LABEL, ROLE_CONFIG } from "@/features/profile/constants";
 
-import { ProfileBadge } from './ProfileBadges';
-import ProfileInfoRow from './ProfileInfoRow';
+import { ProfileBadge } from "./ProfileBadges";
+import ProfileInfoRow from "./ProfileInfoRow";
 
+// Hiển thị thông tin cá nhân ở chế độ chỉ xem.
 const ProfileViewDetails = ({ user }) => {
   const roleConfig = ROLE_CONFIG[user.role] ?? { label: user.role, className: "bg-slate-100 text-slate-600" };
 

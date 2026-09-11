@@ -9,13 +9,19 @@ const HOURS_24 = Array.from({ length: 24 }, (_, index) => index);
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const WEEKEND = ["Sat", "Sun"];
 
+// Khóa định danh một ô lịch (ngày + giờ).
 const slotKey = (day, hour) => `${day}-${hour}`;
 
+// Lấy danh sách giờ đã chọn trong một ngày.
 const hoursForDay = (slots, day) =>
-  [...new Set(slots.filter((slot) => slot.day === day).map((slot) => Number(slot.hour)))].sort((a, b) => a - b);
+  [...new Set(slots.filter((slot) => slot.day === day).map((slot) => Number(slot.hour)))].sort(
+    (a, b) => a - b,
+  );
 
+// Bỏ toàn bộ ô đã chọn của một ngày.
 const clearDaySlots = (slots, day) => slots.filter((slot) => slot.day !== day);
 
+// Thêm các ô mới vào danh sách, bỏ qua ô đã có.
 const addSlots = (slots, toAdd) => {
   const set = new Set(slots.map((slot) => slotKey(slot.day, slot.hour)));
   const next = [...slots];
@@ -36,20 +42,21 @@ const presetRanges = {
 };
 
 const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allowedSlots = null }) {
-  const slotSet = useMemo(
-    () => new Set(value.map((slot) => slotKey(slot.day, slot.hour))),
-    [value]
-  );
+  const slotSet = useMemo(() => new Set(value.map((slot) => slotKey(slot.day, slot.hour))), [value]);
+  // Kiểm tra một ô đang được chọn hay không.
   const slotActive = (day, hour) => slotSet.has(slotKey(day, hour));
 
   // allowedSlots != null → giới hạn chỉ cho phép chọn các khung giờ này (luồng mời gia sư:
   // chỉ những giờ gia sư có thể dạy). null/undefined = không giới hạn (hành vi mặc định).
   const allowedSet = useMemo(
     () => (allowedSlots ? new Set(allowedSlots.map((slot) => slotKey(slot.day, Number(slot.hour)))) : null),
-    [allowedSlots]
+    [allowedSlots],
   );
+  // Kiểm tra một ô có nằm trong phạm vi được phép chọn không.
   const slotAllowed = (day, hour) => !allowedSet || allowedSet.has(slotKey(day, hour));
-  const filterAllowed = (slots) => (!allowedSet ? slots : slots.filter((s) => allowedSet.has(slotKey(s.day, Number(s.hour)))));
+  // Lọc bỏ các ô nằm ngoài phạm vi được phép chọn.
+  const filterAllowed = (slots) =>
+    !allowedSet ? slots : slots.filter((s) => allowedSet.has(slotKey(s.day, Number(s.hour))));
 
   const [dragMode, setDragMode] = useState(null); // 'add' | 'remove' | null
   const valueRef = useRef(value);
@@ -59,6 +66,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
   }, [value]);
 
   useEffect(() => {
+    // Kết thúc thao tác kéo chọn nhiều ô.
     const handleMouseUp = () => {
       setDragMode(null);
     };
@@ -68,6 +76,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     };
   }, []);
 
+  // Bắt đầu kéo chọn/bỏ chọn từ một ô.
   const handleMouseDown = (day, hour, active) => {
     if (!active && !slotAllowed(day, hour)) return; // không cho thêm ô ngoài lịch dạy của gia sư
     const nextMode = active ? "remove" : "add";
@@ -83,6 +92,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     onChange(nextValue);
   };
 
+  // Áp thao tác kéo cho ô đang lướt qua.
   const handleMouseEnter = (day, hour) => {
     if (!dragMode) return;
 
@@ -102,8 +112,10 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     }
   };
 
+  // Bỏ chọn toàn bộ giờ của một ngày.
   const clearDay = (day) => onChange(clearDaySlots(value, day));
 
+  // Áp một khung giờ dựng sẵn cho các ngày trong tuần.
   const applyPreset = (preset) => {
     const hours = presetRanges[preset];
     const targets = WEEKDAYS;
@@ -116,6 +128,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     onChange(filterAllowed(next));
   };
 
+  // Áp khung giờ dựng sẵn cho cuối tuần.
   const applyWeekendPreset = () => {
     const hours = Array.from({ length: 13 }, (_, index) => 8 + index);
     let next = [...value];
@@ -127,6 +140,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     onChange(filterAllowed(next));
   };
 
+  // Thêm khung giờ tối các ngày trong tuần vào lựa chọn hiện tại.
   const mergePresetEveningWeekdays = () => {
     let next = [...value];
     presetRanges.evening.forEach((hour) => {
@@ -137,6 +151,7 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
     onChange(filterAllowed(next));
   };
 
+  // Bỏ chọn toàn bộ lịch.
   const clearAll = () => onChange([]);
 
   return (
@@ -182,9 +197,11 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
           <div className="inline-block min-w-full align-middle xl:min-w-[720px]">
             <div className="mb-3 flex min-w-[640px] items-end gap-x-2 text-[10px] font-medium text-slate-400">
-              <div className="sticky left-0 isolate z-[10] flex min-h-[2.125rem] shrink-0 items-end gap-x-2 self-stretch rounded-r-lg bg-white pl-2 pr-4 shadow-[6px_0_12px_-4px_rgba(15,23,42,0.12)]">
+              <div className="sticky left-0 isolate z-10 flex min-h-[2.125rem] shrink-0 items-end gap-x-2 self-stretch rounded-r-lg bg-white pl-2 pr-4 shadow-[6px_0_12px_-4px_rgba(15,23,42,0.12)]">
                 <span className="inline-block size-5 shrink-0" aria-hidden />
-                <span className="inline-flex min-w-[4.5rem] font-semibold uppercase tracking-wide text-slate-400">Ngày</span>
+                <span className="inline-flex min-w-[4.5rem] font-semibold uppercase tracking-wide text-slate-400">
+                  Ngày
+                </span>
               </div>
               <div className="flex min-w-0 flex-1 justify-between px-0.5">
                 <span>00:00</span>
@@ -193,17 +210,16 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
                 <span>18:00</span>
                 <span>24:00</span>
               </div>
-              <span className="inline-flex size-8 shrink-0 items-center justify-center text-center">&nbsp;</span>
+              <span className="inline-flex size-8 shrink-0 items-center justify-center text-center">
+                &nbsp;
+              </span>
             </div>
 
             {SCHEDULE_DAYS.map((day) => {
               const activeCount = hoursForDay(value, day.value).length;
               return (
-                <div
-                  key={day.value}
-                  className="mb-2 flex min-w-[640px] items-center gap-x-2 last:mb-0"
-                >
-                  <div className="sticky left-0 isolate z-[5] flex min-h-[2.5rem] shrink-0 items-center gap-x-2 self-stretch rounded-r-lg bg-white px-2 pr-4 py-1 shadow-[6px_0_14px_-4px_rgba(15,23,42,0.1)]">
+                <div key={day.value} className="mb-2 flex min-w-[640px] items-center gap-x-2 last:mb-0">
+                  <div className="sticky left-0 isolate z-5 flex min-h-[2.5rem] shrink-0 items-center gap-x-2 self-stretch rounded-r-lg bg-white px-2 pr-4 py-1 shadow-[6px_0_14px_-4px_rgba(15,23,42,0.1)]">
                     <button
                       type="button"
                       aria-label={`Xóa lịch ${day.label}`}
@@ -215,12 +231,14 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
                         "flex size-5 shrink-0 items-center justify-center rounded border transition",
                         activeCount > 0
                           ? "border-emerald-500 bg-emerald-600 shadow-sm shadow-emerald-200/60"
-                          : "border-slate-200 bg-white hover:border-emerald-200"
+                          : "border-slate-200 bg-white hover:border-emerald-200",
                       )}
                     >
                       {activeCount > 0 && <Check className="h-3 w-3 text-white" />}
                     </button>
-                    <span className="min-w-[4.5rem] truncate text-xs font-semibold text-slate-700">{day.label}</span>
+                    <span className="min-w-[4.5rem] truncate text-xs font-semibold text-slate-700">
+                      {day.label}
+                    </span>
                   </div>
 
                   <div
@@ -248,20 +266,18 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
                           onMouseEnter={() => handleMouseEnter(day.value, hour)}
                           className={cn(
                             "relative flex min-h-[32px] min-w-[22px] w-full items-center justify-center text-[9px] font-semibold tabular-nums transition-all duration-150 select-none",
-                            disabled
-                              ? "cursor-not-allowed bg-slate-200/80 text-slate-300"
-                              : "cursor-pointer",
+                            disabled ? "cursor-not-allowed bg-slate-200/80 text-slate-300" : "cursor-pointer",
                             !disabled && active
                               ? cn(
-                                  "z-[1] bg-emerald-600 text-white shadow-sm hover:bg-emerald-700",
+                                  "z-1 bg-emerald-600 text-white shadow-sm hover:bg-emerald-700",
                                   !prevOn && "rounded-l-[5px]",
-                                  !nextOn && "rounded-r-[5px]"
+                                  !nextOn && "rounded-r-[5px]",
                                 )
                               : !disabled &&
                                   cn(
                                     "bg-slate-50 text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 hover:ring-1 hover:ring-inset hover:ring-emerald-300/60",
-                                    isQuarter && "bg-slate-100 text-slate-600"
-                                  )
+                                    isQuarter && "bg-slate-100 text-slate-600",
+                                  ),
                           )}
                         >
                           <span className="pointer-events-none select-none opacity-90">{hour}</span>
@@ -286,7 +302,8 @@ const WeeklyHourGrid = memo(function WeeklyHourGrid({ value = [], onChange, allo
         </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
-          Mỗi ô là một giờ. Ô liền nhau được tô xanh liền mạch. Bạn có thể nhấn giữ chuột và lia chuột qua lại để chọn/bỏ chọn nhanh nhiều ô.
+          Mỗi ô là một giờ. Ô liền nhau được tô xanh liền mạch. Bạn có thể nhấn giữ chuột và lia chuột qua lại
+          để chọn/bỏ chọn nhanh nhiều ô.
         </p>
       </div>
 

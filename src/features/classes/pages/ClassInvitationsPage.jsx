@@ -1,11 +1,12 @@
 import { Handshake } from "lucide-react";
 import ClassInvitationsPanel from "@/features/classes/components/ClassInvitationsPanel";
 
+// Trang gia sư xem các lời mời dạy lớp.
 export default function ClassInvitationsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="border-b border-slate-200 bg-linear-to-r from-[#1e3a5f] to-[#2c5282]">
-        <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="border-b border-slate-200 bg-linear-to-r from-brand to-[#2c5282]">
+        <div className="mx-auto max-w-5xl px-6 py-8" data-aos="fade-down" data-aos-duration="550">
           <div className="flex items-center gap-2 text-emerald-300">
             <Handshake className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">Lời mời dạy lớp</span>

@@ -10,6 +10,7 @@ const SCHOOL_TYPE_LABEL = {
   academy: "Học viện",
 };
 
+// Ô nhập trường học có gợi ý tự động từ danh mục trường.
 const SchoolPicker = ({ value, onChange }) => {
   const [query, setQuery] = useState(value || "");
   const [schools, setSchools] = useState([]);
@@ -42,6 +43,7 @@ const SchoolPicker = ({ value, onChange }) => {
   }, [query, open, fetchSchools]);
 
   useEffect(() => {
+    // Đóng danh sách gợi ý khi bấm ra ngoài.
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setOpen(false);
@@ -51,12 +53,14 @@ const SchoolPicker = ({ value, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Chọn một trường từ danh sách gợi ý.
   const handleSelect = (school) => {
     setQuery(school.name);
     onChange(school.name);
     setOpen(false);
   };
 
+  // Cập nhật từ khóa và mở lại danh sách gợi ý.
   const handleInputChange = (e) => {
     const val = e.target.value;
     setQuery(val);

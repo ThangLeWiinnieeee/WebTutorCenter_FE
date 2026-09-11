@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 
 import { CLASS_STATUS_META } from "@/features/classes/utils/classStatus";
 
+// Ô thống kê hiển thị nhãn và số lượng theo một trạng thái.
 export const StatCard = ({ label, count, color, loading }) => {
   const colors = {
     amber: "bg-amber-50 border-amber-200 text-amber-700",
@@ -20,6 +21,7 @@ export const StatCard = ({ label, count, color, loading }) => {
   );
 };
 
+// Nhãn cho biết gia sư có dạy đúng môn của lớp hay không.
 export const SubjectMatchBadge = ({ tutorSubjects, classSubject }) => {
   const matches = Array.isArray(tutorSubjects) && tutorSubjects.includes(classSubject);
   return matches ? (
@@ -35,6 +37,7 @@ export const SubjectMatchBadge = ({ tutorSubjects, classSubject }) => {
   );
 };
 
+// Nhãn màu thể hiện trạng thái của đơn nhận lớp.
 export const StatusBadge = ({ status }) => {
   if (status === "approved") {
     return (
@@ -60,6 +63,7 @@ export const StatusBadge = ({ status }) => {
   );
 };
 
+// Ảnh đại diện gia sư, fallback về chữ cái đầu khi không có ảnh.
 export const TutorAvatar = ({ tutor, size = "h-10 w-10" }) =>
   tutor?.avatar ? (
     <img
@@ -69,15 +73,20 @@ export const TutorAvatar = ({ tutor, size = "h-10 w-10" }) =>
       className={`${size} rounded-full object-cover ring-2 ring-slate-100`}
     />
   ) : (
-    <div className={`${size} flex shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white shadow-inner`}>
+    <div
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white shadow-inner`}
+    >
       {(tutor?.fullName ?? "?")[0]}
     </div>
   );
 
+// Nhãn màu thể hiện trạng thái vòng đời của bài đăng lớp.
 export const ClassStatusBadge = ({ status }) => {
   const s = CLASS_STATUS_META[status] || CLASS_STATUS_META.open;
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${s.className}`}>
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${s.className}`}
+    >
       {s.label}
     </span>
   );

@@ -11,6 +11,7 @@ import HomeCTA from "@/components/home/HomeCTA";
 import FloatingContactBar from "@/components/shared/FloatingContactBar";
 import { getTopTutorsThunk, getNewTutorsThunk } from "@/features/tutors/store/tutorThunks";
 
+// Trang chủ: hero tìm kiếm, gia sư nổi bật, gia sư mới và các khối giới thiệu.
 export default function HomePage() {
   const dispatch = useDispatch();
   const { topTutors, newTutors, loading } = useSelector((state) => state.tutors);
@@ -30,7 +31,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Section 1: Hero Search */}
-      <section id="home" className="relative overflow-hidden bg-linear-to-br from-emerald-50 via-white to-blue-50">
+      <section
+        id="home"
+        className="relative overflow-hidden bg-linear-to-br from-emerald-50 via-white to-blue-50"
+      >
         <HeroSearchBar />
       </section>
 

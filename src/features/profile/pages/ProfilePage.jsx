@@ -21,6 +21,7 @@ import TutorProfileEditForm from "@/features/profile/components/TutorProfileEdit
 import TutorDocumentsCard from "@/features/profile/components/TutorDocumentsCard";
 import ProfileMenu from "@/features/profile/components/ProfileMenu";
 
+// Trang hồ sơ cá nhân: xem/sửa thông tin, đổi avatar và quản lý hồ sơ gia sư.
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const dispatch = useDispatch();
@@ -61,6 +62,7 @@ const ProfilePage = () => {
     }
   }, [isTutor, dispatch]);
 
+  // Gửi yêu cầu đổi hồ sơ gia sư để admin duyệt.
   const handleTutorProfileSubmit = async (changes) => {
     const result = await dispatch(requestProfileChangeThunk(changes));
     if (!result.error) {
@@ -90,6 +92,7 @@ const ProfilePage = () => {
 
   const displayAvatar = avatarPreview || user.avatar;
 
+  // Tải ảnh đại diện mới lên server.
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,6 +115,7 @@ const ProfilePage = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Bật chế độ chỉnh sửa và nạp dữ liệu hiện tại vào form.
   const handleEdit = () => {
     form.reset({
       fullName: user.fullName ?? "",
@@ -122,11 +126,13 @@ const ProfilePage = () => {
     setIsEditing(true);
   };
 
+  // Hủy chỉnh sửa và trả form về trạng thái ban đầu.
   const handleCancel = () => {
     form.reset();
     setIsEditing(false);
   };
 
+  // Lưu thay đổi thông tin cá nhân.
   const onSubmit = async (data) => {
     const result = await dispatch(updateProfileThunk(data));
     if (!result.error) {
@@ -137,59 +143,70 @@ const ProfilePage = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className={`grid gap-6 ${isTutor ? "lg:grid-cols-[300px_1fr]" : "lg:grid-cols-[300px_1fr]"}`}>
-        <div className="min-w-0 space-y-4" data-aos="fade-right">
-          <ProfileSidebar
-            user={user}
-            displayAvatar={displayAvatar}
-            isUploadingAvatar={isUploadingAvatar}
-            fileInputRef={fileInputRef}
-            onAvatarChange={handleAvatarChange}
-            onPickAvatar={() => fileInputRef.current?.click()}
-          />
-          <ProfileMenu isTutor={isTutor} />
+        <div className="min-w-0 space-y-4">
+          <div data-aos="fade-right" data-aos-duration="600">
+            <ProfileSidebar
+              user={user}
+              displayAvatar={displayAvatar}
+              isUploadingAvatar={isUploadingAvatar}
+              fileInputRef={fileInputRef}
+              onAvatarChange={handleAvatarChange}
+              onPickAvatar={() => fileInputRef.current?.click()}
+            />
+          </div>
+          <div data-aos="fade-up" data-aos-delay="100" data-aos-duration="600">
+            <ProfileMenu isTutor={isTutor} />
+          </div>
         </div>
 
-        <div className="min-w-0 space-y-6" data-aos="fade-up" data-aos-delay="100">
-          <ProfilePersonalCard isEditing={isEditing} onEdit={handleEdit}>
-            {isEditing ? (
-              <ProfileEditForm
-                form={form}
-                user={user}
-                loading={loading}
-                onSubmit={onSubmit}
-                onCancel={handleCancel}
-              />
-            ) : (
-              <ProfileViewDetails user={user} />
-            )}
-          </ProfilePersonalCard>
+        <div className="min-w-0 space-y-6">
+          <div data-aos="fade-down" data-aos-delay="80" data-aos-duration="550">
+            <ProfilePersonalCard isEditing={isEditing} onEdit={handleEdit}>
+              {isEditing ? (
+                <ProfileEditForm
+                  form={form}
+                  user={user}
+                  loading={loading}
+                  onSubmit={onSubmit}
+                  onCancel={handleCancel}
+                />
+              ) : (
+                <ProfileViewDetails user={user} />
+              )}
+            </ProfilePersonalCard>
+          </div>
 
-          {isTutor &&
-            (isEditingTutor ? (
-              <TutorProfileEditForm
-                tutorProfile={tutorProfile}
-                submitting={submittingProfileChange}
-                onSubmit={handleTutorProfileSubmit}
-                onCancel={() => setIsEditingTutor(false)}
-              />
-            ) : (
-              <TutorInfoCard
-                tutorProfile={tutorProfile}
-                loading={tutorLoading}
-                canEdit={tutorProfile?.status === "approved"}
-                pendingRequest={profileChangeRequest}
-                onEdit={() => setIsEditingTutor(true)}
-              />
-            ))}
+          {isTutor && (
+            <div data-aos="fade-left" data-aos-delay="140" data-aos-duration="650">
+              {isEditingTutor ? (
+                <TutorProfileEditForm
+                  tutorProfile={tutorProfile}
+                  submitting={submittingProfileChange}
+                  onSubmit={handleTutorProfileSubmit}
+                  onCancel={() => setIsEditingTutor(false)}
+                />
+              ) : (
+                <TutorInfoCard
+                  tutorProfile={tutorProfile}
+                  loading={tutorLoading}
+                  canEdit={tutorProfile?.status === "approved"}
+                  pendingRequest={profileChangeRequest}
+                  onEdit={() => setIsEditingTutor(true)}
+                />
+              )}
+            </div>
+          )}
 
           {isTutor && tutorProfile && !isEditingTutor && (
-            <TutorDocumentsCard
-              tutorProfile={tutorProfile}
-              pendingRequest={profileChangeRequest}
-              submitting={submittingProfileChange}
-              onSubmit={handleDocumentsSubmit}
-              autoEdit={focusDocuments}
-            />
+            <div data-aos="fade-up" data-aos-delay="200" data-aos-duration="650">
+              <TutorDocumentsCard
+                tutorProfile={tutorProfile}
+                pendingRequest={profileChangeRequest}
+                submitting={submittingProfileChange}
+                onSubmit={handleDocumentsSubmit}
+                autoEdit={focusDocuments}
+              />
+            </div>
           )}
         </div>
       </div>

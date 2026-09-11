@@ -6,6 +6,7 @@ import SearchableSelect from "@/features/classes/components/SearchableSelect";
 // Giá trị nội bộ cho lựa chọn "Tất cả" (rỗng) trong SearchableSelect.
 const ALL = "__all__";
 
+// Bộ lọc danh sách gia sư (môn, khu vực, giới tính, trình độ...).
 export default function TutorFilters({
   filters = {},
   onFilterChange,
@@ -15,6 +16,7 @@ export default function TutorFilters({
 }) {
   const { subjects = [], occupations = [], genders = [], provinces = [] } = lookups;
 
+  // Cập nhật một tiêu chí lọc và báo lên component cha.
   const update = (key, value) => {
     const next = { ...filters };
     if (value === undefined || value === "" || value === null || value === ALL) delete next[key];

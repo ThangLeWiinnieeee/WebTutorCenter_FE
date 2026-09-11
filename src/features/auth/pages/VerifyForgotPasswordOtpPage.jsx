@@ -4,13 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
 import VerifyOtpForm from "@/features/auth/components/VerifyOtpForm";
-import {
-  forgotPasswordThunk,
-  verifyForgotPasswordOtpThunk,
-} from "@/features/auth/store/authThunks";
+import { forgotPasswordThunk, verifyForgotPasswordOtpThunk } from "@/features/auth/store/authThunks";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+// Trang bước 2 quên mật khẩu: nhập OTP để lấy resetToken.
 const VerifyForgotPasswordOtpPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,6 +31,7 @@ const VerifyForgotPasswordOtpPage = () => {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
+  // Xác thực OTP rồi chuyển sang trang đặt lại mật khẩu.
   const onSubmit = async ({ otp }) => {
     setServerError("");
     const result = await dispatch(verifyForgotPasswordOtpThunk({ email, otp }));
@@ -67,8 +66,7 @@ const VerifyForgotPasswordOtpPage = () => {
         title="Xác thực OTP khôi phục mật khẩu"
         description={
           <>
-            Nhập mã OTP gồm 6 chữ số đã gửi đến{" "}
-            <span className="font-semibold text-slate-700">{email}</span>
+            Nhập mã OTP gồm 6 chữ số đã gửi đến <span className="font-semibold text-slate-700">{email}</span>
           </>
         }
         submitLabel="Tiếp tục"

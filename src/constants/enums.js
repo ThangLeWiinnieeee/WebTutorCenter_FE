@@ -1,9 +1,7 @@
 // Hằng số domain dùng chung cho toàn FE (nguồn sự thật duy nhất).
 // Tránh hardcode/lặp lại các bảng nhãn này trong từng component.
 
-// Nhãn giới tính dùng chung (hiển thị mặc định).
-// Lưu ý: một số nơi có nhãn theo ngữ cảnh riêng (vd "Hỗn hợp", "Nam/Nữ")
-// nên giữ hàm format riêng tại chỗ đó, KHÔNG thay bằng bảng này.
+// Nhãn giới tính mặc định; nơi cần nhãn theo ngữ cảnh riêng thì tự format tại chỗ.
 export const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
 
 // Thứ tự ngày trong tuần (khớp enum DAYS_OF_WEEK bên backend).

@@ -10,6 +10,7 @@ import {
   fetchConversationMessagesThunk,
   sendConversationMessageThunk,
   sendConversationImageThunk,
+  sendConversationCardThunk,
   markConversationReadThunk,
   startConversationThunk,
 } from "./chatThunks";
@@ -52,8 +53,16 @@ const dedupPush = (arr, msg) => {
   if (msg && !arr.some((m) => m.id === msg.id)) arr.push(msg);
 };
 
-// Nội dung xem trước ở danh sách hội thoại (ảnh không có text → hiển thị nhãn).
-const previewOf = (message) => message.content || (message.imageUrl ? "[Hình ảnh]" : "");
+// Nội dung xem trước ở danh sách hội thoại (ảnh/thẻ không có text → hiển thị nhãn).
+const previewOf = (message) => {
+  if (message.content) return message.content;
+  if (message.card)
+    return message.card.kind === "tutor"
+      ? `[Gia sư] ${message.card.title}`
+      : `[Bài đăng] ${message.card.title}`;
+  if (message.imageUrl) return "[Hình ảnh]";
+  return "";
+};
 
 // Áp tin nhắn admin vừa gửi vào state: thêm vào khung đang mở + cập nhật xem trước.
 const applyAdminSent = (admin, { id, message }) => {
@@ -95,10 +104,7 @@ const chatSlice = createSlice({
         const incoming = p.conversation;
         const idx = admin.conversations.findIndex((c) => c.id === incoming.id);
         const oldUnread = idx >= 0 ? admin.conversations[idx].unreadCount || 0 : 0;
-        admin.totalUnread = Math.max(
-          0,
-          admin.totalUnread + ((incoming.unreadCount || 0) - oldUnread)
-        );
+        admin.totalUnread = Math.max(0, admin.totalUnread + ((incoming.unreadCount || 0) - oldUnread));
         admin.conversations = upsertConversation(admin.conversations, incoming);
         if (admin.activeId === incoming.id) dedupPush(admin.messages, p.message);
       } else if (p.conversationId !== undefined) {
@@ -234,6 +240,19 @@ const chatSlice = createSlice({
         state.admin.sending = false;
       });
 
+    // Admin gửi thẻ gia sư/bài đăng — dùng chung logic với gửi text.
+    builder
+      .addCase(sendConversationCardThunk.pending, (state) => {
+        state.admin.sending = true;
+      })
+      .addCase(sendConversationCardThunk.fulfilled, (state, action) => {
+        state.admin.sending = false;
+        applyAdminSent(state.admin, action.payload);
+      })
+      .addCase(sendConversationCardThunk.rejected, (state) => {
+        state.admin.sending = false;
+      });
+
     builder.addCase(markConversationReadThunk.fulfilled, (state, action) => {
       applyAdminRead(state.admin, action.payload);
     });
@@ -253,9 +272,13 @@ export const {
   socketConversationUpserted,
 } = chatSlice.actions;
 
+// Selector: state chat phía người dùng.
 export const selectTutorChat = (state) => state.chat.tutor;
+// Selector: số tin nhắn chưa đọc của người dùng.
 export const selectTutorUnreadCount = (state) => state.chat.tutor.unreadCount;
+// Selector: state chat phía admin.
 export const selectAdminChat = (state) => state.chat.admin;
+// Selector: tổng số tin nhắn chưa đọc của admin.
 export const selectAdminUnreadTotal = (state) => state.chat.admin.totalUnread;
 
 export default chatSlice.reducer;

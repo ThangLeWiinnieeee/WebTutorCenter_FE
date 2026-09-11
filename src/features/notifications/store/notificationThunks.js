@@ -1,51 +1,42 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiThunk } from "@/app/createApiThunk";
 import notificationService from "@/features/notifications/services/notificationService";
 
-export const fetchNotificationsThunk = createAsyncThunk(
+// Lấy danh sách thông báo của người dùng.
+export const fetchNotificationsThunk = createApiThunk(
   "notifications/fetch",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await notificationService.getNotifications(params);
-      return res.data.data; // { notifications, unreadCount, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy thông báo thất bại");
-    }
-  }
+  async (params = {}) => {
+    const res = await notificationService.getNotifications(params);
+    return res.data.data; // { notifications, unreadCount, pagination }
+  },
+  "Lấy thông báo thất bại",
 );
 
 // Làm tươi nhẹ chỉ số thông báo chưa đọc (cho chuông) — không tải lại danh sách,
 // tránh phá phân trang đang xem ở trang Thông báo. Dùng cho polling/refetch khi focus.
-export const refreshUnreadCountThunk = createAsyncThunk(
+export const refreshUnreadCountThunk = createApiThunk(
   "notifications/refreshUnreadCount",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await notificationService.getNotifications({ page: 1, limit: 1 });
-      return res.data.data.unreadCount ?? 0;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy số thông báo chưa đọc thất bại");
-    }
-  }
+  async () => {
+    const res = await notificationService.getNotifications({ page: 1, limit: 1 });
+    return res.data.data.unreadCount ?? 0;
+  },
+  "Lấy số thông báo chưa đọc thất bại",
 );
 
-export const markAsReadThunk = createAsyncThunk(
+// Đánh dấu một thông báo là đã đọc.
+export const markAsReadThunk = createApiThunk(
   "notifications/markAsRead",
-  async (id, { rejectWithValue }) => {
-    try {
-      await notificationService.markAsRead(id);
-      return id;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Đánh dấu đã đọc thất bại");
-    }
-  }
+  async (id) => {
+    await notificationService.markAsRead(id);
+    return id;
+  },
+  "Đánh dấu đã đọc thất bại",
 );
 
-export const markAllAsReadThunk = createAsyncThunk(
+// Đánh dấu tất cả thông báo là đã đọc.
+export const markAllAsReadThunk = createApiThunk(
   "notifications/markAllAsRead",
-  async (_, { rejectWithValue }) => {
-    try {
-      await notificationService.markAllAsRead();
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Đánh dấu tất cả đã đọc thất bại");
-    }
-  }
+  async () => {
+    await notificationService.markAllAsRead();
+  },
+  "Đánh dấu tất cả đã đọc thất bại",
 );

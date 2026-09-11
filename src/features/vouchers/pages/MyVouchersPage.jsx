@@ -7,6 +7,7 @@ import AOS from "aos";
 import Pagination from "@/components/shared/Pagination";
 import { formatPrice } from "@/features/classes/utils/classFormatters";
 import { fetchMyVouchersThunk } from "@/features/vouchers/store/voucherThunks";
+import { formatDate } from "@/lib/format";
 
 const PAGE_SIZE = 10;
 
@@ -16,19 +17,19 @@ const STATUS_META = {
   expired: { label: "Hết hạn", className: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
-// Giữ fallback "—" (khác dấu "-" của formatDate dùng chung) để không đổi hiển thị.
-const formatDate = (value) => (value ? new Date(value).toLocaleDateString("vi-VN") : "—");
-
+// Nhãn mô tả mức giảm của voucher.
 const discountLabel = (v) =>
   v.discountType === "percent"
     ? `Giảm ${v.discountValue}%${v.maxDiscountAmount ? ` (tối đa ${formatPrice(v.maxDiscountAmount)})` : ""}`
     : `Giảm ${formatPrice(v.discountValue)}`;
 
+// Thẻ hiển thị một voucher kèm nút sao chép mã.
 const VoucherCard = ({ voucher, index = 0 }) => {
   const [copied, setCopied] = useState(false);
   const meta = STATUS_META[voucher.status] || STATUS_META.active;
   const usable = voucher.status === "active";
 
+  // Sao chép mã voucher vào clipboard.
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(voucher.code);
@@ -49,13 +50,19 @@ const VoucherCard = ({ voucher, index = 0 }) => {
       }`}
     >
       <div className="flex items-start gap-3">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${usable ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"}`}>
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${usable ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"}`}
+        >
           <Ticket className="h-6 w-6" />
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-base font-bold tracking-wider text-slate-900">{voucher.code}</span>
-            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}>
+            <span className="font-mono text-base font-bold tracking-wider text-slate-900">
+              {voucher.code}
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.className}`}
+            >
               {meta.label}
             </span>
           </div>
@@ -82,6 +89,7 @@ const VoucherCard = ({ voucher, index = 0 }) => {
   );
 };
 
+// Trang kho voucher cá nhân của người dùng.
 export default function MyVouchersPage() {
   const dispatch = useDispatch();
   const { items, pagination, loading } = useSelector((state) => state.vouchers);
@@ -97,6 +105,7 @@ export default function MyVouchersPage() {
   }, [loading, items.length]);
 
   const totalPages = pagination?.totalPages || 1;
+  // Chuyển trang danh sách voucher.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -141,7 +150,12 @@ export default function MyVouchersPage() {
       )}
 
       {!loading && items.length > 0 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-6" />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          className="pt-6"
+        />
       )}
     </div>
   );

@@ -1,15 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
 
-const isProfileIncomplete = (user) =>
-  user && (!user.phone || !user.dateOfBirth);
+// Kiểm tra hồ sơ người dùng còn thiếu thông tin bắt buộc hay không.
+const isProfileIncomplete = (user) => user && (!user.phone || !user.dateOfBirth);
 
-/**
- * skipProfileCheck: true  → chỉ yêu cầu đăng nhập (dùng cho /complete-profile)
- * skipProfileCheck: false → yêu cầu đăng nhập + profile đầy đủ
- * allowedRoles: null       → cho phép mọi vai trò đã đăng nhập
- * allowedRoles: [...]      → chỉ cho phép các vai trò trong danh sách
- */
+// Route guard: yêu cầu đăng nhập, tùy chọn kiểm tra hồ sơ đầy đủ và vai trò cho phép.
 const ProtectedRoute = ({ skipProfileCheck = false, allowedRoles = null }) => {
   const { isAuthenticated, user } = useAuth();
 

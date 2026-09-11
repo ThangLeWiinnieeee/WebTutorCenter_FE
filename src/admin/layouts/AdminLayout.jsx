@@ -1,6 +1,27 @@
-import { createElement, useEffect, useState } from "react";
+import { createElement, Suspense, useEffect, useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen, Star, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import {
+  GraduationCap,
+  Users,
+  LogOut,
+  LayoutDashboard,
+  ShieldAlert,
+  UserCog,
+  ClipboardCheck,
+  Settings,
+  Ticket,
+  FileText,
+  Trash2,
+  UserCheck,
+  Ban,
+  BookOpen,
+  Star,
+  MessageSquare,
+  BarChart3,
+  CreditCard,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -10,15 +31,17 @@ import { fetchAdminUnreadCountThunk } from "@/features/chat/store/chatThunks";
 import { selectAdminUnreadTotal } from "@/features/chat/store/chatSlice";
 import AdminNotificationBell from "@/admin/components/AdminNotificationBell";
 import { refreshAdminUnreadCountThunk } from "@/admin/store/adminNotificationThunks";
-import { getInitials } from "@/features/profile";
+import { getInitials } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import PageLoader from "@/components/shared/PageLoader";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
 
 // Chu kỳ làm tươi số thông báo quản trị chưa đọc (ms) — cho chuông cập nhật gần realtime.
 const ADMIN_NOTIFICATION_POLL_MS = 30000;
 
+// Chấm số đếm việc cần xử lý hiển thị cạnh mục menu.
 const Badge = ({ count, collapsed }) => {
   if (!count) return null;
   const label = count > 99 ? "99+" : count;
@@ -37,20 +60,16 @@ const Badge = ({ count, collapsed }) => {
   );
 };
 
+// Một mục điều hướng trong sidebar quản trị.
 const NavItem = ({ to, icon, label, active, badge = 0, collapsed }) => (
   <Link
     to={to}
     title={collapsed ? label : undefined}
     className={`relative flex items-center rounded-lg text-sm font-medium transition-colors
       ${collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-3 py-2"}
-      ${active
-        ? "bg-[#1e3a5f] text-white"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
-      }`}
+      ${active ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"}`}
   >
-    <span className="shrink-0">
-      {createElement(icon, { className: "h-4 w-4" })}
-    </span>
+    <span className="shrink-0">{createElement(icon, { className: "h-4 w-4" })}</span>
     {!collapsed && (
       <>
         <span className="truncate">{label}</span>
@@ -62,6 +81,7 @@ const NavItem = ({ to, icon, label, active, badge = 0, collapsed }) => (
   </Link>
 );
 
+// Layout khu vực quản trị: tự chặn người không phải admin, sidebar + vùng nội dung.
 const AdminLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -70,9 +90,7 @@ const AdminLayout = () => {
   const { dashboardStats } = useSelector((state) => state.admin);
   const chatUnread = useSelector(selectAdminUnreadTotal);
 
-  const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true"
-  );
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true");
 
   const isAdmin = isAuthenticated && user?.role === "admin";
 
@@ -90,6 +108,7 @@ const AdminLayout = () => {
   useEffect(() => {
     if (!isAdmin) return undefined;
 
+    // Tải lại các số đếm việc chờ xử lý hiển thị trên sidebar.
     const refresh = () => {
       if (document.visibilityState === "visible") dispatch(refreshAdminUnreadCountThunk());
     };
@@ -117,7 +136,7 @@ const AdminLayout = () => {
           <ShieldAlert className="mx-auto h-12 w-12 text-rose-500 mb-4" />
           <h2 className="text-lg font-semibold text-slate-800 mb-2">Không có quyền truy cập</h2>
           <p className="text-slate-500 text-sm mb-4">Bạn cần quyền quản trị viên để vào khu vực này.</p>
-          <Button asChild size="sm" className="bg-[#1e3a5f] text-white hover:bg-[#16304f]">
+          <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
             <Link to="/">Về trang chủ</Link>
           </Button>
         </div>
@@ -125,6 +144,7 @@ const AdminLayout = () => {
     );
   }
 
+  // Đăng xuất khỏi khu vực quản trị.
   const handleLogout = async () => {
     await dispatch(logoutThunk());
     navigate("/login", { replace: true });
@@ -147,11 +167,11 @@ const AdminLayout = () => {
         >
           {!collapsed && (
             <>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#1e3a5f]">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand">
                 <GraduationCap className="h-4 w-4 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-[#1e3a5f] leading-tight truncate">WebTutorCenter</p>
+                <p className="text-sm font-bold text-brand leading-tight truncate">WebTutorCenter</p>
                 <p className="text-xs text-slate-500">Quản trị viên</p>
               </div>
             </>
@@ -170,15 +190,27 @@ const AdminLayout = () => {
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {!collapsed && (
-            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Quản lý
-            </p>
+            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Quản lý</p>
           )}
           <NavItem
             to="/admin"
             icon={LayoutDashboard}
             label="Tổng quan"
             active={location.pathname === "/admin"}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/admin/statistics"
+            icon={BarChart3}
+            label="Thống kê"
+            active={location.pathname === "/admin/statistics"}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/admin/payments"
+            icon={CreditCard}
+            label="Thanh toán"
+            active={location.pathname === "/admin/payments"}
             collapsed={collapsed}
           />
           <NavItem
@@ -290,7 +322,7 @@ const AdminLayout = () => {
             ) : (
               <div
                 title={collapsed ? user.fullName : undefined}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-xs font-bold text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white"
               >
                 {getInitials(user.fullName)}
               </div>
@@ -318,13 +350,17 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}>
+      <div
+        className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}
+      >
         {/* Thanh trên cùng: chuông thông báo riêng cho quản trị viên */}
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-3 border-b border-slate-200 bg-white/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-white/80">
           <AdminNotificationBell />
         </header>
         <main className="flex-1 p-6">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

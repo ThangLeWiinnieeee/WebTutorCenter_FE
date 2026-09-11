@@ -1,14 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, ClipboardList, FileText, GraduationCap, Handshake, LogOut, Menu, Star, Ticket, UserRound, X } from "lucide-react";
+import {
+  ChevronDown,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  Handshake,
+  LogOut,
+  Menu,
+  Star,
+  Ticket,
+  UserRound,
+  X,
+} from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
-import { getInitials } from "@/features/profile";
+import { getInitials } from "@/lib/format";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 import { NAV_LINKS } from "@/constants/navigation";
 
+// Thanh điều hướng đầu trang: menu chính, chuông thông báo và menu tài khoản.
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,11 +35,11 @@ const Header = () => {
 
   const navLinks = NAV_LINKS.filter(
     (item) =>
-      !(item.hideForTutor && user?.role === "tutor") &&
-      !(item.showForTutorOnly && user?.role !== "tutor")
+      !(item.hideForTutor && user?.role === "tutor") && !(item.showForTutorOnly && user?.role !== "tutor"),
   );
 
   useEffect(() => {
+    // Đóng menu tài khoản khi bấm ra ngoài.
     const onClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
     };
@@ -34,6 +47,7 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  // Đăng xuất rồi chuyển về trang đăng nhập.
   const handleLogout = async () => {
     setMenuOpen(false);
     await dispatch(logoutThunk());
@@ -45,10 +59,10 @@ const Header = () => {
       <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-6 px-4 sm:px-6">
         {/* Logo */}
         <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand">
             <GraduationCap className="h-7 w-7 text-white" />
           </div>
-          <span className="hidden text-xl font-bold text-[#1e3a5f] sm:inline">WebTutorCenter</span>
+          <span className="hidden text-xl font-bold text-brand sm:inline">WebTutorCenter</span>
         </Link>
 
         <nav className="hidden items-center justify-center gap-9 lg:flex">
@@ -56,7 +70,7 @@ const Header = () => {
             const isActive = item.hash
               ? location.hash === item.hash
               : item.paths?.some((path) =>
-                  path === "/" ? location.pathname === path : location.pathname.startsWith(path)
+                  path === "/" ? location.pathname === path : location.pathname.startsWith(path),
                 );
 
             return (
@@ -64,7 +78,7 @@ const Header = () => {
                 key={item.label}
                 to={item.to}
                 className={`relative py-2 text-sm font-semibold transition-colors ${
-                  isActive ? "text-[#1e3a5f]" : "text-slate-700 hover:text-[#1e3a5f]"
+                  isActive ? "text-brand" : "text-slate-700 hover:text-brand"
                 }`}
               >
                 {item.label}
@@ -104,7 +118,7 @@ const Header = () => {
                       className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f] text-xs font-bold text-white ring-2 ring-slate-200">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-bold text-white ring-2 ring-slate-200">
                       {getInitials(user.fullName)}
                     </div>
                   )}
@@ -202,7 +216,7 @@ const Header = () => {
             <>
               <Link
                 to="/login"
-                className="hidden h-10 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5 lg:inline-flex"
+                className="hidden h-10 items-center justify-center rounded-lg border border-brand px-5 text-sm font-semibold text-brand transition-colors hover:bg-brand/5 lg:inline-flex"
               >
                 Đăng nhập
               </Link>
@@ -236,7 +250,7 @@ const Header = () => {
               const isActive = item.hash
                 ? location.hash === item.hash
                 : item.paths?.some((path) =>
-                    path === "/" ? location.pathname === path : location.pathname.startsWith(path)
+                    path === "/" ? location.pathname === path : location.pathname.startsWith(path),
                   );
 
               return (
@@ -245,7 +259,7 @@ const Header = () => {
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
                   className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive ? "bg-slate-100 text-[#1e3a5f]" : "text-slate-700 hover:bg-slate-50"
+                    isActive ? "bg-slate-100 text-brand" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {item.label}
@@ -258,7 +272,7 @@ const Header = () => {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-11 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5"
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-brand px-5 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
                 >
                   Đăng nhập
                 </Link>

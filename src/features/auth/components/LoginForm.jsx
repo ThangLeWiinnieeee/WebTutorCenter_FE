@@ -1,24 +1,19 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import {
-  Check,
-  Eye,
-  EyeOff,
-  GraduationCap,
-  Loader2,
-} from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Check, Eye, EyeOff, GraduationCap, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { REMEMBERED_EMAIL_KEY } from '@/features/auth/constants';
-import { loginSchema } from '@/features/auth/schemas/authSchema';
-import { scrollToFirstError } from '@/lib/formErrors';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { GoogleLogin } from '@react-oauth/google';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { REMEMBERED_EMAIL_KEY } from "@/features/auth/constants";
+import { loginSchema } from "@/features/auth/schemas/authSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { GoogleLogin } from "@react-oauth/google";
 
+// Form đăng nhập bằng email/mật khẩu kèm nút đăng nhập Google.
 const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -47,7 +42,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
 
   // Ô input dạng "filled" mềm, hòa vào nền trắng — focus mới nổi viền + nền trắng.
   const fieldClass = (hasError) =>
-    `h-12 rounded-xl border px-4 text-[15px] text-slate-800 transition-all duration-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-[#1e3a5f] ${
+    `h-12 rounded-xl border px-4 text-[15px] text-slate-800 transition-all duration-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-brand ${
       hasError
         ? "border-red-300 bg-red-50/60 focus-visible:border-red-400"
         : "border-transparent bg-slate-100/70 hover:bg-slate-100"
@@ -58,10 +53,10 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
       <div className="w-full max-w-[400px]">
         {/* Mobile logo */}
         <div data-aos="fade-up" className="mb-10 flex items-center gap-2 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-[#1e3a5f]">WebTutorCenter</span>
+          <span className="text-lg font-bold text-brand">WebTutorCenter</span>
         </div>
 
         {/* Heading */}
@@ -69,9 +64,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
             Chào mừng trở lại
           </h2>
-          <p className="text-[15px] text-slate-500">
-            Đăng nhập để tiếp tục học tập cùng gia sư của bạn
-          </p>
+          <p className="text-[15px] text-slate-500">Đăng nhập để tiếp tục học tập cùng gia sư của bạn</p>
         </div>
 
         {/* Form */}
@@ -95,9 +88,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
               className={fieldClass(errors.email)}
               {...register("email")}
             />
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
           </div>
 
           {/* Password */}
@@ -123,9 +114,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
                 {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
           </div>
 
           {/* Remember me + forgot password */}
@@ -140,7 +129,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white shadow-sm transition-all duration-150 group-hover:border-[#1e3a5f] checked:border-[#1e3a5f] checked:bg-[#1e3a5f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1"
+                  className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white shadow-sm transition-all duration-150 group-hover:border-brand checked:border-brand checked:bg-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1"
                 />
                 <Check
                   className="pointer-events-none absolute h-3 w-3 scale-50 text-white opacity-0 transition-all duration-150 peer-checked:scale-100 peer-checked:opacity-100"
@@ -161,7 +150,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-12 w-full rounded-xl bg-linear-to-r from-[#1e3a5f] to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-[#1e3a5f]/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-[#16304f] hover:to-[#244269] hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+            className="h-12 w-full rounded-xl bg-linear-to-r from-brand to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-brand/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-brand-dark hover:to-[#244269] hover:shadow-xl hover:shadow-brand/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {isSubmitting ? (
               <>

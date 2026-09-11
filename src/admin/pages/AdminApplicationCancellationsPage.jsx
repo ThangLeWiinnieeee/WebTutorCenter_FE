@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Ban, Check, Clock, Loader2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
 import Pagination from "@/components/shared/Pagination";
 import {
   getApplicationCancellationsThunk,
@@ -10,7 +11,7 @@ import {
   rejectCancellationThunk,
 } from "@/admin/store/adminThunks";
 import { formatDateTime } from "@/features/classes/utils/classFormatters";
-import { getInitials } from "@/features/profile";
+import { getInitials } from "@/lib/format";
 
 const PAGE_SIZE = 10;
 
@@ -20,18 +21,22 @@ const TABS = [
   { value: "all", label: "Tất cả" },
 ];
 
+// Nhãn màu thể hiện trạng thái yêu cầu hủy đơn.
 const StatusBadge = ({ status }) => {
   const config = {
     cancel_requested: { label: "Chờ duyệt hủy", className: "bg-orange-50 text-orange-700 border-orange-200" },
     cancelled: { label: "Đã hủy", className: "bg-slate-100 text-slate-600 border-slate-200" },
   }[status] || { label: status, className: "bg-slate-100 text-slate-600 border-slate-200" };
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.className}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.className}`}
+    >
       {config.label}
     </span>
   );
 };
 
+// Trang admin duyệt/từ chối các yêu cầu hủy đơn nhận lớp của gia sư.
 export default function AdminApplicationCancellationsPage() {
   const dispatch = useDispatch();
   const {
@@ -53,19 +58,22 @@ export default function AdminApplicationCancellationsPage() {
 
   const totalPages = cancellationsPagination?.totalPages || 1;
 
+  // Đổi tab lọc theo trạng thái và quay về trang đầu.
   const handleTab = (tab) => {
     setActiveTab(tab);
     setPage(1);
   };
 
+  // Chuyển trang danh sách.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Gửi từ chối yêu cầu hủy kèm lý do.
   const submitReject = async () => {
     const result = await dispatch(
-      rejectCancellationThunk({ id: rejectTarget.id, rejectionReason: rejectReason.trim() })
+      rejectCancellationThunk({ id: rejectTarget.id, rejectionReason: rejectReason.trim() }),
     );
     if (!result.error) {
       setRejectTarget(null);
@@ -77,7 +85,7 @@ export default function AdminApplicationCancellationsPage() {
     <div>
       {/* Heading */}
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
           <Ban className="h-6 w-6" />
         </div>
         <div>
@@ -98,7 +106,7 @@ export default function AdminApplicationCancellationsPage() {
               onClick={() => handleTab(tab.value)}
               className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
                 isActive
-                  ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
+                  ? "border-brand bg-brand text-white"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -146,7 +154,7 @@ export default function AdminApplicationCancellationsPage() {
                         className="h-11 w-11 rounded-full object-cover ring-2 ring-slate-100"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1e3a5f] text-sm font-bold text-white">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                         {getInitials(item.tutor?.fullName)}
                       </div>
                     )}
@@ -167,10 +175,14 @@ export default function AdminApplicationCancellationsPage() {
                 <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
                   <p className="text-slate-700">
                     <span className="text-slate-400">Lớp: </span>
-                    <span className="font-medium">Mã {item.classItem?.classCode} · {item.classItem?.subject}</span>
+                    <span className="font-medium">
+                      Mã {item.classItem?.classCode} · {item.classItem?.subject}
+                    </span>
                   </p>
                   <div className="rounded-lg bg-orange-50 px-3 py-2 text-orange-800">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-orange-500">Lý do hủy</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-orange-500">
+                      Lý do hủy
+                    </span>
                     <p className="mt-0.5 whitespace-pre-wrap break-words">{item.cancellationReason || "—"}</p>
                   </div>
                 </div>
@@ -183,7 +195,11 @@ export default function AdminApplicationCancellationsPage() {
                       disabled={acting}
                       className="bg-emerald-600 text-white hover:bg-emerald-700"
                     >
-                      {acting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                      {acting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="mr-2 h-4 w-4" />
+                      )}
                       Duyệt hủy
                     </Button>
                     <Button
@@ -208,39 +224,46 @@ export default function AdminApplicationCancellationsPage() {
       )}
 
       {!cancellationsLoading && cancellations.length > 0 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-6" />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          className="pt-6"
+        />
       )}
 
       {/* Reject modal */}
       {rejectTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900">Từ chối yêu cầu hủy</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Gia sư {rejectTarget.tutor?.fullName} sẽ vẫn giữ lớp này. Bạn có thể nêu lý do (không bắt buộc).
-            </p>
-            <textarea
-              rows={4}
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Lý do từ chối (không bắt buộc)..."
-              className="mt-3 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
-            />
-            <div className="mt-4 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setRejectTarget(null)}>
-                Hủy
-              </Button>
-              <Button
-                type="button"
-                onClick={submitReject}
-                disabled={cancellationActionLoading === rejectTarget.id}
-                className="bg-rose-600 text-white hover:bg-rose-700"
-              >
-                Xác nhận từ chối
-              </Button>
-            </div>
+        <Modal
+          onClose={() => setRejectTarget(null)}
+          overlayClassName="bg-black/40 backdrop-blur-none"
+          panelClassName="rounded-2xl border-0 shadow-xl"
+        >
+          <h3 className="text-base font-semibold text-slate-900">Từ chối yêu cầu hủy</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Gia sư {rejectTarget.tutor?.fullName} sẽ vẫn giữ lớp này. Bạn có thể nêu lý do (không bắt buộc).
+          </p>
+          <textarea
+            rows={4}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Lý do từ chối (không bắt buộc)..."
+            className="mt-3 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:border-slate-400 focus-visible:outline-none"
+          />
+          <div className="mt-4 flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => setRejectTarget(null)}>
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={submitReject}
+              disabled={cancellationActionLoading === rejectTarget.id}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              Xác nhận từ chối
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

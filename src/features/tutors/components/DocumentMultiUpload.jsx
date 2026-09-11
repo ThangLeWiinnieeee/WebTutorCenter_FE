@@ -8,15 +8,13 @@ import {
   TUTOR_UPLOAD_ALLOWED_TYPES as ALLOWED,
 } from "@/features/tutors/constants";
 
-/**
- * Tải nhiều ảnh giấy tờ (thẻ sinh viên / bằng cấp). Lưu mảng URL trong form.
- * Hiển thị các ảnh đã tải + 1 ô "thêm" khi chưa đạt giới hạn `max`.
- */
+// Ô tải nhiều ảnh giấy tờ, lưu mảng URL vào form và giới hạn theo `max`.
 const DocumentMultiUpload = ({ label, hint, required, value = [], onChange, max = 5, error }) => {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const images = Array.isArray(value) ? value : [];
 
+  // Tải các ảnh giấy tờ vừa chọn lên server.
   const handleSelect = async (e) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // cho phép chọn lại cùng file
@@ -46,6 +44,7 @@ const DocumentMultiUpload = ({ label, hint, required, value = [], onChange, max 
     }
   };
 
+  // Bỏ một ảnh khỏi danh sách đã tải lên.
   const removeAt = (index) => {
     onChange(images.filter((_, i) => i !== index));
   };
@@ -87,11 +86,11 @@ const DocumentMultiUpload = ({ label, hint, required, value = [], onChange, max 
             className={`flex aspect-[16/10] flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed text-slate-400 transition-colors ${
               error
                 ? "border-rose-300 bg-rose-50/40"
-                : "border-slate-200 bg-slate-50 hover:border-[#1e3a5f]/40 hover:bg-slate-100"
+                : "border-slate-200 bg-slate-50 hover:border-brand/40 hover:bg-slate-100"
             }`}
           >
             {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-[#1e3a5f]" />
+              <Loader2 className="h-5 w-5 animate-spin text-brand" />
             ) : (
               <>
                 <ImagePlus className="h-5 w-5" />

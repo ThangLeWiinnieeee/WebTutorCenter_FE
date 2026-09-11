@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "react-day-picker/dist/style.css";
 
+/* Màu thương hiệu — dùng qua bg-brand / text-brand / border-brand / from-brand…
+   Trước đây hex được viết thẳng trong class (bg-[#1e3a5f]) ở hơn 280 chỗ. */
+@theme {
+  --color-brand: #1e3a5f; /* xanh navy chủ đạo */
+  --color-brand-dark: #16304f; /* trạng thái hover / điểm đậm của gradient */
+  --color-brand-accent: #2d5a9e; /* điểm nhấn sáng hơn */
+}
+
 /* Map shadcn CSS variables → Tailwind v4 color utilities (tránh bg-popover không có màu / trong suốt) */
 @theme inline {
   --color-background: hsl(var(--background));
@@ -135,12 +143,21 @@
    do AOS đảm nhiệm qua data-aos; ở đây chỉ giữ chuyển động lặp.
    ============================================================ */
 @keyframes wtc-float {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(10px, -22px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -22px);
+  }
 }
 
-.animate-float-slow   { animation: wtc-float 9s  ease-in-out infinite; }
-.animate-float-slower { animation: wtc-float 13s ease-in-out infinite; }
+.animate-float-slow {
+  animation: wtc-float 9s ease-in-out infinite;
+}
+.animate-float-slower {
+  animation: wtc-float 13s ease-in-out infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-float-slow,
@@ -155,7 +172,12 @@
 
 /* Font có cá tính cho khu xác thực (không đổi font toàn app) */
 .auth-shell {
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  font-family:
+    "Plus Jakarta Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

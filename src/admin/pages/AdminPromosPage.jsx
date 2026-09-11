@@ -1,18 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Filter,
-  Loader2,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Search,
-  Ticket,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Filter, Loader2, Pencil, Plus, RefreshCw, Search, Ticket, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/Pagination";
+import useDebouncedValue from "@/hooks/useDebouncedValue";
 import {
   getPromosThunk,
   createPromoThunk,
@@ -25,28 +17,22 @@ import {
   PROMO_STATUS_OPTIONS as STATUS_OPTIONS,
   PROMO_DEFAULT_FILTERS as DEFAULT_FILTERS,
 } from "@/admin/constants";
-import {
-  DiscountBadge,
-  StatusBadge,
-  PromoFormModal,
-  PromoDeleteModal,
-} from "@/admin/components/promos";
+import { DiscountBadge, StatusBadge, PromoFormModal, PromoDeleteModal } from "@/admin/components/promos";
+import { formatDate } from "@/lib/format";
 
-const formatDate = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-};
+// Ở bảng mã ưu đãi, ngày trống cần trả null để nhánh "Không giới hạn" bên dưới chạy đúng.
+const promoDate = (value) => formatDate(value, null);
 
-const buildParams = (filters, page) => ({
+// Dựng tham số truy vấn danh sách mã ưu đãi từ bộ lọc và số trang.
+const buildParams = (filters, keyword, page) => ({
   page,
   limit: PAGE_SIZE,
-  ...(filters.keyword.trim() ? { keyword: filters.keyword.trim() } : {}),
+  ...(keyword ? { keyword } : {}),
   ...(filters.discountType ? { discountType: filters.discountType } : {}),
   ...(filters.isActive !== "" ? { isActive: filters.isActive } : {}),
 });
 
+// Trang admin quản lý mã ưu đãi: lọc, tạo, sửa, bật/tắt và xóa mềm.
 const AdminPromosPage = () => {
   const dispatch = useDispatch();
   const { promos, promosPagination, promosLoading, promosError, promoActionLoading } = useSelector(
@@ -54,30 +40,34 @@ const AdminPromosPage = () => {
   );
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [keywordInput, setKeywordInput] = useState(DEFAULT_FILTERS.keyword);
+  const [keywordInput, setKeywordInput] = useState("");
   const [page, setPage] = useState(1);
   const [formPromo, setFormPromo] = useState(null); // promo object (edit) hoặc {} (create)
   const [formOpen, setFormOpen] = useState(false);
   const [deletePromo, setDeletePromo] = useState(null);
 
-  const params = useMemo(() => buildParams(filters, page), [filters, page]);
+  const debouncedKeyword = useDebouncedValue(keywordInput.trim());
 
+  // Từ khóa vừa chốt sau debounce → quay về trang 1. Chỉnh state ngay trong lượt render
+  // (pattern "adjusting state when props change" của React) chứ không đặt trong onChange
+  // hay useEffect: hai cách kia đều bắn thêm một lượt fetch thừa với từ khóa cũ.
+  const [appliedKeyword, setAppliedKeyword] = useState(debouncedKeyword);
+  if (appliedKeyword !== debouncedKeyword) {
+    setAppliedKeyword(debouncedKeyword);
+    setPage(1);
+  }
+
+  const params = useMemo(
+    () => buildParams(filters, debouncedKeyword, page),
+    [filters, debouncedKeyword, page],
+  );
+
+  // Tải lại danh sách mã ưu đãi theo bộ lọc hiện tại.
   const refetch = () => dispatch(getPromosThunk(params));
 
   useEffect(() => {
     dispatch(getPromosThunk(params));
   }, [dispatch, params]);
-
-  // Tự tìm sau khi ngừng gõ (debounce 400ms) — bỏ nút "Lọc", đồng bộ hành vi với bộ lọc client.
-  useEffect(() => {
-    const trimmed = keywordInput.trim();
-    if (trimmed === filters.keyword) return;
-    const timer = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, keyword: trimmed }));
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [keywordInput, filters.keyword]);
 
   // Select lọc áp dụng ngay khi đổi và quay về trang 1.
   const updateFilter = (key, value) => {
@@ -85,26 +75,28 @@ const AdminPromosPage = () => {
     setPage(1);
   };
 
+  // Xóa toàn bộ bộ lọc về mặc định.
   const handleReset = () => {
     setFilters(DEFAULT_FILTERS);
-    setKeywordInput(DEFAULT_FILTERS.keyword);
+    setKeywordInput("");
     setPage(1);
   };
 
+  // Mở form tạo mã ưu đãi mới.
   const openCreate = () => {
     setFormPromo(null);
     setFormOpen(true);
   };
 
+  // Mở form chỉnh sửa một mã ưu đãi.
   const openEdit = (promo) => {
     setFormPromo(promo);
     setFormOpen(true);
   };
 
+  // Lưu form: tạo mới hoặc cập nhật tùy chế độ đang mở.
   const handleFormSubmit = async (payload) => {
-    const action = formPromo
-      ? updatePromoThunk({ id: formPromo.id, payload })
-      : createPromoThunk(payload);
+    const action = formPromo ? updatePromoThunk({ id: formPromo.id, payload }) : createPromoThunk(payload);
     const result = await dispatch(action);
     const matcher = formPromo ? updatePromoThunk.fulfilled : createPromoThunk.fulfilled;
     if (matcher.match(result)) {
@@ -114,10 +106,12 @@ const AdminPromosPage = () => {
     }
   };
 
+  // Bật/tắt trạng thái hoạt động của mã ưu đãi.
   const handleToggleActive = (promo) => {
     dispatch(updatePromoThunk({ id: promo.id, payload: { isActive: !promo.isActive } }));
   };
 
+  // Xác nhận xóa mềm mã ưu đãi đang chọn.
   const handleConfirmDelete = async () => {
     if (!deletePromo) return;
     const result = await dispatch(deletePromoThunk(deletePromo.id));
@@ -141,13 +135,14 @@ const AdminPromosPage = () => {
       <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <Ticket className="h-4 w-4" />
               Khuyến mãi
             </div>
             <h1 className="mt-2 text-2xl font-bold text-slate-900">Quản lý mã ưu đãi</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-              Tạo và quản lý mã giảm giá (theo % hoặc số tiền), đặt ngày hiệu lực, giới hạn lượt dùng và trần giảm tối đa.
+              Tạo và quản lý mã giảm giá (theo % hoặc số tiền), đặt ngày hiệu lực, giới hạn lượt dùng và trần
+              giảm tối đa.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -158,13 +153,17 @@ const AdminPromosPage = () => {
               disabled={promosLoading}
               className="h-10 rounded-lg border-slate-300 text-slate-700"
             >
-              {promosLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {promosLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
               Làm mới
             </Button>
             <Button
               type="button"
               onClick={openCreate}
-              className="h-10 rounded-lg bg-[#1e3a5f] px-4 font-semibold text-white hover:bg-[#16304f]"
+              className="h-10 rounded-lg bg-brand px-4 font-semibold text-white hover:bg-brand-dark"
             >
               <Plus className="h-4 w-4" />
               Tạo mã
@@ -186,7 +185,7 @@ const AdminPromosPage = () => {
               onChange={(event) => setKeywordInput(event.target.value)}
               placeholder="Tìm theo mã"
               autoComplete="off"
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
             {keywordInput && (
               <button
@@ -202,19 +201,23 @@ const AdminPromosPage = () => {
           <select
             value={filters.discountType}
             onChange={(event) => updateFilter("discountType", event.target.value)}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           >
             {TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
           <select
             value={filters.isActive}
             onChange={(event) => updateFilter("isActive", event.target.value)}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           >
             {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
           <Button
@@ -240,7 +243,9 @@ const AdminPromosPage = () => {
         </div>
 
         {promosError ? (
-          <div className="m-5 rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">{promosError}</div>
+          <div className="m-5 rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+            {promosError}
+          </div>
         ) : promosLoading && promos.length === 0 ? (
           <div className="flex min-h-64 items-center justify-center text-sm text-slate-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -257,12 +262,24 @@ const AdminPromosPage = () => {
             <table className="min-w-full divide-y divide-slate-100">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Mã</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Giảm giá</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Hiệu lực</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Lượt dùng</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Mã
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Giảm giá
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Hiệu lực
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Lượt dùng
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Trạng thái
+                  </th>
+                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -273,17 +290,19 @@ const AdminPromosPage = () => {
                       <td className="px-5 py-4">
                         <p className="text-sm font-bold text-slate-800">{promo.code}</p>
                         {promo.description && (
-                          <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{promo.description}</p>
+                          <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">
+                            {promo.description}
+                          </p>
                         )}
                       </td>
                       <td className="px-5 py-4">
                         <DiscountBadge promo={promo} />
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-600">
-                        {formatDate(promo.startsAt) || formatDate(promo.expiresAt) ? (
+                        {promoDate(promo.startsAt) || promoDate(promo.expiresAt) ? (
                           <span>
-                            {formatDate(promo.startsAt) || "—"} <span className="text-slate-400">→</span>{" "}
-                            {formatDate(promo.expiresAt) || "Không hết hạn"}
+                            {promoDate(promo.startsAt) || "—"} <span className="text-slate-400">→</span>{" "}
+                            {promoDate(promo.expiresAt) || "Không hết hạn"}
                           </span>
                         ) : (
                           <span className="text-slate-400">Không giới hạn</span>
@@ -349,28 +368,7 @@ const AdminPromosPage = () => {
           <p className="text-slate-500">
             Trang {promosPagination?.page || page}/{totalPages}
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || promosLoading}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Trước
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || promosLoading}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Sau
-            </Button>
-          </div>
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       </section>
 

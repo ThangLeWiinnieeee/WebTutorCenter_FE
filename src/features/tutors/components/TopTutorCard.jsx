@@ -1,9 +1,11 @@
 import { MapPin, Users } from "lucide-react";
 
-import { StarRating } from "@/features/reviews";
+import { StarRating } from "@/features/reviews/components/StarRating";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
-import { getTutorInitials as getInitials } from "@/features/tutors/utils/tutorInitials";
+import { getInitials } from "@/lib/format";
+import { cldThumb } from "@/lib/utils";
 
+// Thẻ gia sư nổi bật kèm thứ hạng.
 export default function TopTutorCard({ tutor, rank }) {
   const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);
   const reviewCount = tutor.reviewCount || 0;
@@ -14,7 +16,13 @@ export default function TopTutorCard({ tutor, rank }) {
       {rank != null && (
         <span
           className={`absolute left-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ${
-            rank === 1 ? "bg-amber-500" : rank === 2 ? "bg-slate-400" : rank === 3 ? "bg-orange-500" : "bg-[#1e3a5f]"
+            rank === 1
+              ? "bg-amber-500"
+              : rank === 2
+                ? "bg-slate-400"
+                : rank === 3
+                  ? "bg-orange-500"
+                  : "bg-brand"
           }`}
         >
           {rank}
@@ -22,9 +30,15 @@ export default function TopTutorCard({ tutor, rank }) {
       )}
 
       <div className="flex h-full flex-col items-center px-4 pb-6 pt-6">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-lg font-bold text-white ring-4 ring-slate-100">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-emerald-400 to-brand text-lg font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
-            <img src={tutor.avatar} alt={tutor.fullName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+            <img
+              src={cldThumb(tutor.avatar, 128)}
+              alt={tutor.fullName}
+              referrerPolicy="no-referrer"
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
           ) : (
             getInitials(tutor.fullName)
           )}

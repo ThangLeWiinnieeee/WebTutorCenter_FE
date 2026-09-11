@@ -1,6 +1,7 @@
 import { Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Khối hiển thị các gia sư nhận lớp nhiều nhất trong tháng.
 export default function TopThisMonthTutors({ tutors = [] }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-20">
@@ -28,9 +29,7 @@ export default function TopThisMonthTutors({ tutors = [] }) {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 truncate">
-                  {tutor.fullName}
-                </p>
+                <p className="font-semibold text-gray-900 truncate">{tutor.fullName}</p>
                 <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
                   <Users className="w-3 h-3" />
                   <span>{tutor.classesAcceptedThisMonth || 0} lớp</span>

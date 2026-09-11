@@ -1,153 +1,139 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiThunk } from "@/app/createApiThunk";
 import chatService from "@/features/chat/services/chatService";
 
 // ──────────────────────────── Gia sư ────────────────────────────
 
-export const fetchMyConversationThunk = createAsyncThunk(
+// Lấy hội thoại của chính người dùng với admin.
+export const fetchMyConversationThunk = createApiThunk(
   "chat/fetchMyConversation",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await chatService.getMyConversation(params);
-      return res.data.data; // { conversation, messages, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy cuộc trò chuyện thất bại");
-    }
-  }
+  async (params = {}) => {
+    const res = await chatService.getMyConversation(params);
+    return res.data.data; // { conversation, messages, pagination }
+  },
+  "Lấy cuộc trò chuyện thất bại",
 );
 
-export const fetchMyUnreadCountThunk = createAsyncThunk(
+// Lấy số tin nhắn chưa đọc của người dùng.
+export const fetchMyUnreadCountThunk = createApiThunk(
   "chat/fetchMyUnreadCount",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await chatService.getMyUnreadCount();
-      return res.data.data.unreadCount ?? 0;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy số tin chưa đọc thất bại");
-    }
-  }
+  async () => {
+    const res = await chatService.getMyUnreadCount();
+    return res.data.data.unreadCount ?? 0;
+  },
+  "Lấy số tin chưa đọc thất bại",
 );
 
-export const sendMyMessageThunk = createAsyncThunk(
+// Người dùng gửi tin nhắn văn bản cho admin.
+export const sendMyMessageThunk = createApiThunk(
   "chat/sendMyMessage",
-  async (content, { rejectWithValue }) => {
-    try {
-      const res = await chatService.sendMyMessage(content);
-      return res.data.data.message;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Gửi tin nhắn thất bại");
-    }
-  }
+  async (content) => {
+    const res = await chatService.sendMyMessage(content);
+    return res.data.data.message;
+  },
+  "Gửi tin nhắn thất bại",
 );
 
-export const sendMyImageThunk = createAsyncThunk(
+// Người dùng gửi ảnh cho admin.
+export const sendMyImageThunk = createApiThunk(
   "chat/sendMyImage",
-  async (file, { rejectWithValue }) => {
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await chatService.sendMyImage(formData);
-      return res.data.data.message;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Gửi ảnh thất bại");
-    }
-  }
+  async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    const res = await chatService.sendMyImage(formData);
+    return res.data.data.message;
+  },
+  "Gửi ảnh thất bại",
 );
 
-export const markMyReadThunk = createAsyncThunk(
+// Đánh dấu hội thoại của người dùng là đã đọc.
+export const markMyReadThunk = createApiThunk(
   "chat/markMyRead",
-  async (_, { rejectWithValue }) => {
-    try {
-      await chatService.markMyConversationRead();
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Đánh dấu đã đọc thất bại");
-    }
-  }
+  async () => {
+    await chatService.markMyConversationRead();
+  },
+  "Đánh dấu đã đọc thất bại",
 );
 
 // ──────────────────────────── Admin ────────────────────────────
 
-export const fetchConversationsThunk = createAsyncThunk(
+// Admin lấy danh sách hội thoại.
+export const fetchConversationsThunk = createApiThunk(
   "chat/fetchConversations",
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const res = await chatService.getConversations(params);
-      return res.data.data; // { conversations, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy danh sách hội thoại thất bại");
-    }
-  }
+  async (params = {}) => {
+    const res = await chatService.getConversations(params);
+    return res.data.data; // { conversations, pagination }
+  },
+  "Lấy danh sách hội thoại thất bại",
 );
 
-export const fetchAdminUnreadCountThunk = createAsyncThunk(
+// Admin lấy tổng số tin nhắn chưa đọc.
+export const fetchAdminUnreadCountThunk = createApiThunk(
   "chat/fetchAdminUnreadCount",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await chatService.getAdminUnreadCount();
-      return res.data.data.unreadCount ?? 0;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy số tin chưa đọc thất bại");
-    }
-  }
+  async () => {
+    const res = await chatService.getAdminUnreadCount();
+    return res.data.data.unreadCount ?? 0;
+  },
+  "Lấy số tin chưa đọc thất bại",
 );
 
-export const fetchConversationMessagesThunk = createAsyncThunk(
+// Admin lấy tin nhắn của một hội thoại.
+export const fetchConversationMessagesThunk = createApiThunk(
   "chat/fetchConversationMessages",
-  async ({ id, params = {} }, { rejectWithValue }) => {
-    try {
-      const res = await chatService.getConversationMessages(id, params);
-      return res.data.data; // { conversation, messages, pagination }
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Lấy tin nhắn thất bại");
-    }
-  }
+  async ({ id, params = {} }) => {
+    const res = await chatService.getConversationMessages(id, params);
+    return res.data.data; // { conversation, messages, pagination }
+  },
+  "Lấy tin nhắn thất bại",
 );
 
-export const sendConversationMessageThunk = createAsyncThunk(
+// Admin gửi tin nhắn văn bản vào một hội thoại.
+export const sendConversationMessageThunk = createApiThunk(
   "chat/sendConversationMessage",
-  async ({ id, content }, { rejectWithValue }) => {
-    try {
-      const res = await chatService.sendConversationMessage(id, content);
-      return { id, message: res.data.data.message };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Gửi tin nhắn thất bại");
-    }
-  }
+  async ({ id, content }) => {
+    const res = await chatService.sendConversationMessage(id, content);
+    return { id, message: res.data.data.message };
+  },
+  "Gửi tin nhắn thất bại",
 );
 
-export const sendConversationImageThunk = createAsyncThunk(
+// Admin gửi ảnh vào một hội thoại.
+export const sendConversationImageThunk = createApiThunk(
   "chat/sendConversationImage",
-  async ({ id, file }, { rejectWithValue }) => {
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await chatService.sendConversationImage(id, formData);
-      return { id, message: res.data.data.message };
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Gửi ảnh thất bại");
-    }
-  }
+  async ({ id, file }) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    const res = await chatService.sendConversationImage(id, formData);
+    return { id, message: res.data.data.message };
+  },
+  "Gửi ảnh thất bại",
 );
 
-export const markConversationReadThunk = createAsyncThunk(
+// Admin gửi thẻ giới thiệu lớp/gia sư vào một hội thoại.
+export const sendConversationCardThunk = createApiThunk(
+  "chat/sendConversationCard",
+  async ({ id, kind, refId }) => {
+    const res = await chatService.sendConversationCard(id, { kind, refId });
+    return { id, message: res.data.data.message };
+  },
+  "Gửi thông tin thất bại",
+);
+
+// Admin đánh dấu một hội thoại là đã đọc.
+export const markConversationReadThunk = createApiThunk(
   "chat/markConversationRead",
-  async (id, { rejectWithValue }) => {
-    try {
-      await chatService.markConversationRead(id);
-      return id;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Đánh dấu đã đọc thất bại");
-    }
-  }
+  async (id) => {
+    await chatService.markConversationRead(id);
+    return id;
+  },
+  "Đánh dấu đã đọc thất bại",
 );
 
-export const startConversationThunk = createAsyncThunk(
+// Admin chủ động mở hội thoại với một người dùng.
+export const startConversationThunk = createApiThunk(
   "chat/startConversation",
-  async (tutorUserId, { rejectWithValue }) => {
-    try {
-      const res = await chatService.startConversation(tutorUserId);
-      return res.data.data.conversation;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Mở cuộc trò chuyện thất bại");
-    }
-  }
+  async (tutorUserId) => {
+    const res = await chatService.startConversation(tutorUserId);
+    return res.data.data.conversation;
+  },
+  "Mở cuộc trò chuyện thất bại",
 );
