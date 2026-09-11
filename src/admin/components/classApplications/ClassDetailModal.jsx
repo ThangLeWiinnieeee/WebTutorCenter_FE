@@ -1,14 +1,21 @@
 import { BookOpen } from "lucide-react";
 
-import { formatClassTutorPrefsSummary } from "@/features/classes/utils/classFormatters";
+import {
+  CLASS_FEE_LABEL,
+  classFee,
+  formatClassTutorPrefsSummary,
+} from "@/features/classes/utils/classFormatters";
 import { ModalShell, InfoRow, SlotChips } from "./ModalShell";
 import { ClassStatusBadge } from "./badges";
-import { formatPrice, formatDate, genderLabel } from "./formatters";
+import { formatPrice } from "./formatters";
+import { GENDER_LABEL } from "@/constants/enums";
+import { formatDate, formatDateTime } from "@/lib/format";
 
+// Modal xem nhanh thông tin lớp khi admin duyệt đơn nhận lớp.
 const ClassDetailModal = ({ classItem, onClose }) => {
   if (!classItem) return null;
 
-  const receivingFee = Math.round((classItem.feePerMonth || 0) * 0.05);
+  const receivingFee = classFee(classItem);
   const hasPromo = Boolean(classItem.promoCode) && (classItem.promoDiscount || 0) > 0;
   const region =
     classItem.provinceName && classItem.districtName
@@ -26,7 +33,7 @@ const ClassDetailModal = ({ classItem, onClose }) => {
             </p>
             <ClassStatusBadge status={classItem.status} />
           </div>
-          <p className="mt-1 text-xs text-slate-400">Đăng lúc {formatDate(classItem.createdAt)}</p>
+          <p className="mt-1 text-xs text-slate-400">Đăng lúc {formatDateTime(classItem.createdAt)}</p>
         </div>
 
         {/* Thông tin chính */}
@@ -38,7 +45,7 @@ const ClassDetailModal = ({ classItem, onClose }) => {
           <InfoRow label="Địa chỉ chi tiết">{classItem.locationLabel || "—"}</InfoRow>
           <InfoRow label="SĐT phụ huynh">{classItem.contactPhone || "—"}</InfoRow>
           <InfoRow label="Học viên">
-            {classItem.studentCount ?? "—"} học viên ({genderLabel(classItem.studentGender)})
+            {classItem.studentCount ?? "—"} học viên ({GENDER_LABEL[classItem.studentGender] || "Khác"})
           </InfoRow>
           <InfoRow label="Thời lượng">
             {classItem.sessionsPerWeek} buổi/tuần · {classItem.minutesPerSession} phút/buổi
@@ -59,11 +66,13 @@ const ClassDetailModal = ({ classItem, onClose }) => {
             <p className="text-xs text-slate-500">
               Mã ưu đãi <span className="font-semibold text-slate-700">{classItem.promoCode}</span> · giảm{" "}
               {formatPrice(classItem.promoDiscount)} → còn{" "}
-              <span className="font-semibold text-emerald-700">{formatPrice(classItem.finalFeePerMonth)}/tháng</span>
+              <span className="font-semibold text-emerald-700">
+                {formatPrice(classItem.finalFeePerMonth)}/tháng
+              </span>
             </p>
           )}
           <p className="text-xs text-slate-500">
-            Phí nhận lớp (5% học phí tháng đầu):{" "}
+            Phí nhận lớp ({CLASS_FEE_LABEL}):{" "}
             <span className="font-semibold text-slate-700">{formatPrice(receivingFee)}</span>
           </p>
         </div>

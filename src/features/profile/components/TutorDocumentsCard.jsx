@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { AlertCircle, Hourglass, Loader2, ShieldCheck, X, ZoomIn } from "lucide-react";
+import { AlertCircle, Hourglass, Loader2, ShieldCheck, ZoomIn } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import DocumentUploadField from "@/features/tutors/components/DocumentUploadField";
 import DocumentMultiUpload from "@/features/tutors/components/DocumentMultiUpload";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import { hasCompleteTutorDocuments } from "@/features/tutors/utils/tutorDocuments";
 
 // Ảnh xem (nhấn để phóng to)
@@ -31,57 +31,14 @@ const ViewThumb = ({ label, src, onZoom }) => (
   </div>
 );
 
-// Render qua portal vào document.body để position:fixed neo theo viewport,
-// tránh bị "kẹt" giữa card khi có ancestor dùng transform (vd AOS animation).
-const Lightbox = ({ src, onClose }) => {
-  // Khóa cuộn nền + đóng bằng phím Esc khi đang xem ảnh phóng to.
-  useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [onClose]);
-
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4" onClick={onClose}>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Đóng ảnh phóng to"
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-      >
-        <X className="h-5 w-5" />
-      </button>
-      <img
-        src={src}
-        alt="Ảnh phóng to"
-        className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>,
-    document.body
-  );
-};
-
-/**
- * Khu vực hồ sơ chứng thực trong trang hồ sơ gia sư: xem + bổ sung/cập nhật
- * CCCD và thẻ sinh viên/bằng cấp. Thay đổi gửi qua luồng duyệt đổi hồ sơ.
- */
+// Khu vực xem và cập nhật giấy tờ chứng thực của gia sư; thay đổi phải qua luồng duyệt.
 const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit, autoEdit = false }) => {
   const isStudent = tutorProfile?.occupationStatus === "student";
   const complete = hasCompleteTutorDocuments(tutorProfile);
 
   // Phần đã có (đã chứng thực) → khóa, chỉ xem. Chỉ được bổ sung phần còn thiếu.
   const hasCccd = Boolean(tutorProfile?.cccdFrontImage && tutorProfile?.cccdBackImage);
-  const hasStudentCard = Boolean(
-    tutorProfile?.studentCardFrontImage && tutorProfile?.studentCardBackImage
-  );
+  const hasStudentCard = Boolean(tutorProfile?.studentCardFrontImage && tutorProfile?.studentCardBackImage);
   const hasCertificates = (tutorProfile?.certificateImages?.length ?? 0) >= 1;
 
   // Danh sách phần còn thiếu để hiển thị cảnh báo động.
@@ -106,6 +63,7 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
     }
   }, [autoEdit, pendingRequest, complete]);
 
+  // Đặt lại danh sách giấy tờ đang chỉnh về đúng dữ liệu trong hồ sơ.
   const resetFromProfile = () => {
     setCccdFront(tutorProfile?.cccdFrontImage || "");
     setCccdBack(tutorProfile?.cccdBackImage || "");
@@ -152,10 +110,14 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
   };
 
   return (
-    <div ref={cardRef} id="tutor-documents" className="scroll-mt-20 rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div
+      ref={cardRef}
+      id="tutor-documents"
+      className="scroll-mt-20 rounded-xl border border-slate-200 bg-white shadow-sm"
+    >
       <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-[#1e3a5f]" />
+          <ShieldCheck className="h-5 w-5 text-brand" />
           <h3 className="text-base font-semibold text-slate-700">Hồ sơ chứng thực</h3>
         </div>
         {/* Đã chứng thực đầy đủ → khóa, không cho sửa lại. Chỉ cho bổ sung khi còn thiếu. */}
@@ -218,12 +180,22 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
                 {tutorProfile?.cccdFrontImage ? (
                   <ViewThumb label="CCCD mặt trước" src={tutorProfile.cccdFrontImage} onZoom={setZoomSrc} />
                 ) : (
-                  <DocumentUploadField label="CCCD mặt trước" required value={cccdFront} onChange={setCccdFront} />
+                  <DocumentUploadField
+                    label="CCCD mặt trước"
+                    required
+                    value={cccdFront}
+                    onChange={setCccdFront}
+                  />
                 )}
                 {tutorProfile?.cccdBackImage ? (
                   <ViewThumb label="CCCD mặt sau" src={tutorProfile.cccdBackImage} onZoom={setZoomSrc} />
                 ) : (
-                  <DocumentUploadField label="CCCD mặt sau" required value={cccdBack} onChange={setCccdBack} />
+                  <DocumentUploadField
+                    label="CCCD mặt sau"
+                    required
+                    value={cccdBack}
+                    onChange={setCccdBack}
+                  />
                 )}
               </div>
             </div>
@@ -233,14 +205,32 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
                 <p className="mb-3 text-sm font-medium text-slate-700">Thẻ sinh viên</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {tutorProfile?.studentCardFrontImage ? (
-                    <ViewThumb label="Thẻ sinh viên mặt trước" src={tutorProfile.studentCardFrontImage} onZoom={setZoomSrc} />
+                    <ViewThumb
+                      label="Thẻ sinh viên mặt trước"
+                      src={tutorProfile.studentCardFrontImage}
+                      onZoom={setZoomSrc}
+                    />
                   ) : (
-                    <DocumentUploadField label="Thẻ sinh viên mặt trước" required value={scFront} onChange={setScFront} />
+                    <DocumentUploadField
+                      label="Thẻ sinh viên mặt trước"
+                      required
+                      value={scFront}
+                      onChange={setScFront}
+                    />
                   )}
                   {tutorProfile?.studentCardBackImage ? (
-                    <ViewThumb label="Thẻ sinh viên mặt sau" src={tutorProfile.studentCardBackImage} onZoom={setZoomSrc} />
+                    <ViewThumb
+                      label="Thẻ sinh viên mặt sau"
+                      src={tutorProfile.studentCardBackImage}
+                      onZoom={setZoomSrc}
+                    />
                   ) : (
-                    <DocumentUploadField label="Thẻ sinh viên mặt sau" required value={scBack} onChange={setScBack} />
+                    <DocumentUploadField
+                      label="Thẻ sinh viên mặt sau"
+                      required
+                      value={scBack}
+                      onChange={setScBack}
+                    />
                   )}
                 </div>
               </div>
@@ -269,7 +259,7 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-[#1e3a5f] text-white hover:bg-[#2d5a9e]"
+                className="flex-1 bg-brand text-white hover:bg-brand-accent"
               >
                 {submitting ? (
                   <>
@@ -302,8 +292,16 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
 
             {isStudent ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <ViewThumb label="Thẻ sinh viên mặt trước" src={tutorProfile?.studentCardFrontImage} onZoom={setZoomSrc} />
-                <ViewThumb label="Thẻ sinh viên mặt sau" src={tutorProfile?.studentCardBackImage} onZoom={setZoomSrc} />
+                <ViewThumb
+                  label="Thẻ sinh viên mặt trước"
+                  src={tutorProfile?.studentCardFrontImage}
+                  onZoom={setZoomSrc}
+                />
+                <ViewThumb
+                  label="Thẻ sinh viên mặt sau"
+                  src={tutorProfile?.studentCardBackImage}
+                  onZoom={setZoomSrc}
+                />
               </div>
             ) : (
               <div>
@@ -325,7 +323,7 @@ const TutorDocumentsCard = ({ tutorProfile, pendingRequest, submitting, onSubmit
         )}
       </div>
 
-      {zoomSrc && <Lightbox src={zoomSrc} onClose={() => setZoomSrc(null)} />}
+      {zoomSrc && <ImageLightbox src={zoomSrc} onClose={() => setZoomSrc(null)} />}
     </div>
   );
 };

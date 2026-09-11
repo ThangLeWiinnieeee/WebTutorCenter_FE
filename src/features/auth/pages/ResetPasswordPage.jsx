@@ -7,6 +7,7 @@ import AuthLeftPanel from "@/features/auth/components/AuthLeftPanel";
 import ResetPasswordForm from "@/features/auth/components/ResetPasswordForm";
 import { resetPasswordThunk } from "@/features/auth/store/authThunks";
 
+// Trang bước 3 quên mật khẩu: đặt lại mật khẩu bằng resetToken.
 const ResetPasswordPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const ResetPasswordPage = () => {
     }
   }, [email, navigate, resetToken]);
 
+  // Gửi mật khẩu mới và điều hướng về trang đăng nhập.
   const onSubmit = async (data) => {
     setServerError("");
     const result = await dispatch(resetPasswordThunk({ resetToken, ...data }));
@@ -39,11 +41,7 @@ const ResetPasswordPage = () => {
   return (
     <div className="auth-shell flex min-h-dvh w-full">
       <AuthLeftPanel />
-      <ResetPasswordForm
-        email={email}
-        serverError={serverError}
-        onSubmit={onSubmit}
-      />
+      <ResetPasswordForm email={email} serverError={serverError} onSubmit={onSubmit} />
     </div>
   );
 };

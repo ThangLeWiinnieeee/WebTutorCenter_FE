@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { normalizeForSearch } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader2, RefreshCw, Search, ShieldCheck } from "lucide-react";
@@ -36,14 +38,19 @@ const ORIGIN_TABS = [
 
 const TAB_STYLE = {
   amber: { active: "border-amber-500 text-amber-700 bg-amber-50", badge: "bg-amber-100 text-amber-700" },
-  emerald: { active: "border-emerald-500 text-emerald-700 bg-emerald-50", badge: "bg-emerald-100 text-emerald-700" },
+  emerald: {
+    active: "border-emerald-500 text-emerald-700 bg-emerald-50",
+    badge: "bg-emerald-100 text-emerald-700",
+  },
   rose: { active: "border-rose-500 text-rose-700 bg-rose-50", badge: "bg-rose-100 text-rose-700" },
 };
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
+// Trang admin duyệt/từ chối đơn nhận lớp và lời mời dạy.
 const ClassApplicationsPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     classApplications,
     classApplicationsPagination,
@@ -78,9 +85,15 @@ const ClassApplicationsPage = () => {
     dispatch(getClassApplicationsThunk({ status: activeTab, origin: activeOrigin, page, limit: PAGE_SIZE }));
   }, [dispatch, activeTab, activeOrigin, page]);
 
+  // Tải lại danh sách đơn và các số đếm theo bộ lọc hiện tại.
   const reload = (targetPage = page) =>
     dispatch(
-      getClassApplicationsThunk({ status: activeTab, origin: activeOrigin, page: targetPage, limit: PAGE_SIZE }),
+      getClassApplicationsThunk({
+        status: activeTab,
+        origin: activeOrigin,
+        page: targetPage,
+        limit: PAGE_SIZE,
+      }),
     );
 
   // Sau khi duyệt/từ chối: nếu vừa xử lý item cuối của trang thì lùi 1 trang, ngược lại tải lại trang hiện tại
@@ -89,12 +102,14 @@ const ClassApplicationsPage = () => {
     else reload();
   };
 
+  // Đổi tab lọc theo trạng thái đơn.
   const handleTab = (tab) => {
     setActiveTab(tab);
     setPage(1);
     setSearchQuery("");
   };
 
+  // Đổi bộ lọc theo nguồn đơn (ứng tuyển hay lời mời).
   const handleOrigin = (origin) => {
     setActiveOrigin(origin);
     setActiveTab("selected");
@@ -102,17 +117,20 @@ const ClassApplicationsPage = () => {
     setSearchQuery("");
   };
 
+  // Chuyển trang danh sách đơn.
   const handlePageChange = (next) => {
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Tải lại danh sách đơn.
   const handleRefresh = () => {
     dispatch(getClassApplicationStatsThunk({ origin: activeOrigin }));
     dispatch(getClassApplicationOriginCountsThunk());
     reload();
   };
 
+  // Duyệt một đơn nhận lớp.
   const handleApprove = (id) => {
     dispatch(approveClassApplicationThunk(id)).then((r) => {
       if (!r.error) {
@@ -122,8 +140,20 @@ const ClassApplicationsPage = () => {
     });
   };
 
+  // Mở hộp thoại nhập lý do từ chối cho một đơn.
   const handleRejectOpen = (id) => setRejectTarget(id);
 
+  // Mở mục Tin nhắn và chat với gia sư (tạo mới nếu chưa có hội thoại, ngược lại vào hội thoại cũ)
+  const handleChat = (application) => {
+    const userId = application.tutor?.userId;
+    if (!userId) {
+      toast.error("Không tìm thấy tài khoản gia sư để trò chuyện");
+      return;
+    }
+    navigate("/admin/messages", { state: { openUserId: userId } });
+  };
+
+  // Gửi từ chối đơn kèm lý do.
   const handleRejectConfirm = (rejectionReason) => {
     dispatch(rejectClassApplicationThunk({ id: rejectTarget, rejectionReason })).then((r) => {
       setRejectTarget(null);
@@ -141,7 +171,7 @@ const ClassApplicationsPage = () => {
       (a) =>
         normalizeForSearch(a.classItem?.classCode).includes(q) ||
         normalizeForSearch(a.tutor?.fullName).includes(q) ||
-        normalizeForSearch(a.classItem?.subject).includes(q)
+        normalizeForSearch(a.classItem?.subject).includes(q),
     );
   }, [classApplications, searchQuery]);
 
@@ -152,7 +182,10 @@ const ClassApplicationsPage = () => {
   };
 
   const emptyMessages = {
-    selected: { title: "Không có đơn nào chờ duyệt", sub: "Đơn gia sư người đăng đã chọn sẽ hiển thị ở đây." },
+    selected: {
+      title: "Không có đơn nào chờ duyệt",
+      sub: "Đơn gia sư người đăng đã chọn sẽ hiển thị ở đây.",
+    },
     approved: { title: "Chưa có đơn nào được duyệt", sub: "Các đơn được duyệt sẽ hiển thị ở đây." },
     rejected: { title: "Chưa có đơn nào bị từ chối", sub: "Các đơn bị từ chối sẽ hiển thị ở đây." },
   };
@@ -165,7 +198,8 @@ const ClassApplicationsPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Quản lý duyệt nhận lớp</h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
-              Mỗi dòng là gia sư đã được người đăng chọn, đang chờ bạn duyệt. Bấm để xem chi tiết bài đăng hoặc hồ sơ gia sư trước khi duyệt.
+              Mỗi dòng là gia sư đã được người đăng chọn, đang chờ bạn duyệt. Bấm để xem chi tiết bài đăng
+              hoặc hồ sơ gia sư trước khi duyệt.
             </p>
           </div>
           <Button
@@ -196,7 +230,7 @@ const ClassApplicationsPage = () => {
               type="button"
               onClick={() => handleOrigin(o.key)}
               className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                isActive ? "bg-[#1e3a5f] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+                isActive ? "bg-brand text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
               {o.label}
@@ -215,9 +249,24 @@ const ClassApplicationsPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Chờ duyệt" count={statCount.selected} color="amber" loading={classApplicationStatsLoading} />
-        <StatCard label="Đã duyệt" count={statCount.approved} color="emerald" loading={classApplicationStatsLoading} />
-        <StatCard label="Từ chối" count={statCount.rejected} color="rose" loading={classApplicationStatsLoading} />
+        <StatCard
+          label="Chờ duyệt"
+          count={statCount.selected}
+          color="amber"
+          loading={classApplicationStatsLoading}
+        />
+        <StatCard
+          label="Đã duyệt"
+          count={statCount.approved}
+          color="emerald"
+          loading={classApplicationStatsLoading}
+        />
+        <StatCard
+          label="Từ chối"
+          count={statCount.rejected}
+          color="rose"
+          loading={classApplicationStatsLoading}
+        />
       </div>
 
       {/* Tab bar */}
@@ -259,7 +308,7 @@ const ClassApplicationsPage = () => {
               placeholder="Tìm theo mã lớp, tên gia sư hoặc môn học..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1e3a5f] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
         </div>
@@ -303,6 +352,7 @@ const ClassApplicationsPage = () => {
                   onReject={handleRejectOpen}
                   onViewClass={(app) => setClassModal(app.classItem)}
                   onViewTutor={(app) => setTutorModal(app)}
+                  onChat={handleChat}
                 />
               ))}
             </div>

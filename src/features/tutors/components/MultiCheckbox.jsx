@@ -1,5 +1,6 @@
 // `lockedValues`: các option luôn được chọn và không thể bỏ (chỉ cho phép bổ sung thêm).
 const MultiCheckbox = ({ options, value = [], onChange, columns = 3, lockedValues = [] }) => {
+  // Thêm/bớt một mục trong danh sách đã chọn.
   const toggle = (item) => {
     if (lockedValues.includes(item)) return; // môn đã khóa: không cho bỏ
     if (value.includes(item)) {
@@ -10,8 +11,7 @@ const MultiCheckbox = ({ options, value = [], onChange, columns = 3, lockedValue
   };
 
   // Trên điện thoại luôn 2 cột để chữ không bị bóp; từ sm+ dùng số cột yêu cầu.
-  const smColsClass =
-    columns === 2 ? "sm:grid-cols-2" : columns === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3";
+  const smColsClass = columns === 2 ? "sm:grid-cols-2" : columns === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3";
 
   return (
     <div
@@ -26,9 +26,10 @@ const MultiCheckbox = ({ options, value = [], onChange, columns = 3, lockedValue
             title={isLocked ? "Môn đã đăng ký — không thể bỏ" : undefined}
             className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors select-none
               ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
-              ${isSelected
-                ? "bg-[#1e3a5f] text-white"
-                : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+              ${
+                isSelected
+                  ? "bg-brand text-white"
+                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }
               ${isLocked ? "opacity-90" : ""}`}
           >

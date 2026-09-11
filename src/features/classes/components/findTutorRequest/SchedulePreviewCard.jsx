@@ -1,23 +1,20 @@
-import {
-  CalendarDays,
-  Clock3,
-  SunMedium,
-  Users,
-} from 'lucide-react';
-import { useWatch } from 'react-hook-form';
+import { CalendarDays, Clock3, SunMedium, Users } from "lucide-react";
+import { useWatch } from "react-hook-form";
 
-import { formatDdMmYyyyUi } from '@/features/classes/utils/classRequestDateUtils';
+import { formatDdMmYyyyUi } from "@/features/classes/utils/classRequestDateUtils";
 
+// Xem trước lịch học đã chọn trong form đăng lớp.
 const SchedulePreviewCard = ({ control }) => {
-  const watched = useWatch({
-    control,
-    name: ['studentCount', 'sessionsPerWeek', 'minutesPerSession', 'startDate'],
-  }) || [];
+  const watched =
+    useWatch({
+      control,
+      name: ["studentCount", "sessionsPerWeek", "minutesPerSession", "startDate"],
+    }) || [];
   const [studentCount, sessionsPerWeek, minutesPerSession, startDateVal] = watched;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 p-5 shadow-inner">
-      <div className="relative z-[1]">
+      <div className="relative z-1">
         <p className="text-sm font-bold text-emerald-950">Lịch học dự kiến</p>
         <ul className="mt-4 space-y-3 text-sm">
           <li className="flex items-center gap-2.5 text-slate-700">
@@ -35,10 +32,7 @@ const SchedulePreviewCard = ({ control }) => {
           <li className="flex items-center gap-2.5 text-slate-700">
             <SunMedium className="h-4 w-4 shrink-0 text-emerald-600" />
             <span>
-              Bắt đầu:{' '}
-              {startDateVal && formatDdMmYyyyUi(startDateVal)
-                ? formatDdMmYyyyUi(startDateVal)
-                : '—'}
+              Bắt đầu: {startDateVal && formatDdMmYyyyUi(startDateVal) ? formatDdMmYyyyUi(startDateVal) : "—"}
             </span>
           </li>
         </ul>

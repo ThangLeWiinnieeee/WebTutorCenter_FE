@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ClipboardList,
   Clock3,
+  CreditCard,
   Inbox,
   Lock,
   MapPin,
@@ -14,17 +15,20 @@ import {
   Users,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import MyClassDetailDialog from "@/features/classes/components/MyClassDetailDialog";
 import { fetchMyClassesThunk } from "@/features/classes/store/classThunks";
+import { refreshUnreadCountThunk } from "@/features/notifications/store/notificationThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
 import { ORIGIN_META, STATUS_META, STATUS_TABS } from "@/features/classes/utils/applicationStatus";
 import Pagination from "@/components/shared/Pagination";
 
 const PAGE_SIZE = 5;
 
+// Bảng danh sách các lớp gia sư đã nhận.
 export default function MyClassesPanel() {
   const dispatch = useDispatch();
   const { myClasses, myClassesPagination, myClassesCounts, loadingMyClasses, error } = useSelector(
@@ -33,10 +37,28 @@ export default function MyClassesPanel() {
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     dispatch(fetchMyClassesThunk({ page, limit: PAGE_SIZE, status: activeTab }));
   }, [dispatch, page, activeTab]);
+
+  // Người dùng quay về từ cổng VNPay (?payment=success|failed) → toast + làm mới chuông thông báo,
+  // rồi xóa query để refresh trang không toast lại. Danh sách đã tự tải lại ở effect trên khi mount.
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (!payment) return;
+    const classCode = searchParams.get("classCode");
+    const suffix = classCode ? ` mã lớp ${classCode}` : "";
+    if (payment === "success") {
+      toast.success(`Đã thanh toán phí nhận lớp${suffix} thành công! Thông tin lớp đã được mở khóa.`);
+    } else {
+      toast.error(`Thanh toán phí nhận lớp${suffix} thất bại. Vui lòng liên hệ admin nếu có lỗi.`);
+    }
+    dispatch(refreshUnreadCountThunk());
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Đổi tab thì quay về trang 1 (server lọc + phân trang lại theo trạng thái)
   const handleTabChange = (tab) => {
@@ -53,17 +75,24 @@ export default function MyClassesPanel() {
   const counts = myClassesCounts;
   const totalPages = myClassesPagination?.totalPages || 1;
 
-  const skeletonItems = useMemo(() => Array.from({ length: 3 }, (_, index) => `my-class-skeleton-${index}`), []);
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 3 }, (_, index) => `my-class-skeleton-${index}`),
+    [],
+  );
 
-  // Tính lại vị trí animation sau khi danh sách (tải bất đồng bộ) thay đổi
+  // Đăng ký lại phần tử AOS khi danh sách tải bất đồng bộ hoặc đổi trạng thái.
   useEffect(() => {
-    AOS.refresh();
+    AOS.refreshHard();
   }, [loadingMyClasses, myClasses.length]);
 
   return (
     <div className="space-y-5">
       {/* Heading */}
-      <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+      <div
+        className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm"
+        data-aos="fade-down"
+        data-aos-duration="550"
+      >
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
             <ClipboardList className="h-6 w-6" />
@@ -88,7 +117,7 @@ export default function MyClassesPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" data-aos="fade-up" data-aos-delay="80" data-aos-duration="500">
         {STATUS_TABS.map((tab) => {
           const isActive = activeTab === tab.value;
           return (
@@ -118,8 +147,14 @@ export default function MyClassesPanel() {
       {/* Loading */}
       {loadingMyClasses && (
         <div className="space-y-4">
-          {skeletonItems.map((key) => (
-            <div key={key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {skeletonItems.map((key, idx) => (
+            <div
+              key={key}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              data-aos="fade-up"
+              data-aos-delay={idx * 80}
+              data-aos-duration="450"
+            >
               <div className="animate-pulse space-y-3">
                 <div className="h-5 w-1/3 rounded bg-slate-200" />
                 <div className="h-6 w-2/3 rounded bg-slate-200" />
@@ -136,12 +171,22 @@ export default function MyClassesPanel() {
 
       {/* Error */}
       {!loadingMyClasses && error && myClasses.length === 0 && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm">{error}</div>
+        <div
+          className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-700 shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="550"
+        >
+          {error}
+        </div>
       )}
 
       {/* Empty */}
       {!loadingMyClasses && !error && myClasses.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+        <div
+          className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm"
+          data-aos="fade-up"
+          data-aos-duration="600"
+        >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <Inbox className="h-7 w-7" />
           </div>
@@ -169,14 +214,16 @@ export default function MyClassesPanel() {
             const StatusIcon = status.icon;
             const origin = ORIGIN_META[application.origin] || ORIGIN_META.apply;
             const OriginIcon = origin.icon;
-            const isUnlocked = application.isUnlocked || application.status === "approved";
+            const isUnlocked = Boolean(application.isUnlocked);
+            const needsFeePayment = Boolean(application.needsFeePayment);
 
             return (
               <button
                 key={application.id}
                 type="button"
                 data-aos="fade-up"
-                data-aos-delay={Math.min(idx, 4) * 60}
+                data-aos-delay={idx * 150}
+                data-aos-duration="600"
                 onClick={() => setSelected(application)}
                 className="group block w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
               >
@@ -203,19 +250,30 @@ export default function MyClassesPanel() {
                         <StatusIcon className="h-3.5 w-3.5" />
                         {status.label}
                       </span>
-                      {!isUnlocked && (
-                        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                          <Lock className="h-3.5 w-3.5" />
-                          Thông tin chi tiết đang ẩn
+                      {needsFeePayment ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+                          <CreditCard className="h-3.5 w-3.5" />
+                          Chờ thanh toán phí nhận lớp
                         </span>
+                      ) : (
+                        !isUnlocked && (
+                          <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                            <Lock className="h-3.5 w-3.5" />
+                            Thông tin chi tiết đang ẩn
+                          </span>
+                        )
                       )}
                     </div>
                     <h4 className="mt-2 line-clamp-1 text-lg font-semibold text-slate-900">
-                      {classItem.subject} - {classItem.summary || `Cần Gia Sư tại ${classItem.districtName || ''}, ${classItem.provinceName || ''}`}
+                      {classItem.subject} -{" "}
+                      {classItem.summary ||
+                        `Cần Gia Sư tại ${classItem.districtName || ""}, ${classItem.provinceName || ""}`}
                     </h4>
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
                       <Clock3 className="h-3.5 w-3.5" />
-                      <span>{origin.timeLabel} {formatDateTime(application.createdAt)}</span>
+                      <span>
+                        {origin.timeLabel} {formatDateTime(application.createdAt)}
+                      </span>
                     </div>
                   </div>
 
@@ -248,7 +306,11 @@ export default function MyClassesPanel() {
                 <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <MapPin className="h-4 w-4 text-slate-400" />
-                    <span className="line-clamp-1">{classItem.provinceName && classItem.districtName ? `${classItem.provinceName}, ${classItem.districtName}` : (classItem.locationLabel || "-")}</span>
+                    <span className="line-clamp-1">
+                      {classItem.provinceName && classItem.districtName
+                        ? `${classItem.provinceName}, ${classItem.districtName}`
+                        : classItem.locationLabel || "-"}
+                    </span>
                   </div>
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700 transition group-hover:gap-2">
                     Xem chi tiết
@@ -261,8 +323,15 @@ export default function MyClassesPanel() {
         </div>
       )}
 
-      {!loadingMyClasses && myClasses.length > 0 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-2" />
+      {!loadingMyClasses && myClasses.length > 0 && totalPages > 1 && (
+        <div data-aos="fade-up" data-aos-delay="100" data-aos-duration="500">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            className="pt-2"
+          />
+        </div>
       )}
 
       <MyClassDetailDialog

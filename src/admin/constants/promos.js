@@ -12,4 +12,4 @@ export const PROMO_STATUS_OPTIONS = [
   { value: "false", label: "Đã tắt" },
 ];
 
-export const PROMO_DEFAULT_FILTERS = { keyword: "", discountType: "", isActive: "" };
+export const PROMO_DEFAULT_FILTERS = { discountType: "", isActive: "" };

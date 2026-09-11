@@ -300,9 +300,7 @@ const classSlice = createSlice({
       })
       .addCase(declineInvitationThunk.fulfilled, (state, action) => {
         state.respondingInvitation = false;
-        state.invitations = state.invitations.filter(
-          (inv) => inv.id !== action.meta.arg.applicationId,
-        );
+        state.invitations = state.invitations.filter((inv) => inv.id !== action.meta.arg.applicationId);
       })
       .addCase(declineInvitationThunk.rejected, (state, action) => {
         state.respondingInvitation = false;

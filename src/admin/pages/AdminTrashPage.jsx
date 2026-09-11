@@ -1,21 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  AlertTriangle,
-  BookOpen,
-  Loader2,
-  RefreshCw,
-  RotateCcw,
-  Star,
-  Ticket,
-  Trash2,
-  Users,
-  X,
-} from "lucide-react";
+import { BookOpen, Loader2, RefreshCw, RotateCcw, Star, Ticket, Trash2, Users } from "lucide-react";
 
-import { StarRating } from "@/features/reviews";
+import { StarRating } from "@/features/reviews/components/StarRating";
 
 import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/Pagination";
+import ConfirmDeleteModal from "@/components/shared/ConfirmDeleteModal";
 import {
   getTrashCountsThunk,
   getTrashItemsThunk,
@@ -45,60 +36,22 @@ const describeItem = (type, item) => {
   return item.code;
 };
 
-const ConfirmPurgeModal = ({ type, item, onClose, onConfirm, loading }) => {
-  if (!item) return null;
+// Modal xác nhận xóa vĩnh viễn một mục trong thùng rác.
+const ConfirmPurgeModal = ({ type, item, onClose, onConfirm, loading }) => (
+  <ConfirmDeleteModal
+    open={Boolean(item)}
+    title="Xóa vĩnh viễn"
+    description={`${PURGE_COPY[type]} Hành động này không thể hoàn tác.`}
+    confirmLabel="Xóa vĩnh viễn"
+    onClose={onClose}
+    onConfirm={onConfirm}
+    loading={loading}
+  >
+    <p className="text-sm font-semibold text-slate-800">{item && describeItem(type, item)}</p>
+  </ConfirmDeleteModal>
+);
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-      <div role="dialog" aria-modal="true" className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-700">
-            <AlertTriangle className="h-6 w-6" />
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Đóng"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="mt-5 space-y-2">
-          <h2 className="text-xl font-bold text-slate-900">Xóa vĩnh viễn</h2>
-          <p className="text-sm leading-relaxed text-slate-600">{PURGE_COPY[type]} Hành động này không thể hoàn tác.</p>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
-          <p className="text-sm font-semibold text-slate-800">{describeItem(type, item)}</p>
-        </div>
-
-        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={loading}
-            className="h-10 rounded-lg border-slate-300 text-slate-700"
-          >
-            Hủy
-          </Button>
-          <Button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading}
-            className="h-10 rounded-lg bg-rose-600 px-5 font-semibold text-white hover:bg-rose-700"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Xóa vĩnh viễn
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
+// Cột thông tin chính của một mục, hiển thị khác nhau theo loại dữ liệu.
 const PrimaryCell = ({ type, item }) => {
   if (type === "users") {
     return (
@@ -135,11 +88,14 @@ const PrimaryCell = ({ type, item }) => {
   return (
     <div>
       <p className="text-sm font-bold text-slate-800">{item.code}</p>
-      {item.description && <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{item.description}</p>}
+      {item.description && (
+        <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{item.description}</p>
+      )}
     </div>
   );
 };
 
+// Cột thông tin phụ của một mục, hiển thị khác nhau theo loại dữ liệu.
 const SecondaryCell = ({ type, item }) => {
   if (type === "users") {
     return <span className="text-sm text-slate-600">{ROLE_LABEL[item.role] || item.role}</span>;
@@ -163,11 +119,11 @@ const SecondaryCell = ({ type, item }) => {
   );
 };
 
+// Trang admin quản lý thùng rác: xem, khôi phục hoặc xóa vĩnh viễn dữ liệu đã xóa mềm.
 const AdminTrashPage = () => {
   const dispatch = useDispatch();
-  const { trashItems, trashPagination, trashLoading, trashError, trashActionLoading, trashCounts } = useSelector(
-    (state) => state.admin,
-  );
+  const { trashItems, trashPagination, trashLoading, trashError, trashActionLoading, trashCounts } =
+    useSelector((state) => state.admin);
 
   const [activeTab, setActiveTab] = useState("users");
   const [page, setPage] = useState(1);
@@ -175,6 +131,7 @@ const AdminTrashPage = () => {
 
   const params = useMemo(() => ({ page, limit: PAGE_SIZE }), [page]);
 
+  // Tải lại số đếm và danh sách mục trong thùng rác.
   const refetch = () => {
     dispatch(getTrashItemsThunk({ type: activeTab, params }));
     dispatch(getTrashCountsThunk());
@@ -188,12 +145,14 @@ const AdminTrashPage = () => {
     dispatch(getTrashCountsThunk());
   }, [dispatch]);
 
+  // Đổi tab loại dữ liệu đang xem.
   const handleTabChange = (key) => {
     if (key === activeTab) return;
     setActiveTab(key);
     setPage(1);
   };
 
+  // Khôi phục một mục khỏi thùng rác.
   const handleRestore = async (item) => {
     const result = await dispatch(restoreTrashItemThunk({ type: activeTab, id: item.id }));
     if (restoreTrashItemThunk.fulfilled.match(result)) {
@@ -202,6 +161,7 @@ const AdminTrashPage = () => {
     }
   };
 
+  // Xác nhận xóa vĩnh viễn mục đang chọn.
   const handleConfirmPurge = async () => {
     if (!purgeTarget) return;
     const result = await dispatch(purgeTrashItemThunk({ type: activeTab, id: purgeTarget.id }));
@@ -222,7 +182,7 @@ const AdminTrashPage = () => {
       <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <Trash2 className="h-4 w-4" />
               Thùng rác
             </div>
@@ -255,7 +215,7 @@ const AdminTrashPage = () => {
                 onClick={() => handleTabChange(tab.key)}
                 className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
                   active
-                    ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
+                    ? "border-brand bg-brand text-white"
                     : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 }`}
               >
@@ -288,7 +248,9 @@ const AdminTrashPage = () => {
         </div>
 
         {trashError ? (
-          <div className="m-5 rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">{trashError}</div>
+          <div className="m-5 rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+            {trashError}
+          </div>
         ) : trashLoading && trashItems.length === 0 ? (
           <div className="flex min-h-64 items-center justify-center text-sm text-slate-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -305,10 +267,18 @@ const AdminTrashPage = () => {
             <table className="min-w-full divide-y divide-slate-100">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Thông tin</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{SECONDARY_HEADER[activeTab]}</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Thời điểm xóa</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Thao tác</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thông tin
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {SECONDARY_HEADER[activeTab]}
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thời điểm xóa
+                  </th>
+                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -333,7 +303,11 @@ const AdminTrashPage = () => {
                             onClick={() => handleRestore(item)}
                             className="rounded-lg border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                           >
-                            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                            {busy ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RotateCcw className="h-4 w-4" />
+                            )}
                             Khôi phục
                           </Button>
                           <Button
@@ -361,28 +335,7 @@ const AdminTrashPage = () => {
           <p className="text-slate-500">
             Trang {trashPagination?.page || page}/{totalPages}
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || trashLoading}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Trước
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || trashLoading}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-lg border-slate-300 text-slate-700"
-            >
-              Sau
-            </Button>
-          </div>
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       </section>
 

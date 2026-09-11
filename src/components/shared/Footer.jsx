@@ -1,9 +1,8 @@
-import { useEffect, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 import { GraduationCap, MapPin, Phone, Mail, MessageCircle } from "lucide-react";
-import settingsService from "@/services/settingsService";
-import { DEFAULT_FOOTER } from "@/constants/footer";
+import useSiteSettings from "@/hooks/useSiteSettings";
 
+// Icon Facebook dạng SVG inline (lucide-react không có sẵn icon này).
 const Facebook = ({ className }) => (
   <svg
     viewBox="0 0 24 24"
@@ -20,23 +19,12 @@ const Facebook = ({ className }) => (
   </svg>
 );
 
-const Footer = () => {
-  const [data, setData] = useState(DEFAULT_FOOTER);
+const phoneHref = (phone) => `tel:${phone.replace(/[^+\d]/g, "")}`;
 
-  useEffect(() => {
-    settingsService
-      .getFooter()
-      .then((res) => {
-        if (res.data?.success && res.data?.data) {
-          startTransition(() => {
-            setData(res.data.data);
-          });
-        }
-      })
-      .catch(() => {
-        // Fallback to default
-      });
-  }, []);
+// Chân trang: lấy thông tin liên hệ động từ settings trong database.
+const Footer = () => {
+  const { data } = useSiteSettings();
+  const phones = [...new Set([data.phone, data.phone2].filter(Boolean))];
 
   return (
     <footer className="w-full bg-slate-900 text-slate-400 border-t border-slate-800">
@@ -48,12 +36,11 @@ const Footer = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
                 <GraduationCap className="h-6 w-6" />
               </div>
-              <span className="text-lg font-bold text-white tracking-wide">
-                WebTutorCenter
-              </span>
+              <span className="text-lg font-bold text-white tracking-wide">WebTutorCenter</span>
             </Link>
             <p className="text-sm leading-relaxed text-slate-400 max-w-xs">
-              Mạng lưới kết nối gia sư chuyên nghiệp và uy tín hàng đầu. Đồng hành cùng học viên trên con đường chinh phục tri thức.
+              Mạng lưới kết nối gia sư chuyên nghiệp và uy tín hàng đầu. Đồng hành cùng học viên trên con
+              đường chinh phục tri thức.
             </p>
           </div>
 
@@ -62,23 +49,37 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Lối tắt</h3>
             <ul className="grid grid-cols-1 gap-2.5 text-sm sm:grid-cols-2">
               <li>
-                <Link to="/" className="hover:text-white transition-colors">Trang chủ</Link>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Trang chủ
+                </Link>
               </li>
               <li>
-                <Link to="/classes" className="hover:text-white transition-colors">Lớp cần gia sư</Link>
+                <Link to="/classes" className="hover:text-white transition-colors">
+                  Lớp cần gia sư
+                </Link>
               </li>
               <li>
-                <Link to="/find-tutor" className="hover:text-white transition-colors">Tìm gia sư</Link>
+                <Link to="/find-tutor" className="hover:text-white transition-colors">
+                  Tìm gia sư
+                </Link>
               </li>
               <li>
-                <Link to="/tutors" className="hover:text-white transition-colors">Danh sách gia sư</Link>
+                <Link to="/tutors" className="hover:text-white transition-colors">
+                  Danh sách gia sư
+                </Link>
               </li>
               <li>
-                <Link to="/register-tutor" className="hover:text-white transition-colors">Trở thành gia sư</Link>
+                <Link to="/register-tutor" className="hover:text-white transition-colors">
+                  Trở thành gia sư
+                </Link>
               </li>
-              <li>
-                <Link to="/contract-template" className="hover:text-white transition-colors">Hợp đồng mẫu</Link>
-              </li>
+              {data.contractHtml ? (
+                <li>
+                  <Link to="/contract-template" className="hover:text-white transition-colors">
+                    Hợp đồng mẫu
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </div>
 
@@ -86,18 +87,39 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Liên hệ</h3>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 shrink-0 text-orange-500 mt-0.5" />
-                <span className="leading-relaxed">{data.address}</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href={`tel:${data.phone}`} className="hover:text-white transition-colors">{data.phone}</a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="h-5 w-5 shrink-0 text-orange-500" />
-                <a href={`mailto:${data.email}`} className="hover:text-white transition-colors">{data.email}</a>
-              </li>
+              {data.address && (
+                <li className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 shrink-0 text-orange-500 mt-0.5" />
+                  <span className="leading-relaxed">{data.address}</span>
+                </li>
+              )}
+              {phones.length > 0 && (
+                <li className="flex items-start gap-3">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Hotline
+                    </p>
+                    {phones.map((phone) => (
+                      <a
+                        key={phone}
+                        href={phoneHref(phone)}
+                        className="block hover:text-white transition-colors"
+                      >
+                        {phone}
+                      </a>
+                    ))}
+                  </div>
+                </li>
+              )}
+              {data.email && (
+                <li className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 shrink-0 text-orange-500" />
+                  <a href={`mailto:${data.email}`} className="hover:text-white transition-colors">
+                    {data.email}
+                  </a>
+                </li>
+              )}
               <li className="flex items-center gap-4 pt-2">
                 {data.facebookLink && (
                   <a
@@ -129,8 +151,12 @@ const Footer = () => {
         <div className="mt-12 border-t border-slate-800 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-xs">
           <p>&copy; {new Date().getFullYear()} WebTutorCenter. All rights reserved.</p>
           <div className="flex gap-4">
-            <Link to="#" className="hover:underline">Điều khoản dịch vụ</Link>
-            <Link to="#" className="hover:underline">Chính sách bảo mật</Link>
+            <Link to="#" className="hover:underline">
+              Điều khoản dịch vụ
+            </Link>
+            <Link to="#" className="hover:underline">
+              Chính sách bảo mật
+            </Link>
           </div>
         </div>
       </div>

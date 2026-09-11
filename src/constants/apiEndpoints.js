@@ -54,6 +54,9 @@ const API_ENDPOINTS = {
     REVIEW_TUTORS: "/admin/reviews/tutors",
     REVIEW_TUTOR_REVIEWS: (tutorId) => `/admin/reviews/tutors/${tutorId}`,
     REVIEW_DELETE: (id) => `/admin/reviews/${id}`,
+    // Thống kê tổng hợp + quản lý thanh toán phí nhận lớp
+    STATS_SUMMARY: "/admin/stats/summary",
+    PAYMENTS: "/admin/payments",
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
@@ -125,7 +128,21 @@ const API_ENDPOINTS = {
     CONVERSATION_MESSAGES: (id) => `/chat/conversations/${id}/messages`,
     CONVERSATION_SEND: (id) => `/chat/conversations/${id}/messages`,
     CONVERSATION_SEND_IMAGE: (id) => `/chat/conversations/${id}/images`,
+    CONVERSATION_SEND_CARD: (id) => `/chat/conversations/${id}/card`,
     CONVERSATION_READ: (id) => `/chat/conversations/${id}/read`,
+  },
+  CHATBOT: {
+    // Trợ lý ảo — 1 endpoint hỏi/đáp, cho cả khách lẫn người đã đăng nhập.
+    ASK: "/chatbot",
+  },
+  CCCD: {
+    VERIFY: "/cccd/verify",
+  },
+  PAYMENTS: {
+    // Gia sư thanh toán phí nhận lớp qua cổng (VNPay/MoMo/ZaloPay) + xem hóa đơn của mình
+    PROVIDERS: "/payments/providers",
+    CLASS_FEE: "/payments/class-fee",
+    MINE: "/payments/mine",
   },
 };
 

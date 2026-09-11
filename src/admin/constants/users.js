@@ -26,7 +26,6 @@ export const USER_ROLE_CONFIG = {
 };
 
 export const USER_DEFAULT_FILTERS = {
-  keyword: "",
   role: "",
   isActive: "",
   isVerified: "",

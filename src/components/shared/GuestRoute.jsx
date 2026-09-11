@@ -1,14 +1,14 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
 
-// Đích đến sau khi đã đăng nhập: admin về trang quản trị, hồ sơ thiếu (thường là
-// tài khoản Google mới) về trang hoàn tất hồ sơ, còn lại về nơi định tới / trang chủ.
+// Chọn đích chuyển hướng cho người đã đăng nhập theo vai trò và độ đầy đủ hồ sơ.
 const resolveDestination = (user, from) => {
   if (user?.role === "admin") return "/admin";
   if (user && (!user.phone || !user.dateOfBirth)) return "/complete-profile";
   return from || "/";
 };
 
+// Route guard: chặn người đã đăng nhập vào các trang dành cho khách.
 const GuestRoute = () => {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();

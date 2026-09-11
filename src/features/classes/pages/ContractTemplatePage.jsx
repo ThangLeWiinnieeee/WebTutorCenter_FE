@@ -7,6 +7,7 @@ import ContractTemplate from "../components/ContractTemplate";
 import { copyContract, printContract } from "../utils/contractActions";
 
 // Trang hợp đồng mẫu độc lập — đích của lối tắt ở chân trang.
+// Trang xem và in hợp đồng gia sư mẫu.
 const ContractTemplatePage = () => {
   const contentRef = useRef(null);
 

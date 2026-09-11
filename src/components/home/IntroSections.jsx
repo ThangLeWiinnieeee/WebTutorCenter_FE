@@ -1,9 +1,4 @@
-import {
-  Star,
-  Users,
-  Globe,
-  Phone,
-} from "lucide-react";
+import { Star, Users, Globe, Phone } from "lucide-react";
 import { INTRO_SECTIONS } from "@/features/tutors/constants/introSections";
 
 const ICON_MAP = {
@@ -13,6 +8,7 @@ const ICON_MAP = {
   phone: Phone,
 };
 
+// Các khối giới thiệu dịch vụ trên trang chủ.
 export default function IntroSections() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
@@ -20,9 +16,7 @@ export default function IntroSections() {
         <span className="text-sm font-semibold uppercase tracking-wider text-emerald-600">
           Giá trị cốt lõi
         </span>
-        <h2 className="mt-2 text-3xl md:text-4xl font-bold text-gray-900">
-          Tại Sao Chọn WebTutorCenter
-        </h2>
+        <h2 className="mt-2 text-3xl md:text-4xl font-bold text-gray-900">Tại Sao Chọn WebTutorCenter</h2>
         <div className="mx-auto mt-4 h-1 w-20 rounded-full bg-linear-to-r from-emerald-400 to-blue-500" />
       </div>
 
@@ -47,9 +41,7 @@ export default function IntroSections() {
               </div>
 
               {/* Title */}
-              <h3 className="mb-3 text-xl font-bold text-gray-900">
-                {section.title}
-              </h3>
+              <h3 className="mb-3 text-xl font-bold text-gray-900">{section.title}</h3>
 
               {/* Description */}
               <p className="leading-relaxed text-gray-600">{section.description}</p>

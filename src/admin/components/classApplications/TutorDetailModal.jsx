@@ -2,8 +2,10 @@ import { Users } from "lucide-react";
 
 import { ModalShell, InfoRow, SlotChips } from "./ModalShell";
 import { TutorAvatar, SubjectMatchBadge } from "./badges";
-import { genderLabel, occupationLabel } from "./formatters";
+import { GENDER_LABEL } from "@/constants/enums";
+import { OCCUPATION_STATUS_LABEL } from "@/features/tutors/constants";
 
+// Modal xem nhanh hồ sơ gia sư khi admin duyệt đơn nhận lớp.
 const TutorDetailModal = ({ tutor, classSubject, onClose }) => {
   if (!tutor) return null;
   return (
@@ -21,7 +23,8 @@ const TutorDetailModal = ({ tutor, classSubject, onClose }) => {
         <div className="space-y-2.5">
           <InfoRow label="Số điện thoại">{tutor.phone || "—"}</InfoRow>
           <InfoRow label="Giới tính / Trình độ">
-            {genderLabel(tutor.gender)} · {occupationLabel(tutor.occupationStatus)}
+            {GENDER_LABEL[tutor.gender] || "Khác"} ·{" "}
+            {OCCUPATION_STATUS_LABEL[tutor.occupationStatus] || tutor.occupationStatus}
           </InfoRow>
           <InfoRow label="Học vị / Trường">
             {tutor.schoolName || "—"} {tutor.graduationYear ? `(Tốt nghiệp ${tutor.graduationYear})` : ""}

@@ -1,30 +1,17 @@
-/**
- * Cuộn tới và focus trường nhập ĐẦU TIÊN bị lỗi khi submit form thất bại.
- *
- * Dùng làm callback `onInvalid` của react-hook-form:
- *   <form onSubmit={handleSubmit(onValid, scrollToFirstError)}>
- *
- * Hỗ trợ mọi kiểu trường:
- * - Input thường (register): lấy theo DOM ref mà react-hook-form gắn ở mỗi lỗi.
- * - Component shadcn bọc trong <FormControl> (Select, picker tùy biến...): nhận diện qua
- *   thuộc tính `aria-invalid="true"` mà FormControl tự gắn khi field có lỗi.
- * - Chọn trường xuất hiện sớm nhất trong DOM (không phụ thuộc thứ tự key của errors),
- *   và giới hạn trong đúng form vừa submit khi có thể (tránh bắt nhầm form khác trên trang).
- */
+// Tiện ích dùng làm callback `onInvalid` của react-hook-form: đưa người dùng
+// tới trường lỗi đầu tiên khi submit thất bại.
 
 const FOCUSABLE_TAGS = new Set(["INPUT", "SELECT", "TEXTAREA", "BUTTON"]);
-const FOCUSABLE_SELECTOR =
-  "input:not([type=hidden]), select, textarea, button, [tabindex]";
+const FOCUSABLE_SELECTOR = "input:not([type=hidden]), select, textarea, button, [tabindex]";
 
-const isElement = (el) =>
-  typeof HTMLElement !== "undefined" && el instanceof HTMLElement;
+// Kiểm tra giá trị có phải một phần tử DOM hay không.
+const isElement = (el) => typeof HTMLElement !== "undefined" && el instanceof HTMLElement;
 
+// Kiểm tra phần tử có thể nhận focus hay không.
 const isFocusable = (el) =>
-  isElement(el) &&
-  el.type !== "hidden" &&
-  (FOCUSABLE_TAGS.has(el.tagName) || el.tabIndex >= 0);
+  isElement(el) && el.type !== "hidden" && (FOCUSABLE_TAGS.has(el.tagName) || el.tabIndex >= 0);
 
-// Đệ quy gom các DOM node mà react-hook-form gắn vào từng lỗi (kể cả lỗi lồng nhau).
+// Gom các DOM node ứng với từng lỗi trong cây errors của react-hook-form.
 const collectErrorRefNodes = (node, nodes) => {
   if (!node || typeof node !== "object") return;
 
@@ -43,7 +30,7 @@ const collectErrorRefNodes = (node, nodes) => {
   }
 };
 
-// So sánh để chọn node nằm sớm hơn trong cây DOM.
+// Chọn node xuất hiện sớm nhất trong cây DOM.
 const earliestInDom = (nodes) =>
   nodes.reduce((earliest, el) => {
     if (!earliest) return el;
@@ -51,6 +38,7 @@ const earliestInDom = (nodes) =>
     return pos & Node.DOCUMENT_POSITION_FOLLOWING ? el : earliest;
   }, null);
 
+// Cuộn tới và focus trường nhập bị lỗi đầu tiên sau khi submit form thất bại.
 export function scrollToFirstError(errors) {
   if (!errors || typeof errors !== "object") return;
   if (typeof document === "undefined") return;
@@ -69,9 +57,7 @@ export function scrollToFirstError(errors) {
   const target = earliestInDom(candidates);
   if (!target) return;
 
-  const focusable = isFocusable(target)
-    ? target
-    : target.querySelector?.(FOCUSABLE_SELECTOR);
+  const focusable = isFocusable(target) ? target : target.querySelector?.(FOCUSABLE_SELECTOR);
 
   (focusable || target).scrollIntoView({ behavior: "smooth", block: "center" });
 

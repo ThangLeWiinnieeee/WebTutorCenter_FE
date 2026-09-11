@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, GraduationCap, BookOpen, MapPin, User2, CalendarClock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -22,19 +22,22 @@ import AreaPicker from "./AreaPicker";
 import SchoolPicker from "./SchoolPicker";
 import DocumentUploadField from "./DocumentUploadField";
 import DocumentMultiUpload from "./DocumentMultiUpload";
+import CccdVerificationField from "./CccdVerificationField";
 
+// Tiêu đề nhóm trường trong form đăng ký gia sư.
 const SectionTitle = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
-    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1e3a5f]/10">
-      <Icon className="h-4 w-4 text-[#1e3a5f]" />
+    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
+      <Icon className="h-4 w-4 text-brand" />
     </div>
     <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
   </div>
 );
 
+// Form đăng ký làm gia sư: thông tin cá nhân, môn dạy, khu vực, lịch rảnh và giấy tờ.
 const TutorRegistrationForm = ({ onSuccess }) => {
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.tutors);
+  const { loading, verifyingCccd } = useSelector((state) => state.tutors);
   const { subjects: subjectOptions } = useSubjects();
 
   const form = useForm({
@@ -51,18 +54,18 @@ const TutorRegistrationForm = ({ onSuccess }) => {
       availability: [],
       cccdFrontImage: "",
       cccdBackImage: "",
+      cccdVerificationReceipt: "",
       studentCardFrontImage: "",
       studentCardBackImage: "",
       certificateImages: [],
+      publicCertificateImages: [],
     },
   });
 
-  const occupationStatus = form.watch("occupationStatus");
+  // useWatch (thay form.watch) để React Compiler không bỏ qua memo hoá component.
+  const occupationStatus = useWatch({ control: form.control, name: "occupationStatus" });
 
-  // Hiển thị theo tình trạng nghề nghiệp:
-  // - sinh viên → chỉ thẻ sinh viên (bắt buộc)
-  // - đã tốt nghiệp / giáo viên → chỉ bằng cấp (tối thiểu 1)
-  // - chưa chọn → hiện cả hai
+  // Loại giấy tờ yêu cầu thay đổi theo tình trạng nghề nghiệp đang chọn.
   const showStudentCard = occupationStatus === "" || occupationStatus === "student";
   const showCertificates =
     occupationStatus === "" || occupationStatus === "graduated" || occupationStatus === "teacher";
@@ -77,6 +80,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
     }
   }, [occupationStatus, form]);
 
+  // Gửi hồ sơ đăng ký gia sư lên server.
   const onSubmit = async (data) => {
     if (data.occupationStatus === "student") {
       data.graduationYear = null;
@@ -109,7 +113,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số điện thoại liên hệ <span className="text-rose-500">*</span></FormLabel>
+                  <FormLabel>
+                    Số điện thoại liên hệ <span className="text-rose-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="VD: 0912345678"
@@ -127,15 +133,15 @@ const TutorRegistrationForm = ({ onSuccess }) => {
               name="currentArea"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Khu vực hiện tại của bạn <span className="text-rose-500">*</span></FormLabel>
-                  <AreaPicker
-                    value={field.value}
-                    onChange={field.onChange}
-                    mode="single"
-                  />
+                  <FormLabel>
+                    Khu vực hiện tại của bạn <span className="text-rose-500">*</span>
+                  </FormLabel>
+                  <AreaPicker value={field.value} onChange={field.onChange} mode="single" />
                   {fieldState.error && (
                     <p className="text-xs text-rose-500">
-                      {fieldState.error.province?.message || fieldState.error.district?.message || fieldState.error.message}
+                      {fieldState.error.province?.message ||
+                        fieldState.error.district?.message ||
+                        fieldState.error.message}
                     </p>
                   )}
                 </FormItem>
@@ -153,7 +159,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
               name="occupationStatus"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tình trạng nghề nghiệp <span className="text-rose-500">*</span></FormLabel>
+                  <FormLabel>
+                    Tình trạng nghề nghiệp <span className="text-rose-500">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="cursor-pointer focus:ring-0 focus:ring-offset-0 focus:border-slate-400">
@@ -162,7 +170,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
                     </FormControl>
                     <SelectContent>
                       {OCCUPATION_STATUS_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} className="cursor-pointer">{o.label}</SelectItem>
+                        <SelectItem key={o.value} value={o.value} className="cursor-pointer">
+                          {o.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -177,7 +187,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
                 name="schoolName"
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
-                    <FormLabel>Trường đã / đang học <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel>
+                      Trường đã / đang học <span className="text-rose-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <SchoolPicker value={field.value} onChange={field.onChange} />
                     </FormControl>
@@ -226,7 +238,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mô tả bản thân, kinh nghiệm giảng dạy <span className="text-rose-500">*</span></FormLabel>
+                <FormLabel>
+                  Mô tả bản thân, kinh nghiệm giảng dạy <span className="text-rose-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <textarea
                     {...field}
@@ -248,38 +262,28 @@ const TutorRegistrationForm = ({ onSuccess }) => {
         <div>
           <SectionTitle icon={ShieldCheck} title="Hình ảnh chứng thực" />
           <p className="-mt-2 mb-4 text-xs text-slate-500">
-            Tải ảnh CCCD/CMND rõ nét để xác thực danh tính. Thông tin này chỉ dùng cho việc xét
-            duyệt và được bảo mật.
+            Tải ảnh CCCD/CMND rõ nét để xác thực danh tính. Thông tin này chỉ dùng cho việc xét duyệt và được
+            bảo mật.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="cccdFrontImage"
-              render={({ field, fieldState }) => (
-                <DocumentUploadField
-                  label="CCCD mặt trước"
-                  required
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cccdBackImage"
-              render={({ field, fieldState }) => (
-                <DocumentUploadField
-                  label="CCCD mặt sau"
-                  required
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-          </div>
+          <input type="hidden" {...form.register("cccdVerificationReceipt")} />
+          <CccdVerificationField
+            error={
+              form.formState.errors.cccdVerificationReceipt?.message ||
+              form.formState.errors.cccdFrontImage?.message ||
+              form.formState.errors.cccdBackImage?.message
+            }
+            onReset={() => {
+              form.setValue("cccdFrontImage", "");
+              form.setValue("cccdBackImage", "");
+              form.setValue("cccdVerificationReceipt", "");
+            }}
+            onVerified={({ cccdFrontImage, cccdBackImage, receipt }) => {
+              form.setValue("cccdFrontImage", cccdFrontImage, { shouldValidate: true });
+              form.setValue("cccdBackImage", cccdBackImage, { shouldValidate: true });
+              form.setValue("cccdVerificationReceipt", receipt, { shouldValidate: true });
+            }}
+          />
 
           {showStudentCard && (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -333,6 +337,25 @@ const TutorRegistrationForm = ({ onSuccess }) => {
           )}
         </div>
 
+        {/* Bằng cấp công khai — tùy chọn, hiển thị cho mọi người (khác ảnh chứng thực riêng tư) */}
+        <div>
+          <SectionTitle icon={GraduationCap} title="Bằng cấp công khai" />
+          <FormField
+            control={form.control}
+            name="publicCertificateImages"
+            render={({ field, fieldState }) => (
+              <DocumentMultiUpload
+                label="Ảnh bằng cấp / chứng chỉ muốn hiển thị"
+                hint="Không bắt buộc. Những ảnh này sẽ hiển thị công khai ở trang hồ sơ và trang chi tiết gia sư cho mọi người xem — bỏ trống nếu bạn không muốn chia sẻ."
+                max={5}
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+        </div>
+
         {/* === PHẦN 2: THÔNG TIN GIẢNG DẠY === */}
 
         {/* Subjects */}
@@ -343,7 +366,9 @@ const TutorRegistrationForm = ({ onSuccess }) => {
             name="subjects"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Chọn môn bạn có thể dạy <span className="text-rose-500">*</span></FormLabel>
+                <FormLabel>
+                  Chọn môn bạn có thể dạy <span className="text-rose-500">*</span>
+                </FormLabel>
                 <MultiCheckbox
                   options={subjectOptions}
                   value={field.value}
@@ -353,9 +378,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
                 {field.value.length > 0 && (
                   <p className="text-xs text-slate-500">Đã chọn: {field.value.length} môn</p>
                 )}
-                {fieldState.error && (
-                  <p className="text-xs text-rose-500">{fieldState.error.message}</p>
-                )}
+                {fieldState.error && <p className="text-xs text-rose-500">{fieldState.error.message}</p>}
               </FormItem>
             )}
           />
@@ -369,15 +392,15 @@ const TutorRegistrationForm = ({ onSuccess }) => {
             name="teachingAreas"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Tỉnh/thành & quận/huyện có thể dạy <span className="text-rose-500">*</span></FormLabel>
-                <AreaPicker
-                  value={field.value}
-                  onChange={field.onChange}
-                  mode="multi-district"
-                />
+                <FormLabel>
+                  Tỉnh/thành & quận/huyện có thể dạy <span className="text-rose-500">*</span>
+                </FormLabel>
+                <AreaPicker value={field.value} onChange={field.onChange} mode="multi-district" />
                 {fieldState.error && (
                   <p className="text-xs text-rose-500">
-                    {fieldState.error.province?.message || fieldState.error.districts?.message || fieldState.error.message}
+                    {fieldState.error.province?.message ||
+                      fieldState.error.districts?.message ||
+                      fieldState.error.message}
                   </p>
                 )}
               </FormItem>
@@ -393,10 +416,14 @@ const TutorRegistrationForm = ({ onSuccess }) => {
             name="availability"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Khung giờ bạn có thể dạy <span className="text-rose-500">*</span></FormLabel>
+                <FormLabel>
+                  Khung giờ bạn có thể dạy <span className="text-rose-500">*</span>
+                </FormLabel>
                 <AvailabilityPicker value={field.value} onChange={field.onChange} />
                 {fieldState.error && (
-                  <p className="text-xs text-rose-500">{fieldState.error.message || fieldState.error.root?.message}</p>
+                  <p className="text-xs text-rose-500">
+                    {fieldState.error.message || fieldState.error.root?.message}
+                  </p>
                 )}
               </FormItem>
             )}
@@ -406,8 +433,8 @@ const TutorRegistrationForm = ({ onSuccess }) => {
         <div className="pt-2 border-t border-slate-100">
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-[#1e3a5f] text-white hover:bg-[#2d5a9e] h-11 cursor-pointer"
+            disabled={loading || verifyingCccd}
+            className="w-full bg-brand text-white hover:bg-brand-accent h-11 cursor-pointer"
           >
             {loading ? (
               <>

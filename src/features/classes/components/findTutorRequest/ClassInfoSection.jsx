@@ -1,8 +1,8 @@
-import { Controller } from 'react-hook-form';
-import { PhoneCall } from 'lucide-react';
+import { Controller } from "react-hook-form";
+import { PhoneCall } from "lucide-react";
 
-import { Input } from '@/components/ui/input';
-import SearchableSelect from '@/features/classes/components/SearchableSelect';
+import { Input } from "@/components/ui/input";
+import SearchableSelect from "@/features/classes/components/SearchableSelect";
 
 // Mục 1: thông tin lớp học — liên hệ, môn học, tóm tắt, địa điểm.
 const ClassInfoSection = ({
@@ -22,7 +22,9 @@ const ClassInfoSection = ({
     </h2>
     <div className="grid gap-4 md:grid-cols-2">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Số điện thoại liên hệ <span className="text-rose-500">*</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          Số điện thoại liên hệ <span className="text-rose-500">*</span>
+        </label>
         <Input
           className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
           placeholder="Ví dụ: 0912 345 678"
@@ -31,7 +33,9 @@ const ClassInfoSection = ({
         {errors.contactPhone && <p className="mt-1 text-xs text-rose-600">{errors.contactPhone.message}</p>}
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Môn học <span className="text-rose-500">*</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          Môn học <span className="text-rose-500">*</span>
+        </label>
         <Controller
           name="subject"
           control={form.control}
@@ -51,7 +55,9 @@ const ClassInfoSection = ({
         {errors.subject && <p className="mt-1 text-xs text-rose-600">{errors.subject.message}</p>}
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Tóm tắt yêu cầu <span className="text-rose-500">*</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          Tóm tắt yêu cầu <span className="text-rose-500">*</span>
+        </label>
         <Input
           className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
           placeholder="Ví dụ: Tìm gia sư Toán lớp 9 tại Quận 7"
@@ -60,7 +66,9 @@ const ClassInfoSection = ({
         {errors.summary && <p className="mt-1 text-xs text-rose-600">{errors.summary.message}</p>}
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Địa điểm dạy <span className="text-rose-500">*</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          Địa điểm dạy <span className="text-rose-500">*</span>
+        </label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Controller
             name="provinceCode"
@@ -110,7 +118,9 @@ const ClassInfoSection = ({
       </div>
     </div>
     <div className="mt-4">
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">Nhập địa chỉ chi tiết <span className="text-rose-500">*</span></label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        Nhập địa chỉ chi tiết <span className="text-rose-500">*</span>
+      </label>
       <Input
         className="h-11 rounded-xl border-slate-200 focus-visible:ring-emerald-200"
         placeholder="Ví dụ: Chung cư Sunrise City, đường Nguyễn Hữu Thọ"

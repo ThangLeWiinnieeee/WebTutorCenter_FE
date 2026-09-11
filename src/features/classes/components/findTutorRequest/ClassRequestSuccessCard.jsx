@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { CheckCircle2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 // Màn hình xác nhận sau khi đăng lớp thành công (chỉ hiện ở luồng đăng mới).
 const ClassRequestSuccessCard = ({ classCode, onCreateNew }) => (

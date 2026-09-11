@@ -4,9 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Pencil, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Modal from "@/components/shared/Modal";
 import { adminUserSchema } from "@/admin/schemas/adminUserSchema";
 import { scrollToFirstError } from "@/lib/formErrors";
 
+// Đổi giá trị ngày sang chuỗi yyyy-MM-dd cho input type="date".
 const formatDateInput = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -14,6 +16,7 @@ const formatDateInput = (value) => {
   return date.toISOString().slice(0, 10);
 };
 
+// Dựng giá trị mặc định cho form từ người dùng đang sửa.
 const getUserFormValues = (user) => ({
   fullName: user?.fullName || "",
   phone: user?.phone || "",
@@ -22,6 +25,7 @@ const getUserFormValues = (user) => ({
   isVerified: user?.isVerified ? "true" : "false",
 });
 
+// Modal chỉnh sửa thông tin người dùng (khóa vài thao tác khi admin sửa chính mình).
 const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
   const form = useForm({
     resolver: zodResolver(adminUserSchema),
@@ -58,14 +62,11 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
   }, scrollToFirstError);
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-      <form
-        onSubmit={handleSubmit}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-2xl"
-      >
+    <Modal onClose={onClose} panelClassName="max-w-2xl">
+      <form onSubmit={handleSubmit}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1e3a5f]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand">
               <Pencil className="h-4 w-4" />
               Cập nhật tài khoản
             </div>
@@ -87,7 +88,7 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
             <span className="text-sm font-semibold text-slate-700">Họ tên</span>
             <input
               {...form.register("fullName")}
-              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               placeholder="Nhập họ tên"
             />
             {errors.fullName && <span className="text-xs text-rose-600">{errors.fullName.message}</span>}
@@ -97,7 +98,7 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
             <span className="text-sm font-semibold text-slate-700">Số điện thoại</span>
             <input
               {...form.register("phone")}
-              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               placeholder="VD: 0987654321"
             />
             {errors.phone && <span className="text-xs text-rose-600">{errors.phone.message}</span>}
@@ -108,16 +109,18 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
             <input
               type="date"
               {...form.register("dateOfBirth")}
-              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
-            {errors.dateOfBirth && <span className="text-xs text-rose-600">{errors.dateOfBirth.message}</span>}
+            {errors.dateOfBirth && (
+              <span className="text-xs text-rose-600">{errors.dateOfBirth.message}</span>
+            )}
           </label>
 
           <label className="space-y-1.5">
             <span className="text-sm font-semibold text-slate-700">Giới tính</span>
             <select
               {...form.register("gender")}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             >
               <option value="">Chưa cập nhật</option>
               <option value="male">Nam</option>
@@ -133,7 +136,7 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
               <select
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               >
                 <option value="user">Học viên</option>
                 <option value="admin">Quản trị viên</option>
@@ -150,7 +153,9 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
               </select>
             )}
             {canEditRole && role === "admin" && user.role !== "admin" ? (
-              <span className="text-xs text-amber-600">Tài khoản sẽ được cấp toàn quyền quản trị hệ thống.</span>
+              <span className="text-xs text-amber-600">
+                Tài khoản sẽ được cấp toàn quyền quản trị hệ thống.
+              </span>
             ) : (
               <span className="text-xs text-slate-500">
                 {isSelf
@@ -166,7 +171,7 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
             <span className="text-sm font-semibold text-slate-700">Xác thực email</span>
             <select
               {...form.register("isVerified")}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             >
               <option value="true">Đã xác thực</option>
               <option value="false">Chưa xác thực</option>
@@ -188,14 +193,14 @@ const UserEditModal = ({ user, isSelf, onClose, onSubmit, loading }) => {
           <Button
             type="submit"
             disabled={loading}
-            className="h-10 rounded-lg bg-[#1e3a5f] px-5 font-semibold text-white hover:bg-[#16304f]"
+            className="h-10 rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Lưu thay đổi
           </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 };
 

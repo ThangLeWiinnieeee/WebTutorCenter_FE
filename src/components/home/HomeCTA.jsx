@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, Search, ArrowRight } from "lucide-react";
 
+// Khối kêu gọi hành động ở cuối trang chủ.
 export default function HomeCTA() {
   return (
     <section className="relative overflow-hidden bg-linear-to-br from-emerald-600 via-emerald-700 to-blue-700 py-16 md:py-20">
@@ -9,19 +10,11 @@ export default function HomeCTA() {
       <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-blue-400/20 blur-3xl" />
 
       <div className="relative mx-auto max-w-4xl px-4 text-center">
-        <h2
-          data-aos="fade-up"
-          className="text-3xl md:text-4xl font-bold text-white"
-        >
+        <h2 data-aos="fade-up" className="text-3xl md:text-4xl font-bold text-white">
           Sẵn sàng bắt đầu hành trình học tập?
         </h2>
-        <p
-          data-aos="fade-up"
-          data-aos-delay="100"
-          className="mx-auto mt-4 max-w-2xl text-lg text-emerald-50"
-        >
-          Đăng tin tìm gia sư để nhận báo giá phù hợp, hoặc trở thành gia sư và
-          bắt đầu nhận lớp ngay hôm nay.
+        <p data-aos="fade-up" data-aos-delay="100" className="mx-auto mt-4 max-w-2xl text-lg text-emerald-50">
+          Đăng tin tìm gia sư để nhận báo giá phù hợp, hoặc trở thành gia sư và bắt đầu nhận lớp ngay hôm nay.
         </p>
 
         <div

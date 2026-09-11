@@ -1,4 +1,5 @@
 // Tính tuổi từ ngày sinh (ISO string hoặc Date). Trả null nếu không hợp lệ.
+// Tính tuổi từ ngày sinh.
 export const getAgeFromDate = (value) => {
   if (!value) return null;
   const dob = new Date(value);

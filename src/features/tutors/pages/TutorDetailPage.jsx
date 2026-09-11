@@ -1,10 +1,12 @@
+import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import tutorService from "@/features/tutors/services/tutorService";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
-import { StarRating, TutorReviewsSection } from "@/features/reviews";
+import { StarRating } from "@/features/reviews/components/StarRating";
+import TutorReviewsSection from "@/features/reviews/components/TutorReviewsSection";
 import TrustedTutorBadge from "@/features/tutors/components/TrustedTutorBadge";
 import {
   MapPin,
@@ -20,32 +22,22 @@ import {
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDate as formatDateBase, getInitials } from "@/lib/format";
 
-function formatDate(dateStr) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  if (isNaN(d)) return null;
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
+// Ngày trống trả null vì các nhánh JSX bên dưới dùng nó làm điều kiện hiển thị.
+const formatDate = (value) => formatDateBase(value, null);
 
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
+// Trang chi tiết hồ sơ công khai của một gia sư kèm phần đánh giá.
 export default function TutorDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const [tutor, setTutor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Tải hồ sơ gia sư theo id trên URL.
     const fetchTutor = async () => {
       try {
         setLoading(true);
@@ -96,7 +88,10 @@ export default function TutorDetailPage() {
       <BackButton navigate={navigate} />
 
       {/* Hero Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 flex flex-col sm:flex-row items-start gap-6" data-aos="fade-down">
+      <div
+        className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 flex flex-col sm:flex-row items-start gap-6"
+        data-aos="fade-down"
+      >
         {/* Avatar */}
         <div className="shrink-0 w-28 h-28 rounded-full bg-linear-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-4xl overflow-hidden">
           {tutor.avatar ? (
@@ -109,9 +104,7 @@ export default function TutorDetailPage() {
         {/* Name & quick info */}
         <div className="flex-1 min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-              {tutor.fullName || "—"}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{tutor.fullName || "—"}</h1>
             {tutor.isTrusted && <TrustedTutorBadge />}
           </div>
 
@@ -168,14 +161,16 @@ export default function TutorDetailPage() {
         </div>
 
         {/* CTA — mời chính gia sư này dạy lớp của bạn (luồng mời trực tiếp) */}
-        <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => navigate(`/find-tutor?tutor=${tutor.id}`)}
-            className="bg-[#1e3a5f] hover:bg-[#16304f] w-full sm:w-56"
-          >
-            Chọn gia sư này dạy lớp của bạn
-          </Button>
-        </div>
+        {isAuthenticated && (
+          <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
+            <Button
+              onClick={() => navigate(`/find-tutor?tutor=${tutor.id}`)}
+              className="bg-brand hover:bg-brand-dark w-full sm:w-56"
+            >
+              Chọn gia sư này dạy lớp của bạn
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -184,17 +179,15 @@ export default function TutorDetailPage() {
           {/* Thông tin liên hệ được bảo mật cho tới khi ghép lớp */}
           <InfoCard title="Liên hệ" icon={<ShieldCheck className="w-4 h-4 text-green-600" />}>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Thông tin liên hệ của gia sư được bảo mật. Số điện thoại và email chỉ được chia sẻ
-              giữa bạn và gia sư sau khi gia sư nhận lớp của bạn.
+              Thông tin liên hệ của gia sư được bảo mật. Số điện thoại và email chỉ được chia sẻ giữa bạn và
+              gia sư sau khi gia sư nhận lớp của bạn.
             </p>
           </InfoCard>
 
           {/* Học vấn */}
           {(tutor.schoolName || tutor.graduationYear) && (
             <InfoCard title="Học vấn" icon={<Building2 className="w-4 h-4 text-green-600" />}>
-              {tutor.schoolName && (
-                <p className="font-semibold text-gray-900 text-sm">{tutor.schoolName}</p>
-              )}
+              {tutor.schoolName && <p className="font-semibold text-gray-900 text-sm">{tutor.schoolName}</p>}
               {tutor.graduationYear && (
                 <p className="text-xs text-gray-500 mt-0.5">Tốt nghiệp năm {tutor.graduationYear}</p>
               )}
@@ -204,12 +197,13 @@ export default function TutorDetailPage() {
           {/* Khu vực giảng dạy */}
           {tutor.teachingAreas && (
             <InfoCard title="Khu vực dạy" icon={<MapPin className="w-4 h-4 text-green-600" />}>
-              <p className="font-semibold text-gray-900 text-sm">
-                {tutor.teachingAreas.provinceName || "—"}
-              </p>
+              <p className="font-semibold text-gray-900 text-sm">{tutor.teachingAreas.provinceName || "—"}</p>
               {tutor.teachingAreas.districts?.length > 0 && (
                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                  {tutor.teachingAreas.districts.map((d) => d.name).filter(Boolean).join(", ")}
+                  {tutor.teachingAreas.districts
+                    .map((d) => d.name)
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
               )}
             </InfoCard>
@@ -241,6 +235,29 @@ export default function TutorDetailPage() {
                   >
                     {subject}
                   </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Bằng cấp công khai — chỉ hiện khi gia sư đã chia sẻ */}
+          {tutor.publicCertificateImages?.length > 0 && (
+            <section className="bg-white rounded-2xl border border-gray-200 p-6" data-aos="fade-up">
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-green-600" />
+                Bằng cấp
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {tutor.publicCertificateImages.map((src) => (
+                  <a
+                    key={src}
+                    href={src}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block aspect-[16/10] overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                  >
+                    <img src={src} alt="Bằng cấp gia sư" className="h-full w-full object-contain" />
+                  </a>
                 ))}
               </div>
             </section>
@@ -287,6 +304,7 @@ export default function TutorDetailPage() {
   );
 }
 
+// Nút quay lại trang trước.
 function BackButton({ navigate }) {
   return (
     <button
@@ -299,6 +317,7 @@ function BackButton({ navigate }) {
   );
 }
 
+// Khung thẻ thông tin có tiêu đề và icon.
 function InfoCard({ title, icon, children }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-4">

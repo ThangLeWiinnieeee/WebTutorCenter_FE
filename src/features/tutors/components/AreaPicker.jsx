@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import locationService from "@/features/tutors/services/locationService";
 
+// Bộ chọn khu vực (tỉnh và quận/huyện), hỗ trợ chọn một hoặc nhiều quận.
 const AreaPicker = ({ value, onChange, mode = "single" }) => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -9,6 +10,7 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
   const [loadingDistricts, setLoadingDistricts] = useState(false);
 
   useEffect(() => {
+    // Tải danh sách tỉnh/thành.
     const fetchProvinces = async () => {
       setLoadingProvinces(true);
       try {
@@ -22,12 +24,11 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
     fetchProvinces();
   }, []);
 
-  const currentProvince = mode === "single"
-    ? value?.province || 0
-    : value?.province || 0;
+  const currentProvince = mode === "single" ? value?.province || 0 : value?.province || 0;
 
   useEffect(() => {
     let cancelled = false;
+    // Tải danh sách quận/huyện theo tỉnh đang chọn.
     const load = async () => {
       if (!currentProvince) {
         if (!cancelled) setDistricts([]);
@@ -43,7 +44,9 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
       if (!cancelled) setLoadingDistricts(false);
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [currentProvince]);
 
   if (mode === "single") {
@@ -93,6 +96,7 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
   // Mode: "multi-district" — one province, multiple districts
   const selectedDistricts = value?.districts || [];
 
+  // Thêm/bớt một quận trong danh sách đã chọn.
   const toggleDistrict = (code) => {
     const updated = selectedDistricts.includes(code)
       ? selectedDistricts.filter((d) => d !== code)
@@ -136,9 +140,10 @@ const AreaPicker = ({ value, onChange, mode = "single" }) => {
                   <label
                     key={d.code}
                     className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors select-none
-                      ${isSelected
-                        ? "bg-[#1e3a5f] text-white"
-                        : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                      ${
+                        isSelected
+                          ? "bg-brand text-white"
+                          : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                       }`}
                   >
                     <input
