@@ -18,7 +18,7 @@ const MainLayout = () => {
         </Suspense>
       </main>
       <Footer />
-      {/* Khung nổi: tab Trợ lý ảo (cho cả khách) + tab nhắn Admin (khi đã đăng nhập). Ẩn với admin. */}
+      {/* Khung nổi: trợ lý ảo và nhắn Admin chỉ dành cho người đã đăng nhập. Ẩn với admin. */}
       <TutorChatWidget />
     </div>
   );

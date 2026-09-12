@@ -24,7 +24,7 @@ const formatTime = (iso) => {
 const uid = () =>
   typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 
-// Câu hỏi mồi cho khách chưa biết hỏi gì (khớp FAQ của chatbot-service).
+// Câu hỏi gợi ý cho người dùng (khớp FAQ của chatbot-service).
 const BOT_STARTERS = [
   "Làm sao để đăng ký tài khoản?",
   "Làm sao để trở thành gia sư?",
@@ -57,12 +57,12 @@ const TabButton = ({ active, onClick, icon, label, badge = 0 }) => (
 );
 
 // Khung chat nổi cho người dùng: tab trợ lý ảo và tab nhắn tin với admin.
-const TutorChatWidget = () => {
+const AuthenticatedChatWidget = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useAuth();
   const isAdmin = user?.role === "admin";
   // Tab "Admin" (nhắn quản trị viên) chỉ cho người đã đăng nhập, non-admin.
-  // Tab "Trợ lý ảo" thì ai cũng dùng được (kể cả khách).
+  // Cả hai tab chỉ hiển thị trong phiên đã đăng nhập.
   const canChat = isAuthenticated && !isAdmin;
 
   const { messages, unreadCount, sending, loading } = useSelector(selectTutorChat);
@@ -137,7 +137,7 @@ const TutorChatWidget = () => {
 
   // ── Gửi cho admin (text/ảnh) ──
   const sendAdmin = async () => {
-    if (sending) return;
+    if (!canChat || sending) return;
     if (image) {
       const { file } = image;
       setImage(null);
@@ -153,7 +153,7 @@ const TutorChatWidget = () => {
   // ── Hỏi trợ lý ảo ──
   const askBot = async (text) => {
     const content = (text ?? "").trim();
-    if (!content || botSending) return;
+    if (!canChat || !content || botSending) return;
 
     // Gửi kèm tối đa 20 lượt gần nhất (BE giới hạn), bỏ các bubble lỗi. content ≤ 2000.
     const history = botMessages
@@ -353,7 +353,7 @@ const TutorChatWidget = () => {
             </button>
           </div>
 
-          {/* Tabs — chỉ hiện khi có cả 2 (người đã đăng nhập). Khách chỉ có trợ lý ảo. */}
+          {/* Hai tab hỗ trợ cho người đã đăng nhập. */}
           {canChat && (
             <div className="flex border-b border-slate-100 bg-white">
               <TabButton
@@ -458,6 +458,13 @@ const TutorChatWidget = () => {
       </button>
     </div>
   );
+};
+
+// Unmount khi đăng xuất; đổi tài khoản tạo phiên và lịch sử chatbot mới.
+const TutorChatWidget = () => {
+  const { user, isAuthenticated } = useAuth();
+  if (!isAuthenticated || !user?.id || user.role === "admin") return null;
+  return <AuthenticatedChatWidget key={user.id} />;
 };
 
 export default TutorChatWidget;
