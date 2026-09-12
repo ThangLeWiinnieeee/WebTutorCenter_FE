@@ -1,0 +1,201 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Rút đơn và hủy lớp đã nhận",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "Gia sư"
+        },
+        "backend": {
+          "label": "Trung tâm"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "withdraw",
+        "label": "Rút đơn đang chờ",
+        "focus": [
+          "pending",
+          "withdraw"
+        ]
+      },
+      {
+        "id": "cancel",
+        "label": "Hủy lớp đã nhận",
+        "focus": [
+          "approved",
+          "request",
+          "cancelled",
+          "open"
+        ]
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "pending-lane",
+      "label": "Đơn chờ chọn"
+    },
+    {
+      "id": "tutor",
+      "label": "Gia sư"
+    },
+    {
+      "id": "center",
+      "label": "Trung tâm"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "pending",
+      "lane": "pending-lane",
+      "col": 0,
+      "type": "frontend",
+      "label": "Đơn đang chờ",
+      "sublabel": "Chưa được chọn",
+      "width": 180
+    },
+    {
+      "id": "withdraw",
+      "lane": "pending-lane",
+      "col": 1,
+      "type": "frontend",
+      "label": "Rút đơn ngay",
+      "sublabel": "Gửi lý do hủy đơn",
+      "width": 180
+    },
+    {
+      "id": "approved",
+      "lane": "tutor",
+      "col": 0,
+      "type": "frontend",
+      "label": "Lớp đã nhận",
+      "sublabel": "Đơn đã được duyệt",
+      "width": 180
+    },
+    {
+      "id": "request",
+      "lane": "center",
+      "col": 1,
+      "type": "backend",
+      "label": "Gửi yêu cầu hủy",
+      "sublabel": "Chờ trung tâm xét duyệt",
+      "width": 180
+    },
+    {
+      "id": "denied",
+      "lane": "tutor",
+      "col": 2,
+      "type": "frontend",
+      "label": "Không duyệt hủy",
+      "sublabel": "Tiếp tục lớp đã nhận",
+      "width": 180
+    },
+    {
+      "id": "cancelled",
+      "lane": "center",
+      "col": 2,
+      "type": "backend",
+      "label": "Đã hủy nhận lớp",
+      "sublabel": "Trung tâm duyệt yêu cầu",
+      "width": 180
+    },
+    {
+      "id": "open",
+      "lane": "center",
+      "col": 3,
+      "type": "backend",
+      "label": "Lớp mở lại",
+      "sublabel": "Chưa tới ngày bắt đầu",
+      "width": 180
+    },
+    {
+      "id": "expired",
+      "lane": "center",
+      "col": 4,
+      "type": "backend",
+      "label": "Lớp hết hạn",
+      "sublabel": "Đã tới ngày bắt đầu",
+      "width": 180
+    }
+  ],
+  "edges": [
+    {
+      "id": "pending-withdraw",
+      "from": "pending",
+      "to": "withdraw",
+      "label": "Rút đơn",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "approved-request",
+      "from": "approved",
+      "to": "request",
+      "label": "Xin hủy",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "request-cancelled",
+      "from": "request",
+      "to": "cancelled",
+      "label": "Đồng ý",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "request-denied",
+      "from": "request",
+      "to": "denied",
+      "label": "Từ chối",
+      "role": "branch",
+      "variant": "dashed"
+    },
+    {
+      "id": "cancelled-open",
+      "from": "cancelled",
+      "to": "open",
+      "label": "Còn thời gian",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cancelled-expired",
+      "from": "cancelled",
+      "to": "expired",
+      "label": "Đã tới hạn",
+      "role": "branch",
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "approved",
+    "request",
+    "cancelled",
+    "open"
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Đơn đang chờ trung tâm duyệt",
+      "items": [
+        "Đơn đã được người đăng chọn không có thao tác rút trực tiếp.",
+        "Liên hệ trung tâm để được hỗ trợ."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Theo dõi kết quả",
+      "items": [
+        "Yêu cầu hủy chưa có hiệu lực khi còn chờ duyệt.",
+        "Xem trạng thái trong Lớp đã nhận và thông báo."
+      ]
+    }
+  ]
+}

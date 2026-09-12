@@ -10,6 +10,7 @@ import AdminLayout from "@/admin/layouts/AdminLayout";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
 import PageLoader from "@/components/shared/PageLoader";
+import { CLASS_RECEIVING_GUIDE_ROUTE } from "@/features/classes/constants";
 
 // Các trang tải theo nhu cầu (React.lazy) để mỗi route thành một chunk riêng.
 const HomePage = lazy(() => import("@/pages/HomePage"));
@@ -24,6 +25,7 @@ const NewClassDetailPage = lazy(() => import("@/features/classes/pages/NewClassD
 const MyClassesPage = lazy(() => import("@/features/classes/pages/MyClassesPage"));
 const MyPostsPage = lazy(() => import("@/features/classes/pages/MyPostsPage"));
 const ClassInvitationsPage = lazy(() => import("@/features/classes/pages/ClassInvitationsPage"));
+const ClassReceivingGuidePage = lazy(() => import("@/features/classes/pages/ClassReceivingGuidePage"));
 const ContractTemplatePage = lazy(() => import("@/features/classes/pages/ContractTemplatePage"));
 const NotificationsPage = lazy(() => import("@/features/notifications/pages/NotificationsPage"));
 const MyVouchersPage = lazy(() => import("@/features/vouchers/pages/MyVouchersPage"));
@@ -89,6 +91,7 @@ const router = createBrowserRouter([
       { path: "/classes", element: <NewClassesPage /> },
       { path: "/classes/:id", element: <NewClassDetailPage /> },
       { path: "/contract-template", element: <ContractTemplatePage /> },
+      { path: CLASS_RECEIVING_GUIDE_ROUTE, element: <ClassReceivingGuidePage /> },
     ],
   },
 

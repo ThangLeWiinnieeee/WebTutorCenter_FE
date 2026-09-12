@@ -1,3 +1,4 @@
+import { CLASS_RECEIVING_GUIDE_ROUTE } from "@/features/classes/constants";
 import { useEffect, useState } from "react";
 
 import {
@@ -491,7 +492,7 @@ const NewClassDetailPage = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="#"
+                  to={CLASS_RECEIVING_GUIDE_ROUTE}
                   className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
                 >
                   Quy trình nhận lớp

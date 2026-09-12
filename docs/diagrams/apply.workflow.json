@@ -1,0 +1,216 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Chủ động ứng tuyển",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "Gia sư"
+        },
+        "external": {
+          "label": "Người đăng"
+        },
+        "backend": {
+          "label": "Trung tâm"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "success",
+        "label": "Nhận lớp và hoàn thành",
+        "focus": [
+          "apply",
+          "selected",
+          "review",
+          "matched",
+          "confirm",
+          "completed"
+        ]
+      },
+      {
+        "id": "exceptions",
+        "label": "Trường hợp chưa nhận được lớp",
+        "focus": [
+          "apply",
+          "not-selected",
+          "review",
+          "rejected"
+        ]
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "tutor",
+      "label": "Gia sư"
+    },
+    {
+      "id": "poster",
+      "label": "Người đăng lớp"
+    },
+    {
+      "id": "center",
+      "label": "Trung tâm"
+    }
+  ],
+  "mainPath": [
+    "apply",
+    "selected",
+    "review",
+    "matched",
+    "confirm",
+    "completed"
+  ],
+  "nodes": [
+    {
+      "id": "apply",
+      "lane": "tutor",
+      "col": 0,
+      "type": "frontend",
+      "label": "Gửi ứng tuyển",
+      "sublabel": "Chọn lớp phù hợp",
+      "width": 180
+    },
+    {
+      "id": "selected",
+      "lane": "poster",
+      "col": 1,
+      "type": "external",
+      "label": "Chọn gia sư",
+      "sublabel": "Từ danh sách ứng viên",
+      "width": 180
+    },
+    {
+      "id": "not-selected",
+      "lane": "tutor",
+      "col": 1,
+      "type": "frontend",
+      "label": "Không được chọn",
+      "sublabel": "Lớp đã ghép gia sư khác",
+      "width": 180
+    },
+    {
+      "id": "review",
+      "lane": "center",
+      "col": 2,
+      "type": "backend",
+      "label": "Trung tâm duyệt",
+      "sublabel": "Kiểm tra đơn nhận lớp",
+      "width": 180
+    },
+    {
+      "id": "matched",
+      "lane": "tutor",
+      "col": 3,
+      "type": "frontend",
+      "label": "Nhận lớp thành công",
+      "sublabel": "Mở liên hệ, bắt đầu dạy",
+      "width": 180
+    },
+    {
+      "id": "confirm",
+      "lane": "poster",
+      "col": 4,
+      "type": "external",
+      "label": "Hai bên xác nhận",
+      "sublabel": "Gia sư và người đăng",
+      "width": 180
+    },
+    {
+      "id": "completed",
+      "lane": "center",
+      "col": 5,
+      "type": "backend",
+      "label": "Lớp hoàn thành",
+      "sublabel": "Voucher và đánh giá",
+      "width": 180
+    },
+    {
+      "id": "rejected",
+      "lane": "center",
+      "col": 3,
+      "type": "backend",
+      "label": "Đơn bị từ chối",
+      "sublabel": "Xem lý do trong thông báo",
+      "width": 180
+    }
+  ],
+  "edges": [
+    {
+      "id": "apply-selected",
+      "from": "apply",
+      "to": "selected",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "selected-review",
+      "from": "selected",
+      "to": "review",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "apply-not-selected",
+      "from": "apply",
+      "to": "not-selected",
+      "role": "branch",
+      "variant": "dashed",
+      "label": "Gia sư khác được duyệt"
+    },
+    {
+      "id": "review-matched",
+      "from": "review",
+      "to": "matched",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "Được duyệt"
+    },
+    {
+      "id": "review-rejected",
+      "from": "review",
+      "to": "rejected",
+      "role": "error",
+      "variant": "dashed",
+      "label": "Từ chối"
+    },
+    {
+      "id": "matched-confirm",
+      "from": "matched",
+      "to": "confirm",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "Dạy xong"
+    },
+    {
+      "id": "confirm-completed",
+      "from": "confirm",
+      "to": "completed",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "Đủ hai xác nhận"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Trước khi bắt đầu",
+      "items": [
+        "Đăng nhập, hồ sơ gia sư đã duyệt và giấy tờ đầy đủ.",
+        "Lớp còn mở và đáp ứng điều kiện nhận lớp."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Lưu ý khi nhận lớp",
+      "items": [
+        "Đồng ý hoặc được chọn vẫn phải chờ trung tâm duyệt.",
+        "Chỉ khi được duyệt mới mở thông tin liên hệ chi tiết."
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+export const CLASS_RECEIVING_GUIDE_ROUTE = "/class-receiving-guide";
 export const CONTRACT_ROUTE = "/contract-template";
 
 // Nhãn rút gọn cho yêu cầu gia sư khi tạo/sửa lớp (dùng ở form FindTutorRequestPage).
