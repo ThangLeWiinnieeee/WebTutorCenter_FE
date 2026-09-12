@@ -21,7 +21,7 @@ const controlClass =
 function FlowGuide({ flow }) {
   const [stepIndex, setStepIndex] = useState(null);
   const step = stepIndex === null ? null : flow.steps[stepIndex];
-  const diagramUrl = `/diagrams/class-${flow.id}.html?theme=light`;
+  const diagramUrl = `/diagrams/html/class-${flow.id}.html?theme=light`;
   const diagramSrc = `${diagramUrl}&embed=1${step ? `#focus=${step.id}` : ""}`;
 
   return (
