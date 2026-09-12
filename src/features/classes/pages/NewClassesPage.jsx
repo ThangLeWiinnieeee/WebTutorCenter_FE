@@ -28,7 +28,7 @@ import DirectSupportCard from "@/features/classes/components/DirectSupportCard";
 import SearchableSelect from "@/features/classes/components/SearchableSelect";
 import classService from "@/features/classes/services/classService";
 import { fetchClassesThunk } from "@/features/classes/store/classThunks";
-import { CONTRACT_ROUTE } from "@/features/classes/constants";
+import { CLASS_RECEIVING_GUIDE_ROUTE, CONTRACT_ROUTE } from "@/features/classes/constants";
 import { getTutorProfileThunk } from "@/features/tutors/store/tutorThunks";
 import useReceiveClass from "@/features/classes/hooks/useReceiveClass";
 import {
@@ -602,7 +602,7 @@ const NewClassesPage = () => {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link
-                  to="#"
+                  to={CLASS_RECEIVING_GUIDE_ROUTE}
                   className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
                 >
                   Quy trình nhận lớp

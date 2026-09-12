@@ -1,0 +1,50 @@
+[
+  {
+    "flow": "apply",
+    "specification": "docs/diagrams/apply.workflow.json",
+    "specification_sha256": "0c938a0b027894be9abf8337fe54a20acefc0061b8c5214916053a4482f3254f",
+    "artifact": "public/diagrams/class-apply.html",
+    "artifact_sha256": "cfc56b76efb62d90d7a4be1ef6e68c6835e802e8f3ef40d802b1bbebacd83f93",
+    "validation": "9/9 showcase; 0 errors; 0 warnings",
+    "browser_evidence": "pass",
+    "viewports": [
+      "1440x900",
+      "1600x1000",
+      "1920x1080",
+      "2048x1320"
+    ],
+    "visual_review": "passed: light-theme diagram and embedded page reviewed"
+  },
+  {
+    "flow": "invite",
+    "specification": "docs/diagrams/invite.workflow.json",
+    "specification_sha256": "aa4b58bb4e83679c34ca85e85ea0d29336cacd800b2e937cd74c7f031092f141",
+    "artifact": "public/diagrams/class-invite.html",
+    "artifact_sha256": "a03bf652a2b586c5962879a09ccff54918bbbbebbb0825a7344dc7d93fbbf7d0",
+    "validation": "9/9 showcase; 0 errors; 0 warnings",
+    "browser_evidence": "pass",
+    "viewports": [
+      "1440x900",
+      "1600x1000",
+      "1920x1080",
+      "2048x1320"
+    ],
+    "visual_review": "passed: light-theme diagram and embedded page reviewed"
+  },
+  {
+    "flow": "cancel",
+    "specification": "docs/diagrams/cancel.workflow.json",
+    "specification_sha256": "028de27d1a80b7eec4ea2cc5c119a0477016d493558826bf630ebad86c1df784",
+    "artifact": "public/diagrams/class-cancel.html",
+    "artifact_sha256": "1ae67ebe58ebdac4fac2b7c37708997bda9a049a100eba789337e39ea5b27bce",
+    "validation": "9/9 showcase; 0 errors; 0 warnings",
+    "browser_evidence": "pass",
+    "viewports": [
+      "1440x900",
+      "1600x1000",
+      "1920x1080",
+      "2048x1320"
+    ],
+    "visual_review": "passed: light-theme diagram and embedded page reviewed"
+  }
+]
