@@ -1,4 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
+import { logoutThunk } from "@/features/auth/store/authThunks";
+import { clearCredentials } from "@/features/auth/store/authSlice";
 import {
   registerTutorThunk,
   getTutorProfileThunk,
@@ -24,6 +26,7 @@ const initialState = {
   searchResults: [],
   totalResults: 0,
   currentPage: 1,
+  searchRequestId: null, // chỉ nhận kết quả của lần tìm mới nhất
 
   // Filter & state
   filters: {},
@@ -168,20 +171,31 @@ const tutorSlice = createSlice({
 
     // Search Tutors
     builder
-      .addCase(searchTutorsThunk.pending, (state) => {
+      .addCase(searchTutorsThunk.pending, (state, action) => {
         state.loading = true;
         state.error = null;
+        state.searchRequestId = action.meta.requestId;
       })
       .addCase(searchTutorsThunk.fulfilled, (state, action) => {
+        // Bỏ kết quả về muộn của lần tìm cũ (vd: của tài khoản trước khi đổi tài khoản)
+        if (action.meta.requestId !== state.searchRequestId) return;
         state.loading = false;
         state.searchResults = action.payload.tutors || [];
         state.totalResults = action.payload.total || 0;
         state.currentPage = action.payload.page || 1;
       })
       .addCase(searchTutorsThunk.rejected, (state, action) => {
+        if (action.meta.requestId !== state.searchRequestId) return;
         state.loading = false;
         state.error = action.payload;
       });
+
+    // Thứ tự /tutors cá nhân hóa theo tài khoản → hết phiên thì xóa để người sau không thấy
+    builder.addMatcher(isAnyOf(logoutThunk.fulfilled, logoutThunk.rejected, clearCredentials), (state) => {
+      state.searchResults = [];
+      state.totalResults = 0;
+      state.searchRequestId = null;
+    });
   },
 });
 

@@ -23,6 +23,7 @@ const API_ENDPOINTS = {
     GET_TOP_THIS_MONTH: "/tutors/top/month/current",
     GET_NEW: "/tutors/new",
     SEARCH: "/tutors/search",
+    SEARCH_FILTER_EVENTS: "/tutors/search/filter-events",
     GET_BY_ID: (id) => `/tutors/${id}`,
     PROFILE_CHANGE_REQUEST: "/tutors/profile/change-request",
   },
