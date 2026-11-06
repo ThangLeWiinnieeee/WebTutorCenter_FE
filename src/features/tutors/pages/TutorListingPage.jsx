@@ -10,6 +10,7 @@ import TutorCard from "@/features/tutors/components/TutorCard";
 import TopTutorCard from "@/features/tutors/components/TopTutorCard";
 import Pagination from "@/components/shared/Pagination";
 import locationService from "@/features/tutors/services/locationService";
+import tutorService from "@/features/tutors/services/tutorService";
 import useSubjects from "@/hooks/useSubjects";
 import { OCCUPATION_STATUS_OPTIONS } from "@/features/tutors/constants";
 import { GENDER_LABEL } from "@/constants/enums";
@@ -60,6 +61,7 @@ export default function TutorListingPage() {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { searchResults, topTutorsThisMonth, totalResults, loading } = useSelector((state) => state.tutors);
+  const user = useSelector((state) => state.auth.user);
 
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const page = Number(searchParams.get("page")) || 1;
@@ -135,11 +137,11 @@ export default function TutorListingPage() {
     };
   }, [filters.province]);
 
-  // Fetch kết quả theo URL
+  // Fetch kết quả theo URL; đổi tài khoản thì tải lại vì thứ tự cá nhân hóa theo từng người
   useEffect(() => {
     dispatch(searchTutorsThunk({ filters, page, limit: LIMIT }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, searchKey]);
+  }, [dispatch, searchKey, user?.id]);
 
   // Ghi bộ lọc và số trang lên URL để kích hoạt tải lại danh sách.
   const applyFilters = (nextFilters, nextPage = 1) => {
@@ -152,7 +154,18 @@ export default function TutorListingPage() {
   };
 
   // Áp bộ lọc mới và quay về trang đầu.
-  const handleFilterChange = (nextFilters) => applyFilters(nextFilters, 1);
+  // Học viên lọc theo môn/tỉnh → gửi tín hiệu cá nhân hóa (lỗi thì bỏ qua, không chặn việc lọc).
+  const handleFilterChange = (nextFilters) => {
+    if (user?.role === "user" && (nextFilters.subject || nextFilters.province)) {
+      tutorService
+        .recordFilterEvent({
+          subject: nextFilters.subject || "",
+          province: nextFilters.province ? Number(nextFilters.province) : undefined,
+        })
+        .catch(() => {});
+    }
+    applyFilters(nextFilters, 1);
+  };
 
   // Chuyển trang danh sách gia sư.
   const handlePageChange = (nextPage) => {
