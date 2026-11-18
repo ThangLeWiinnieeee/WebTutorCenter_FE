@@ -7,6 +7,7 @@ import {
   BookOpenText,
   CalendarClock,
   CheckCircle2,
+  ClipboardCheck,
   Clock3,
   FilePlus2,
   FileText,
@@ -38,6 +39,7 @@ import Pagination from "@/components/shared/Pagination";
 import ClassApplicantsDialog from "@/features/classes/components/ClassApplicantsDialog";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
 import ReviewDialog from "@/features/reviews/components/ReviewDialog";
+import ClassAttendanceDialog from "@/features/attendance/components/ClassAttendanceDialog";
 
 const PAGE_SIZE = 5;
 
@@ -66,6 +68,14 @@ export default function MyPostsPanel() {
   const [applicantsPost, setApplicantsPost] = useState(null);
   // Bài đăng đang mở hộp thoại "Đánh giá gia sư"
   const [reviewTarget, setReviewTarget] = useState(null);
+  // Bài đăng đang mở hộp thoại "Điểm danh buổi học"
+  const [attendanceClass, setAttendanceClass] = useState(null);
+
+  const openAttendance = (e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAttendanceClass(item);
+  };
 
   // Mở danh sách gia sư ứng tuyển (chặn điều hướng của thẻ Link bao ngoài)
   const openApplicants = (e, item) => {
@@ -405,7 +415,15 @@ export default function MyPostsPanel() {
               )}
 
             {item.status === "matched" && (
-              <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2.5 border-t border-slate-100 pt-3">
+                <Button
+                  type="button"
+                  onClick={(e) => openAttendance(e, item)}
+                  className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700"
+                >
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Điểm danh buổi học
+                </Button>
                 {item.completedByPoster ? (
                   <p className="text-sm font-medium text-amber-600">
                     Bạn đã xác nhận hoàn thành — đang chờ gia sư xác nhận.
@@ -429,7 +447,16 @@ export default function MyPostsPanel() {
             )}
 
             {item.status === "completed" && item.matchedTutor && (
-              <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2.5 border-t border-slate-100 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => openAttendance(e, item)}
+                  className="h-9 rounded-lg border-indigo-200 px-4 text-sm font-semibold text-indigo-700 hover:bg-indigo-50"
+                >
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Lịch sử điểm danh
+                </Button>
                 {item.reviewed ? (
                   <p className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -530,6 +557,13 @@ export default function MyPostsPanel() {
         tutor={reviewTarget?.matchedTutor}
         onClose={() => setReviewTarget(null)}
         onSuccess={() => dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }))}
+      />
+
+      {/* Hộp thoại điểm danh buổi học */}
+      <ClassAttendanceDialog
+        open={!!attendanceClass}
+        classId={attendanceClass?.id}
+        onClose={() => setAttendanceClass(null)}
       />
 
       {/* Hộp xác nhận xóa bài đăng */}

@@ -53,6 +53,7 @@ const AdminProfileChangesPage = lazy(() => import("@/admin/pages/AdminProfileCha
 const AdminApplicationCancellationsPage = lazy(
   () => import("@/admin/pages/AdminApplicationCancellationsPage"),
 );
+const AdminAttendancePage = lazy(() => import("@/admin/pages/AdminAttendancePage"));
 const AdminReviewsPage = lazy(() => import("@/admin/pages/AdminReviewsPage"));
 const AdminNotificationsPage = lazy(() => import("@/admin/pages/AdminNotificationsPage"));
 const AdminMessagesPage = lazy(() => import("@/admin/pages/AdminMessagesPage"));
@@ -157,6 +158,7 @@ const router = createBrowserRouter([
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
       { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
       { path: "/admin/application-cancellations", element: <AdminApplicationCancellationsPage /> },
+      { path: "/admin/attendance", element: <AdminAttendancePage /> },
       { path: "/admin/reviews", element: <AdminReviewsPage /> },
       { path: "/admin/profile-changes", element: <AdminProfileChangesPage /> },
       { path: "/admin/classes", element: <AdminClassesPage /> },

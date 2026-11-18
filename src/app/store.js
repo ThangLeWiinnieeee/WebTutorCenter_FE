@@ -9,6 +9,7 @@ import classReducer from "@/features/classes/store/classSlice";
 import voucherReducer from "@/features/vouchers/store/voucherSlice";
 import reviewReducer from "@/features/reviews/store/reviewSlice";
 import chatReducer from "@/features/chat/store/chatSlice";
+import attendanceReducer from "@/features/attendance/store/attendanceSlice";
 
 export const store = configureStore({
   reducer: {
@@ -21,5 +22,6 @@ export const store = configureStore({
     vouchers: voucherReducer,
     reviews: reviewReducer,
     chat: chatReducer,
+    attendance: attendanceReducer,
   },
 });

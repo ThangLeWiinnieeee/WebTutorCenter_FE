@@ -1,0 +1,20 @@
+1
+00:00:00,001 --> 00:00:03,626
+[1/3 - Gia sư] Đăng nhập Gia sư -> Vào /my-classes -> Mở Điểm danh lớp học
+
+2
+00:00:03,626 --> 00:00:12,545
+[1/3 - Gia sư] Gia sư gửi Check-in -> Trạng thái 'Đang chờ học viên xác nhận' (giả lập HV quên xác nhận)
+
+3
+00:00:12,545 --> 00:00:17,893
+[2/3 - Admin] Học viên báo Admin -> Admin vào /admin/attendance tab 'Chờ XN Check-in'
+
+4
+00:00:17,893 --> 00:00:24,600
+[3/3 - Admin Duyệt thay] Bấm 'Duyệt thay học viên' -> Chọn tính 1 buổi hợp lệ (VALID) & nhập lý do kiểm toán
+
+5
+00:00:24,600 --> 00:00:31,180
+[Hoàn tất] Kiểm tra tab 'Hợp lệ' -> Buổi đã được tính 1 buổi hợp lệ & ghi lịch sử 'Đã duyệt thay học viên'
+

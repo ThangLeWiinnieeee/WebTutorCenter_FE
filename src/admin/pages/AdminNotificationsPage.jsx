@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Ban, Bell, BellRing, CheckCheck, ClipboardCheck, RotateCcw, UserCheck } from "lucide-react";
+import { AlertTriangle, Ban, Bell, BellRing, CheckCheck, ClipboardCheck, RotateCcw, UserCheck } from "lucide-react";
 
 import Pagination from "@/components/shared/Pagination";
 import NotificationItem from "@/features/notifications/components/NotificationItem";
@@ -23,6 +23,7 @@ const NOTIFICATION_ICON_MAP = {
   CLASS_APPLICATION_CANCELLED: { icon: Ban, className: "bg-slate-100 text-slate-500" },
   CLASS_APPLICATION_CANCEL_REQUESTED: { icon: RotateCcw, className: "bg-orange-50 text-orange-600" },
   PROFILE_CHANGE_PENDING: { icon: UserCheck, className: "bg-amber-50 text-amber-600" },
+  ATTENDANCE_DISPUTE_OPENED: { icon: AlertTriangle, className: "bg-rose-50 text-rose-600" },
 };
 
 const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-slate-500" };
@@ -36,6 +37,7 @@ const NOTIFICATION_LINK = {
     label: "Đến trang duyệt hủy đơn",
   },
   PROFILE_CHANGE_PENDING: { to: "/admin/profile-changes", label: "Đến trang duyệt đổi hồ sơ" },
+  ATTENDANCE_DISPUTE_OPENED: { to: "/admin/attendance", label: "Đến trang quản lý điểm danh" },
 };
 
 // Trang danh sách thông báo dành cho admin.
