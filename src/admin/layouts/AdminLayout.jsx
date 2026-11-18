@@ -14,6 +14,7 @@ import {
   Trash2,
   UserCheck,
   Ban,
+  CalendarCheck,
   BookOpen,
   Star,
   MessageSquare,
@@ -258,6 +259,14 @@ const AdminLayout = () => {
             label="Quản lý hủy đơn"
             active={location.pathname === "/admin/application-cancellations"}
             badge={dashboardStats?.pendingCancellationsCount}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/admin/attendance"
+            icon={CalendarCheck}
+            label="Điểm danh"
+            active={location.pathname === "/admin/attendance"}
+            badge={dashboardStats?.pendingAttendanceCount}
             collapsed={collapsed}
           />
           <NavItem
