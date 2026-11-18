@@ -1,0 +1,48 @@
+1
+00:00:00,000 --> 00:00:01,889
+[Bước 1 - Gia sư] Đăng nhập Gia sư -> Vào /my-classes (Mục 3.1: Lớp đã duyệt & trả phí)
+
+2
+00:00:01,889 --> 00:00:05,247
+[Bước 1 - Gia sư] Mở chi tiết lớp & bấm 'Điểm danh lớp học'
+
+3
+00:00:05,247 --> 00:00:08,752
+[Mục 2 & 3.3] Chỉ tiêu tháng = Buổi/tuần x 4 (4 tuần 7 ngày); tuần thiếu không dồn; ngày 29-31 để học bù
+
+4
+00:00:08,752 --> 00:00:15,819
+[Bước 1 - Mục 4] Gia sư chọn ảnh đầu buổi & bấm 'Gửi Check-in bắt đầu buổi' (mở hạn 30p cho HV)
+
+5
+00:00:15,819 --> 00:00:16,693
+[Bước 2 - Phụ huynh] Đăng nhập Người đăng lớp -> Vào /my-posts
+
+6
+00:00:16,693 --> 00:00:24,198
+[Bước 2 - Mục 4] Phụ huynh mở 'Điểm danh buổi học', xem ảnh Check-in & bấm 'Xác nhận vào lớp' (bắt đầu tính giờ)
+
+7
+00:00:24,198 --> 00:00:26,221
+[Bước 3 - Gia sư] Quay lại Gia sư -> Mở lại hộp thoại Điểm danh
+
+8
+00:00:26,221 --> 00:00:33,510
+[Bước 3 - Mục 4] Gia sư chọn ảnh cuối buổi & bấm 'Gửi Check-out kết thúc buổi' (tính giờ từ lúc HV XN vào lớp)
+
+9
+00:00:33,510 --> 00:00:36,828
+[Bước 4 - Phụ huynh] Quay lại Phụ huynh xác nhận kết thúc buổi
+
+10
+00:00:36,828 --> 00:00:43,763
+[Edge Case AT08] Buổi mới học < số phút tối thiểu -> Kể cả HV bấm 'Xác nhận kết thúc', buổi KHÔNG tự cộng +1 mà chuyển Cần xử lý
+
+11
+00:00:43,763 --> 00:00:45,664
+[Bước 5 - Admin] Đăng nhập Admin -> Vào /admin/attendance xử lý sự cố & khiếu nại
+
+12
+00:00:45,664 --> 00:00:54,452
+[Mục 5 - Admin Xử lý khiếu nại] Mở modal xem ảnh đầu/cuối, 4 mốc giờ gốc, chọn kết luận & ghi lý do (lưu lịch sử kiểm toán)
+
