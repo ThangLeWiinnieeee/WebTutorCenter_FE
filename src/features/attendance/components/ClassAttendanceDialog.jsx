@@ -32,6 +32,8 @@ import {
   rejectSessionSchema,
 } from "@/features/attendance/schemas/attendanceSchema";
 import {
+  adminConfirmOnBehalfThunk,
+  adminResolveSessionThunk,
   checkInSessionThunk,
   checkOutSessionThunk,
   confirmCheckInThunk,
@@ -42,6 +44,130 @@ import {
   rejectCheckOutThunk,
 } from "@/features/attendance/store/attendanceThunks";
 import { clearAttendanceOverview } from "@/features/attendance/store/attendanceSlice";
+
+const formatOperationalIssue = (s) => {
+  if (s.status === "EXPIRED_CHECKIN") {
+    return "Học viên chưa bấm xác nhận vào lớp trong hạn 30 phút kể từ lúc gia sư gửi Check-in.";
+  }
+  if (s.status === "EXPIRED_CHECKOUT") {
+    return "Học viên chưa bấm xác nhận kết thúc trong hạn 30 phút kể từ lúc gia sư gửi Check-out.";
+  }
+  if (s.status === "INSUFFICIENT_DURATION") {
+    return `Thời lượng thực tế (${s.durationMinutes} phút) chưa đạt mức tối thiểu ${s.requiredMinutes} phút của lớp.`;
+  }
+  return s.failureReason || s.rejectionReason;
+};
+
+const AdminSessionCasePanel = ({ session, onSuccess }) => {
+  const dispatch = useDispatch();
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [localError, setLocalError] = useState("");
+
+  const canValidate = session.status !== "VALID";
+  const canInvalidate = session.status !== "INVALIDATED";
+  const canReopenCheckIn = [
+    "WAITING_CHECKIN_CONFIRMATION",
+    "EXPIRED_CHECKIN",
+    "REJECTED",
+    "NEEDS_REVIEW",
+  ].includes(session.status);
+
+  const runAction = async (thunkCreator, payload) => {
+    const trimmed = notes.trim();
+    if (trimmed.length < 5) {
+      setLocalError("Vui lòng nhập ghi chú xử lý (tối thiểu 5 ký tự) để lưu lịch sử kiểm toán.");
+      return;
+    }
+    setLocalError("");
+    setSubmitting(true);
+    const res = await dispatch(thunkCreator({ sessionId: session.id, payload }));
+    setSubmitting(false);
+    if (thunkCreator.fulfilled.match(res)) {
+      setNotes("");
+      onSuccess();
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-700">
+        Quyết định xử lý của Admin
+      </p>
+      <div className="mt-2 flex flex-col gap-2.5">
+        <input
+          type="text"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Nhập ghi chú xử lý / căn cứ đối chiếu (bắt buộc)..."
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-400 focus:outline-none"
+        />
+        {localError && <p className="text-[11px] font-medium text-rose-600">{localError}</p>}
+        <div className="flex flex-wrap items-center gap-2">
+          {canValidate && (
+            <Button
+              type="button"
+              size="sm"
+              disabled={submitting}
+              onClick={() =>
+                runAction(adminResolveSessionThunk, {
+                  decision: "VALID",
+                  verifiedDurationMinutes: session.requiredMinutes,
+                  reason: notes.trim(),
+                })
+              }
+              className="h-8 bg-emerald-600 px-3 text-xs text-white hover:bg-emerald-700"
+            >
+              {submitting ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              Duyệt hợp lệ
+            </Button>
+          )}
+          {canInvalidate && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={submitting}
+              onClick={() =>
+                runAction(adminResolveSessionThunk, {
+                  decision: "INVALIDATED",
+                  verifiedDurationMinutes: 0,
+                  reason: notes.trim(),
+                })
+              }
+              className="h-8 border-rose-200 bg-white px-3 text-xs text-rose-700 hover:bg-rose-50"
+            >
+              <XCircle className="mr-1.5 h-3.5 w-3.5" />
+              Không tính buổi / Từ chối
+            </Button>
+          )}
+          {canReopenCheckIn && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={submitting}
+              onClick={() =>
+                runAction(adminConfirmOnBehalfThunk, {
+                  action: "CONFIRM_CHECKIN_ON_BEHALF",
+                  reason: notes.trim(),
+                })
+              }
+              className="h-8 border-amber-200 bg-white px-3 text-xs text-amber-800 hover:bg-amber-50"
+            >
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+              Yêu cầu xác nhận lại
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const meta = ATTENDANCE_STATUS_META[status] || {
@@ -56,6 +182,222 @@ const StatusBadge = ({ status }) => {
     >
       {meta.label}
     </span>
+  );
+};
+
+const toVNDateKey = (dateInput) => {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+};
+
+const WEEKDAY_VN = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+const getDaysInRange = (startDate, endDate) => {
+  const startKey = toVNDateKey(startDate);
+  const endKey = toVNDateKey(endDate);
+  if (!startKey || !endKey) return [];
+  const days = [];
+  const cur = new Date(`${startKey}T00:00:00+07:00`);
+  const end = new Date(`${endKey}T00:00:00+07:00`);
+  while (cur <= end && days.length < 14) {
+    const key = toVNDateKey(cur);
+    const vnDay = new Date(cur.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    days.push({
+      key,
+      weekday: WEEKDAY_VN[vnDay.getDay()],
+      dayMonth: `${String(vnDay.getDate()).padStart(2, "0")}/${String(vnDay.getMonth() + 1).padStart(2, "0")}`,
+    });
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+};
+
+const AttendanceWeekCalendar = ({
+  weeks = [],
+  sessions = [],
+  viewScope,
+  onChangeScope,
+  selectedWeekNum,
+  onChangeWeek,
+  selectedDayKey,
+  onSelectDay,
+}) => {
+  if (!weeks.length) return null;
+
+  const defaultWeek = weeks.find((w) => w.isCurrent) || weeks[0];
+  const activeWeek = weeks.find((w) => w.weekNumber === selectedWeekNum) || defaultWeek || weeks[0];
+  const days = getDaysInRange(activeWeek.startDate, activeWeek.endDate);
+  const todayKey = toVNDateKey(new Date());
+
+  const sessionsByDay = new Map();
+  for (const s of sessions) {
+    const k = toVNDateKey(s.confirmedCheckInAt || s.checkInAt || s.createdAt);
+    if (!k) continue;
+    if (!sessionsByDay.has(k)) sessionsByDay.set(k, []);
+    sessionsByDay.get(k).push(s);
+  }
+
+  return (
+    <div className="mt-4 space-y-3">
+      {/* Scope Filter + Week Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+          {[
+            { key: "today", label: "Hôm nay" },
+            { key: "week", label: "Theo tuần" },
+            { key: "month", label: "Cả tháng" },
+          ].map((opt) => {
+            const active = viewScope === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => {
+                  onChangeScope(opt.key);
+                  if (opt.key === "today") onSelectDay(todayKey);
+                }}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+                  active
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {viewScope === "week" && (
+          <span className="text-xs font-medium text-slate-500">{activeWeek.statusText}</span>
+        )}
+      </div>
+
+      {/* Week selector pills (shown in week & month views) */}
+      {viewScope !== "today" && (
+        <div className="flex flex-wrap gap-1.5">
+          {weeks.map((w) => {
+            const isActive = w.weekNumber === activeWeek.weekNumber;
+            return (
+              <button
+                key={w.weekNumber}
+                type="button"
+                onClick={() => {
+                  onChangeWeek(w.weekNumber);
+                  onSelectDay(null);
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${
+                  isActive
+                    ? "border-emerald-600 bg-emerald-600 text-white shadow-xs"
+                    : w.isCurrent
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100/70"
+                      : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <span>{w.label}</span>
+                <span
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    isActive ? "bg-white/20 text-white" : "bg-white text-slate-700"
+                  }`}
+                >
+                  {w.weekNumber > 0 ? `${w.completedCount}/${w.target}` : `${w.completedCount}b`}
+                </span>
+                {w.isCurrent && !isActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" title="Tuần hiện tại" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Calendar Grid for Selected Week (spacious, max 2 pills + overflow count) */}
+      {viewScope === "week" && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          {days.map((d) => {
+            const isToday = d.key === todayKey;
+            const isSelectedDay = selectedDayKey === d.key;
+            const daySessions = sessionsByDay.get(d.key) || [];
+            const visibleSessions = daySessions.slice(0, 2);
+            const hiddenCount = daySessions.length - visibleSessions.length;
+
+            return (
+              <button
+                key={d.key}
+                type="button"
+                onClick={() => onSelectDay(isSelectedDay ? null : d.key)}
+                className={`flex min-h-[104px] flex-col justify-between rounded-xl border p-2.5 text-left transition ${
+                  isSelectedDay
+                    ? "border-2 border-emerald-700 bg-emerald-50/70 shadow-sm ring-2 ring-emerald-500/20"
+                    : isToday
+                      ? "border-2 border-emerald-600 bg-emerald-50/40 shadow-xs"
+                      : "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                <div className="flex w-full items-center justify-between gap-1">
+                  <span
+                    className={`text-[11px] font-bold uppercase ${
+                      isToday ? "text-emerald-700" : "text-slate-500"
+                    }`}
+                  >
+                    {d.weekday}
+                  </span>
+                  <span
+                    className={`rounded-md px-1.5 py-0.5 text-xs font-bold ${
+                      isToday ? "bg-emerald-600 text-white" : "text-slate-800"
+                    }`}
+                  >
+                    {d.dayMonth}
+                  </span>
+                </div>
+
+                {isToday && (
+                  <span className="mt-1 inline-block w-fit rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                    Hôm nay
+                  </span>
+                )}
+
+                <div className="mt-2 w-full space-y-1">
+                  {daySessions.length === 0 ? (
+                    <p className="text-[10px] text-slate-400">Trống</p>
+                  ) : (
+                    <>
+                      {visibleSessions.map((s) => {
+                        const meta = ATTENDANCE_STATUS_META[s.status] || {
+                          shortLabel: s.status,
+                          badgeClass: "border-slate-200 bg-white text-slate-700",
+                        };
+                        return (
+                          <div
+                            key={s.id}
+                            className={`truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${meta.badgeClass}`}
+                            title={`Buổi #${s.sessionNumber}: ${meta.label}`}
+                          >
+                            #{s.sessionNumber} • {meta.shortLabel || meta.label}
+                          </div>
+                        );
+                      })}
+                      {hiddenCount > 0 && (
+                        <p className="text-[10px] font-bold text-emerald-700">
+                          +{hiddenCount} buổi nữa
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -190,7 +532,7 @@ const DisputeSessionModal = ({ session, actionLoading, onClose, onSubmitDispute 
   );
 };
 
-const ClassAttendanceDialog = ({ open, classId, onClose }) => {
+const ClassAttendanceDialog = ({ open = true, classId, onClose, inline = false }) => {
   const dispatch = useDispatch();
   const { overview, loadingOverview, actionLoading, error } = useSelector(
     (state) => state.attendance
@@ -204,6 +546,24 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
   const [rejectTarget, setRejectTarget] = useState(null); // { sessionId, stage: 'checkin' | 'checkout' }
   const [disputeTarget, setDisputeTarget] = useState(null); // session
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [viewScope, setViewScope] = useState("week"); // 'today' | 'week' | 'month'
+  const [selectedWeekNum, setSelectedWeekNum] = useState(1);
+  const [selectedDayKey, setSelectedDayKey] = useState(null);
+
+  useEffect(() => {
+    setSelectedPeriodId("");
+    setSelectedFile(null);
+    setFileError("");
+    setSelectedDayKey(null);
+    setViewScope("week");
+  }, [classId]);
+
+  const currentPeriodWeeks = overview?.currentPeriod?.weeks;
+  useEffect(() => {
+    if (!currentPeriodWeeks?.length) return;
+    const current = currentPeriodWeeks.find((w) => w.isCurrent) || currentPeriodWeeks[0];
+    if (current) setSelectedWeekNum(current.weekNumber);
+  }, [currentPeriodWeeks]);
 
   useEffect(() => {
     if (!open || !classId) return;
@@ -338,63 +698,66 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
 
   const isPeriodOpen = currentPeriod?.status === "active";
 
-  return (
+  const innerContent = (
     <>
-      <Modal
-        onClose={onClose}
-        closeOnBackdropClick
-        panelClassName="max-w-4xl p-0 overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold text-slate-900">
-                Điểm danh lớp học {classInfo?.classCode ? `— ${classInfo.classCode}` : ""}
-              </h2>
-              {viewerRole === "tutor" && (
-                <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
-                  Gia sư
-                </span>
-              )}
-              {viewerRole === "poster" && (
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                  Học viên / Người đăng
-                </span>
-              )}
-            </div>
-            {classInfo && (
-              <p className="mt-0.5 truncate text-xs text-slate-500">
-                {classInfo.subject} • {classInfo.sessionsPerWeek} buổi/tuần • {classInfo.minutesPerSession} phút/buổi
-              </p>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900">
+              {viewerRole === "admin" ? "Rà soát & Xử lý điểm danh" : "Điểm danh lớp học"}{" "}
+              {classInfo?.classCode ? `— ${classInfo.classCode}` : ""}
+            </h2>
+            {viewerRole === "admin" && (
+              <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold text-white">
+                Quản trị viên
+              </span>
+            )}
+            {viewerRole === "tutor" && (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                Gia sư
+              </span>
+            )}
+            {viewerRole === "poster" && (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                Học viên / Người đăng
+              </span>
             )}
           </div>
+          {classInfo && (
+            <p className="mt-0.5 truncate text-xs text-slate-500">
+              {classInfo.subject} • {currentPeriod?.sessionsPerWeek || classInfo.sessionsPerWeek} buổi/tuần •{" "}
+              {currentPeriod?.minutesPerSession || classInfo.minutesPerSession} phút/buổi
+            </p>
+          )}
+        </div>
 
-          <div className="flex items-center gap-2">
-            {periods.length > 1 && (
-              <select
-                value={currentPeriod?.id || selectedPeriodId}
-                onChange={(e) => setSelectedPeriodId(e.target.value)}
-                className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:border-indigo-400 focus:outline-none"
-              >
-                {periods.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    Kỳ {p.periodNumber} ({formatDateVN(p.startDate, { withTime: false })} –{" "}
-                    {formatDateVN(p.endDate, { withTime: false })})
-                  </option>
-                ))}
-              </select>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={refreshOverview}
-              disabled={loadingOverview}
-              title="Làm mới"
+        <div className="flex items-center gap-2">
+          {periods.length > 1 && (
+            <select
+              value={currentPeriod?.id || selectedPeriodId}
+              onChange={(e) => setSelectedPeriodId(e.target.value)}
+              className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:border-indigo-400 focus:outline-none"
             >
-              <RefreshCw className={`h-4 w-4 ${loadingOverview ? "animate-spin" : ""}`} />
-            </Button>
+              {periods.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Kỳ {p.periodNumber} ({formatDateVN(p.startDate, { withTime: false })} –{" "}
+                  {formatDateVN(p.endDate, { withTime: false })})
+                </option>
+              ))}
+            </select>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={refreshOverview}
+            disabled={loadingOverview}
+            title="Làm mới"
+          >
+            <RefreshCw className={`h-4 w-4 ${loadingOverview ? "animate-spin" : ""}`} />
+          </Button>
+          {!inline && onClose && (
             <button
               type="button"
               onClick={onClose}
@@ -403,11 +766,12 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
             >
               <X className="h-5 w-5" />
             </button>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* Body */}
-        <div className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6">
+      {/* Body */}
+      <div className={inline ? "space-y-5 p-5 sm:p-6" : "max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6"}>
           {loadingOverview && !overview ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-500">
               <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -424,23 +788,25 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Kỳ điểm danh #{currentPeriod.periodNumber} (Ngày neo: {currentPeriod.anchorDay})
-                      </p>
-                      <p className="mt-0.5 text-sm font-semibold text-slate-800">
-                        {formatDateVN(currentPeriod.startDate, { withTime: false })} →{" "}
+                      <p className="text-sm font-bold text-slate-900">
+                        Kỳ #{currentPeriod.periodNumber}:{" "}
+                        {formatDateVN(currentPeriod.startDate, { withTime: false })} –{" "}
                         {formatDateVN(currentPeriod.endDate, { withTime: false })}
                       </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Chốt kỳ ngày {currentPeriod.anchorDay} hàng tháng • Chỉ tiêu{" "}
+                        {currentPeriod.monthlyTarget} buổi/tháng
+                      </p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="rounded-lg bg-emerald-50 px-3 py-1.5 text-center">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-center">
                         <p className="text-[11px] font-medium text-emerald-700">Buổi hợp lệ</p>
                         <p className="text-base font-bold text-emerald-800">
                           {currentPeriod.stats.totalValidCount} / {currentPeriod.monthlyTarget}
                         </p>
                       </div>
                       {currentPeriod.stats.needsReviewCount > 0 && (
-                        <div className="rounded-lg bg-rose-50 px-3 py-1.5 text-center">
+                        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-center">
                           <p className="text-[11px] font-medium text-rose-700">Cần xử lý</p>
                           <p className="text-base font-bold text-rose-800">
                             {currentPeriod.stats.needsReviewCount}
@@ -450,44 +816,26 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                     </div>
                   </div>
 
-                  {/* 4 weeks + extraDays cards */}
-                  <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-                    {(currentPeriod.weeks || []).map((week) => (
-                      <div
-                        key={week.weekNumber}
-                        className={`rounded-lg border p-3 text-xs ${
-                          week.isCurrent
-                            ? "border-indigo-300 bg-indigo-50/60"
-                            : "border-slate-200 bg-slate-50/60"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between font-bold text-slate-800">
-                          <span>{week.label}</span>
-                          {week.weekNumber > 0 ? (
-                            <span className="text-indigo-700">
-                              {week.completedCount}/{week.target}
-                            </span>
-                          ) : (
-                            <span className="text-slate-600">{week.completedCount} buổi</span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-[11px] text-slate-500">
-                          {formatDateVN(week.startDate, { withTime: false })} –{" "}
-                          {formatDateVN(week.endDate, { withTime: false })}
-                        </p>
-                        <p className="mt-1.5 font-medium text-slate-700">{week.statusText}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Calendar Week View (mặc định mở tuần hiện tại, làm sáng ngày hôm nay) */}
+                  <AttendanceWeekCalendar
+                    weeks={currentPeriod.weeks || []}
+                    sessions={sessions}
+                    viewScope={viewScope}
+                    onChangeScope={setViewScope}
+                    selectedWeekNum={selectedWeekNum}
+                    onChangeWeek={setSelectedWeekNum}
+                    selectedDayKey={selectedDayKey}
+                    onSelectDay={setSelectedDayKey}
+                  />
                 </div>
               )}
 
               {/* Active Session / Action Panel */}
               {isPeriodOpen && viewerRole === "tutor" && (
-                <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4">
-                  <h3 className="flex items-center gap-2 text-sm font-bold text-indigo-950">
-                    <Camera className="h-4 w-4 text-indigo-600" />
-                    Thao tác buổi học hiện tại (Gia sư)
+                <div className="rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50/70 to-white p-5 shadow-xs">
+                  <h3 className="flex items-center gap-2 text-sm font-bold text-emerald-950">
+                    <Camera className="h-4 w-4 text-emerald-600" />
+                    Check-in / Điểm danh buổi học
                   </h3>
 
                   {!activeSession && (
@@ -496,7 +844,7 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                         Chụp hoặc chọn ảnh minh chứng tại buổi học để gửi <strong>Check-in bắt đầu</strong>. Học viên có 30 phút để xác nhận.
                       </p>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-white px-4 py-2.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                        <label className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-white px-4 py-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
                           <Upload className="h-4 w-4" />
                           <span>{selectedFile ? selectedFile.name : "Chọn ảnh Check-in (JPG/PNG/WEBP, ≤10MB)"}</span>
                           <input
@@ -510,7 +858,7 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                           type="button"
                           onClick={handleCheckIn}
                           disabled={actionLoading || !selectedFile}
-                          className="bg-indigo-600 text-white hover:bg-indigo-700"
+                          className="h-11 bg-emerald-600 px-5 text-white hover:bg-emerald-700"
                         >
                           {actionLoading && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
                           Gửi Check-in bắt đầu buổi
@@ -767,20 +1115,57 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                 </div>
               )}
 
-              {/* Session History */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-900">
-                  <Clock className="h-4 w-4 text-slate-500" />
-                  Lịch sử điểm danh trong kỳ ({sessions.length} buổi)
-                </h3>
+              {/* Session History (filtered by Hôm nay / Theo tuần / Cả tháng) */}
+              {(() => {
+                const todayKey = toVNDateKey(new Date());
+                const filteredSessions = sessions.filter((s) => {
+                  const sKey = toVNDateKey(s.confirmedCheckInAt || s.checkInAt || s.createdAt);
+                  if (viewScope === "today") {
+                    return sKey === (selectedDayKey || todayKey);
+                  }
+                  if (viewScope === "week") {
+                    if (selectedDayKey) return sKey === selectedDayKey;
+                    return s.targetWeek === selectedWeekNum;
+                  }
+                  return true; // month
+                });
 
-                {sessions.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-xs text-slate-500">
-                    Chưa có buổi điểm danh nào được ghi nhận trong kỳ này.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {sessions.map((s) => (
+                const scopeLabel =
+                  viewScope === "today"
+                    ? "hôm nay"
+                    : viewScope === "week"
+                      ? selectedDayKey
+                        ? `ngày ${selectedDayKey.split("-").reverse().slice(0, 2).join("/")}`
+                        : selectedWeekNum > 0
+                          ? `Tuần ${selectedWeekNum}`
+                          : "Ngày dư"
+                      : "cả tháng";
+
+                return (
+                  <div>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                        <Clock className="h-4 w-4 text-slate-500" />
+                        Lịch sử điểm danh ({scopeLabel}: {filteredSessions.length} buổi)
+                      </h3>
+                      {selectedDayKey && viewScope === "week" && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDayKey(null)}
+                          className="text-xs font-semibold text-emerald-700 hover:underline"
+                        >
+                          Xem cả Tuần {selectedWeekNum > 0 ? selectedWeekNum : "ngày dư"}
+                        </button>
+                      )}
+                    </div>
+
+                    {filteredSessions.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-xs text-slate-500">
+                        Không có buổi điểm danh nào trong {scopeLabel}.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {filteredSessions.map((s) => (
                       <div
                         key={s.id}
                         className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs"
@@ -828,51 +1213,69 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                           </div>
                         </div>
 
-                        {/* Photos */}
+                        {/* Photos (larger preview for comparison + sender/time) */}
                         {(s.checkInPhoto?.url || s.checkOutPhoto?.url) && (
                           <div className="mt-3 flex flex-wrap gap-3">
                             {s.checkInPhoto?.url && (
                               <button
                                 type="button"
                                 onClick={() => setLightboxUrl(s.checkInPhoto.url)}
-                                className="group flex items-center gap-2 rounded-lg border border-slate-200 p-1.5 pr-3 text-left hover:border-indigo-300 hover:bg-indigo-50/40"
+                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-2 pr-3.5 text-left transition hover:border-slate-400 hover:bg-slate-100/70"
                               >
                                 <img
                                   src={s.checkInPhoto.url}
                                   alt="Ảnh check-in"
-                                  className="h-10 w-12 rounded object-cover"
+                                  className="h-20 w-28 shrink-0 rounded-lg object-cover"
                                 />
-                                <span className="text-xs font-medium text-slate-700 group-hover:text-indigo-700">
-                                  Ảnh Check-in
-                                </span>
+                                <div>
+                                  <span className="block text-xs font-bold text-slate-800">
+                                    Ảnh Check-in
+                                  </span>
+                                  <span className="mt-0.5 block text-[11px] text-slate-500">
+                                    Gia sư gửi: {formatDateVN(s.checkInAt)}
+                                  </span>
+                                  <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+                                    <Eye className="h-3 w-3" />
+                                    Bấm phóng to
+                                  </span>
+                                </div>
                               </button>
                             )}
                             {s.checkOutPhoto?.url && (
                               <button
                                 type="button"
                                 onClick={() => setLightboxUrl(s.checkOutPhoto.url)}
-                                className="group flex items-center gap-2 rounded-lg border border-slate-200 p-1.5 pr-3 text-left hover:border-indigo-300 hover:bg-indigo-50/40"
+                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-2 pr-3.5 text-left transition hover:border-slate-400 hover:bg-slate-100/70"
                               >
                                 <img
                                   src={s.checkOutPhoto.url}
                                   alt="Ảnh check-out"
-                                  className="h-10 w-12 rounded object-cover"
+                                  className="h-20 w-28 shrink-0 rounded-lg object-cover"
                                 />
-                                <span className="text-xs font-medium text-slate-700 group-hover:text-indigo-700">
-                                  Ảnh Check-out
-                                </span>
+                                <div>
+                                  <span className="block text-xs font-bold text-slate-800">
+                                    Ảnh Check-out
+                                  </span>
+                                  <span className="mt-0.5 block text-[11px] text-slate-500">
+                                    Gia sư gửi: {formatDateVN(s.checkOutAt)}
+                                  </span>
+                                  <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+                                    <Eye className="h-3 w-3" />
+                                    Bấm phóng to
+                                  </span>
+                                </div>
                               </button>
                             )}
                           </div>
                         )}
 
-                        {/* Failure / Rejection Reason */}
+                        {/* Operational Issue Explanation */}
                         {(s.failureReason || s.rejectionReason) && (
-                          <div className="mt-3 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50/70 px-3 py-2 text-xs text-rose-800">
+                          <div className="mt-3 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50/70 px-3 py-2.5 text-xs text-rose-800">
                             <FileWarning className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
                             <div>
-                              <span className="font-semibold">Ghi chú hệ thống: </span>
-                              {s.failureReason || s.rejectionReason}
+                              <span className="font-semibold">Nguyên nhân cần rà soát: </span>
+                              {formatOperationalIssue(s)}
                             </div>
                           </div>
                         )}
@@ -910,6 +1313,11 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                           </div>
                         )}
 
+                        {/* Admin inline case-handling actions */}
+                        {viewerRole === "admin" && (
+                          <AdminSessionCasePanel session={s} onSuccess={refreshOverview} />
+                        )}
+
                         {/* Footer action */}
                         {(viewerRole === "tutor" || viewerRole === "poster") &&
                           s.dispute?.status !== "pending" && (
@@ -930,11 +1338,30 @@ const ClassAttendanceDialog = ({ open, classId, onClose }) => {
                     ))}
                   </div>
                 )}
-              </div>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>
-      </Modal>
+    </>
+  );
+
+  return (
+    <>
+      {inline ? (
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          {innerContent}
+        </div>
+      ) : (
+        <Modal
+          onClose={onClose}
+          closeOnBackdropClick
+          panelClassName="max-w-4xl p-0 overflow-hidden"
+        >
+          {innerContent}
+        </Modal>
+      )}
 
       {rejectTarget && (
         <RejectSessionModal
