@@ -145,6 +145,22 @@ const API_ENDPOINTS = {
     CLASS_FEE: "/payments/class-fee",
     MINE: "/payments/mine",
   },
+  ATTENDANCE: {
+    CLASS_OVERVIEW: (classId) => `/attendance/classes/${classId}/overview`,
+    CLASS_SESSIONS: (classId) => `/attendance/classes/${classId}/sessions`,
+    CHECK_IN: (classId) => `/attendance/classes/${classId}/sessions/check-in`,
+    SESSION_DETAIL: (id) => `/attendance/sessions/${id}`,
+    CONFIRM_CHECKIN: (id) => `/attendance/sessions/${id}/confirm-checkin`,
+    REJECT_CHECKIN: (id) => `/attendance/sessions/${id}/reject-checkin`,
+    CHECK_OUT: (id) => `/attendance/sessions/${id}/check-out`,
+    CONFIRM_CHECKOUT: (id) => `/attendance/sessions/${id}/confirm-checkout`,
+    REJECT_CHECKOUT: (id) => `/attendance/sessions/${id}/reject-checkout`,
+    DISPUTE: (id) => `/attendance/sessions/${id}/dispute`,
+    ADMIN_SESSIONS: "/attendance/admin/sessions",
+    ADMIN_CONFIRM_ON_BEHALF: (id) => `/attendance/admin/sessions/${id}/confirm-on-behalf`,
+    ADMIN_RESOLVE: (id) => `/attendance/admin/sessions/${id}/resolve`,
+    ADMIN_INIT_PERIOD: (classId) => `/attendance/admin/classes/${classId}/init-period`,
+  },
 };
 
 export default API_ENDPOINTS;

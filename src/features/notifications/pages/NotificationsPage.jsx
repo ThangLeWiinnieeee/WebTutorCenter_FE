@@ -6,12 +6,14 @@ import {
   CalendarX2,
   CheckCheck,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   Gift,
   GraduationCap,
   Handshake,
   ReceiptText,
   RotateCcw,
+  ShieldCheck,
   UserCheck,
   XCircle,
 } from "lucide-react";
@@ -64,6 +66,16 @@ const NOTIFICATION_ICON_MAP = {
   // Thanh toán phí nhận lớp
   CLASS_FEE_PAID: { icon: ReceiptText, className: "bg-emerald-50 text-emerald-600" },
   CLASS_FEE_PAYMENT_FAILED: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  // Điểm danh lớp học
+  ATTENDANCE_CHECKIN_REQUESTED: { icon: ClipboardCheck, className: "bg-amber-50 text-amber-600" },
+  ATTENDANCE_CHECKIN_CONFIRMED: { icon: CheckCircle2, className: "bg-sky-50 text-sky-600" },
+  ATTENDANCE_CHECKOUT_REQUESTED: { icon: ClipboardCheck, className: "bg-indigo-50 text-indigo-600" },
+  ATTENDANCE_SESSION_VALID: { icon: CheckCircle2, className: "bg-emerald-50 text-emerald-600" },
+  ATTENDANCE_SESSION_INVALID: { icon: XCircle, className: "bg-rose-50 text-rose-600" },
+  ATTENDANCE_CONFIRM_EXPIRED: { icon: Clock, className: "bg-orange-50 text-orange-600" },
+  ATTENDANCE_SESSION_NEEDS_REVIEW: { icon: CalendarX2, className: "bg-rose-50 text-rose-600" },
+  ATTENDANCE_DISPUTE_RESOLVED: { icon: ShieldCheck, className: "bg-indigo-50 text-indigo-600" },
+  ATTENDANCE_ADMIN_CONFIRMED: { icon: UserCheck, className: "bg-emerald-50 text-emerald-600" },
 };
 
 const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-slate-100 text-slate-500" };
@@ -83,6 +95,16 @@ const NOTIFICATION_LINK = {
   // Chuyển phí thành công → xem hóa đơn; thất bại → về danh sách nhận lớp để thử lại
   CLASS_FEE_PAID: { to: "/my-payments", label: "Xem hóa đơn thanh toán" },
   CLASS_FEE_PAYMENT_FAILED: { to: "/my-classes", label: "Xem danh sách nhận lớp" },
+  // Điểm danh lớp học
+  ATTENDANCE_CHECKIN_REQUESTED: { to: "/my-posts", label: "Xác nhận Check-in buổi học" },
+  ATTENDANCE_CHECKOUT_REQUESTED: { to: "/my-posts", label: "Xác nhận Check-out buổi học" },
+  ATTENDANCE_CHECKIN_CONFIRMED: { to: "/my-classes", label: "Xem điểm danh lớp học" },
+  ATTENDANCE_SESSION_VALID: { to: "/my-classes", label: "Xem điểm danh lớp học" },
+  ATTENDANCE_SESSION_INVALID: { to: "/my-classes", label: "Xem điểm danh lớp học" },
+  ATTENDANCE_CONFIRM_EXPIRED: { to: "/my-classes", label: "Xem điểm danh lớp học" },
+  ATTENDANCE_SESSION_NEEDS_REVIEW: { to: "/my-classes", label: "Xem điểm danh lớp học" },
+  ATTENDANCE_DISPUTE_RESOLVED: { to: "/my-classes", label: "Xem kết quả điểm danh" },
+  ATTENDANCE_ADMIN_CONFIRMED: { to: "/my-classes", label: "Xem buổi điểm danh" },
 };
 
 // Danh sách thông báo kèm phân trang.

@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\" \"*.{js,json}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,css}\" \"*.{js,json}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -42,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.65.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

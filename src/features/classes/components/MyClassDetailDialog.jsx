@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarDays,
   CheckCircle2,
+  ClipboardCheck,
   Clock3,
   CreditCard,
   FileText,
@@ -32,6 +33,7 @@ import {
 } from "@/features/classes/utils/classFormatters";
 import { ORIGIN_META, STATUS_META } from "@/features/classes/utils/applicationStatus";
 import { cancelApplicationThunk, completeClassThunk } from "@/features/classes/store/classThunks";
+import ClassAttendanceDialog from "@/features/attendance/components/ClassAttendanceDialog";
 import paymentService from "@/features/payments/services/paymentService";
 
 // Hộp thoại chi tiết đơn nhận lớp của gia sư: xem thông tin, xin hủy, xác nhận hoàn thành.
@@ -45,6 +47,7 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
   const [providers, setProviders] = useState([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [payingProvider, setPayingProvider] = useState(null);
+  const [showAttendance, setShowAttendance] = useState(false);
 
   if (!open || !application) return null;
 
@@ -114,16 +117,18 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
   const handleClose = () => {
     setShowCancelForm(false);
     setShowProviderPicker(false);
+    setShowAttendance(false);
     setReason("");
     onClose();
   };
 
   return (
-    <Modal
-      onClose={onClose}
-      labelledBy="my-class-detail-title"
-      panelClassName="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden rounded-2xl p-0"
-    >
+    <>
+      <Modal
+        onClose={onClose}
+        labelledBy="my-class-detail-title"
+        panelClassName="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden rounded-2xl p-0"
+      >
       {/* Header */}
       <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
         <div className="min-w-0">
@@ -467,6 +472,16 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
                   Xác nhận hoàn thành
                 </Button>
               ))}
+            {(isUnlocked || classCompleted) && classItem.id && (
+              <Button
+                type="button"
+                onClick={() => setShowAttendance(true)}
+                className="h-10 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+              >
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+                Điểm danh lớp học
+              </Button>
+            )}
             {canCancel && (
               <Button
                 type="button"
@@ -490,6 +505,13 @@ const MyClassDetailDialog = ({ open, application, onClose, onCancelled, onComple
         )}
       </div>
     </Modal>
+
+    <ClassAttendanceDialog
+      open={showAttendance}
+      classId={classItem?.id}
+      onClose={() => setShowAttendance(false)}
+    />
+  </>
   );
 };
 

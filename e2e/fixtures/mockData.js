@@ -1,0 +1,195 @@
+export const mockLocations = {
+  provinces: [
+    { code: "01", name: "Thành phố Hà Nội" },
+    { code: "79", name: "Thành phố Hồ Chí Minh" },
+    { code: "48", name: "Thành phố Đà Nẵng" },
+  ],
+  districts01: [
+    { code: "001", name: "Quận Ba Đình", provinceCode: "01" },
+    { code: "002", name: "Quận Hoàn Kiếm", provinceCode: "01" },
+    { code: "005", name: "Quận Cầu Giấy", provinceCode: "01" },
+  ],
+};
+
+export const mockSubjects = [
+  { _id: "sub_1", name: "Toán", slug: "toan", isActive: true },
+  { _id: "sub_2", name: "Tiếng Anh", slug: "tieng-anh", isActive: true },
+  { _id: "sub_3", name: "Vật lý", slug: "vat-ly", isActive: true },
+  { _id: "sub_4", name: "Hóa học", slug: "hoa-hoc", isActive: true },
+  { _id: "sub_5", name: "Ngữ văn", slug: "ngu-van", isActive: true },
+];
+
+export const mockLookups = {
+  grades: [
+    "Lớp 1",
+    "Lớp 2",
+    "Lớp 3",
+    "Lớp 4",
+    "Lớp 5",
+    "Lớp 6",
+    "Lớp 7",
+    "Lớp 8",
+    "Lớp 9",
+    "Lớp 10",
+    "Lớp 11",
+    "Lớp 12",
+    "Luyện thi đại học",
+  ],
+  subjects: ["Toán", "Tiếng Anh", "Vật lý", "Hóa học", "Ngữ văn"],
+};
+
+export const mockSettings = {
+  centerName: "Trung Tâm Gia Sư WebTutorCenter",
+  hotline: "0987654321",
+  email: "support@webtutorcenter.vn",
+  address: "123 Đường Cầu Giấy, Hà Nội",
+  contractHtml: "<p>Nội dung hợp đồng mẫu WebTutorCenter</p>",
+};
+
+export const mockTutors = [
+  {
+    id: "tutor_demo_1",
+    _id: "tutor_demo_1",
+    fullName: "Nguyễn Văn Gia Sư",
+    avatar: null,
+    gender: "male",
+    dateOfBirth: "1995-05-15",
+    status: "active",
+    subjects: ["Toán", "Vật lý"],
+    grades: ["Lớp 10", "Lớp 11", "Lớp 12"],
+    hourlyRate: 250000,
+    averageRating: 4.9,
+    rating: 4.9,
+    reviewCount: 18,
+    teachingModes: ["online", "offline"],
+    bio: "Gia sư chuyên Toán - Lý hơn 5 năm kinh nghiệm ôn thi đại học điểm 9+.",
+    currentArea: {
+      province: "Thành phố Hà Nội",
+      district: "Quận Cầu Giấy",
+      provinceName: "Thành phố Hà Nội",
+      districtName: "Quận Cầu Giấy",
+    },
+    teachingAreas: {
+      provinceName: "Thành phố Hà Nội",
+      districts: [{ name: "Quận Cầu Giấy" }, { name: "Quận Ba Đình" }],
+    },
+    occupationStatus: "teacher",
+    isTrusted: true,
+  },
+  {
+    id: "tutor_demo_2",
+    _id: "tutor_demo_2",
+    fullName: "Trần Thị Mai Anh",
+    avatar: null,
+    gender: "female",
+    dateOfBirth: "2000-08-20",
+    status: "active",
+    subjects: ["Tiếng Anh"],
+    grades: ["Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"],
+    hourlyRate: 200000,
+    averageRating: 5.0,
+    rating: 5.0,
+    reviewCount: 24,
+    teachingModes: ["online"],
+    bio: "IELTS 8.0, kinh nghiệm dạy phát âm và giao tiếp chuẩn quốc tế.",
+    currentArea: {
+      province: "Thành phố Hà Nội",
+      district: "Quận Ba Đình",
+      provinceName: "Thành phố Hà Nội",
+      districtName: "Quận Ba Đình",
+    },
+    teachingAreas: {
+      provinceName: "Thành phố Hà Nội",
+      districts: [{ name: "Quận Ba Đình" }],
+    },
+    occupationStatus: "student",
+    isTrusted: false,
+  },
+];
+
+export const mockClasses = [
+  {
+    _id: "class_demo_1",
+    id: "class_demo_1",
+    classCode: "CLS001",
+    title: "Cần tìm gia sư Toán lớp 10 tại nhà",
+    summary: "Cần tìm gia sư Toán lớp 10 tại nhà",
+    subject: "Toán",
+    grade: "Lớp 10",
+    studentCount: 1,
+    sessionsPerWeek: 3,
+    minutesPerSession: 90,
+    fee: 2500000,
+    status: "pending",
+    teachingMode: "offline",
+    provinceName: "Thành phố Hà Nội",
+    districtName: "Quận Cầu Giấy",
+    address: { province: "Thành phố Hà Nội", district: "Quận Cầu Giấy" },
+    requirements: "Kiên nhẫn, có phương pháp dạy học sinh mất gốc",
+    createdAt: "2026-11-10T10:00:00.000Z",
+  },
+  {
+    _id: "class_demo_2",
+    id: "class_demo_2",
+    classCode: "CLS002",
+    title: "Gia sư Tiếng Anh lớp 8 Online",
+    summary: "Gia sư Tiếng Anh lớp 8 Online",
+    subject: "Tiếng Anh",
+    grade: "Lớp 8",
+    studentCount: 1,
+    sessionsPerWeek: 2,
+    minutesPerSession: 90,
+    fee: 1800000,
+    status: "pending",
+    teachingMode: "online",
+    provinceName: "Thành phố Hà Nội",
+    districtName: "Quận Ba Đình",
+    address: { province: "Thành phố Hà Nội", district: "Quận Ba Đình" },
+    requirements: "Luyện ngữ pháp và nghe nói chuẩn",
+    createdAt: "2026-11-12T14:30:00.000Z",
+  },
+];
+
+export const mockPricingConfig = {
+  configKey: "default",
+  defaultBaseFee: 200000,
+  studentCountSurcharge: 50000,
+  sessionLengthBaseMinutes: 90,
+  minutesPerSessionOptions: [60, 90, 120],
+  sessionsPerWeekMin: 1,
+  sessionsPerWeekMax: 7,
+  baseFeeBySubject: [
+    { subject: "Toán", fee: 200000 },
+    { subject: "Tiếng Anh", fee: 220000 },
+  ],
+};
+
+export const mockUsers = {
+  admin: {
+    id: "admin_user_id",
+    fullName: "Admin Quản Trị",
+    email: "admindemo@gmail.com",
+    role: "admin",
+    isVerified: true,
+    phone: "0901000001",
+    gender: "other",
+  },
+  tutor: {
+    id: "tutor_user_id",
+    fullName: "Vũ Thu Hà",
+    email: "thuhatutor@gmail.com",
+    role: "tutor",
+    isVerified: true,
+    phone: "0901000007",
+    gender: "female",
+  },
+  student: {
+    id: "student_user_id",
+    fullName: "Nguyễn Minh Anh",
+    email: "minhanhuser@gmail.com",
+    role: "user",
+    isVerified: true,
+    phone: "0901000002",
+    gender: "female",
+  },
+};

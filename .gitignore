@@ -11,6 +11,11 @@ package-lock.json
 dist
 dist-ssr
 
+# Test outputs
+test-results/
+playwright-report/
+screenshots/
+
 # Logs
 logs
 *.log
