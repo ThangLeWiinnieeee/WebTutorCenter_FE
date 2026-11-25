@@ -45,6 +45,9 @@ const tutorService = {
       params: { ...filters, page, limit },
     }),
 
+  // Học viên áp dụng bộ lọc → BE ghi tín hiệu để cá nhân hóa thứ tự /tutors
+  recordFilterEvent: (data) => axiosInstance.post(API_ENDPOINTS.TUTORS.SEARCH_FILTER_EVENTS, data),
+
   getTutorById: (id) => axiosInstance.get(API_ENDPOINTS.TUTORS.GET_BY_ID(id)),
 
   // Gia sư đổi hồ sơ (chờ admin duyệt)
